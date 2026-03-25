@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { ArrowLeft, Mail, MessageSquare, Check, User } from "lucide-react";
+import { Mail, MessageSquare, Check, User } from "lucide-react";
 
 const PROMPT_SUGGESTIONS = [
   "Thinking of you",
@@ -142,16 +142,7 @@ export default function MessageComposer({ onBack }: MessageComposerProps) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col px-6 pb-10 pt-4 animate-fade-in">
-      {/* Header */}
-      <button
-        onClick={onBack}
-        className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors mb-6 self-start"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        <span className="text-sm font-body">Back</span>
-      </button>
-
+    <div className="flex flex-1 flex-col px-6 pb-24 pt-6 animate-fade-in">
       <h1 className="font-display text-2xl font-semibold mb-8">Send some warmth</h1>
 
       {/* STEP 1 — WHO */}
