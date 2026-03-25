@@ -209,6 +209,12 @@ export default function SettingsScreen() {
               onCheckedChange={setBirthdayReminders}
             />
           </div>
+
+          {/* Divider */}
+          <div className="border-t border-border" />
+
+          {/* Important Dates */}
+          <ImportantDates />
         </div>
       </section>
 
