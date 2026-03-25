@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Heart, Send, Sparkles, CalendarHeart } from "lucide-react";
 import MessageComposer, { type PrefilledRecipient } from "@/components/MessageComposer";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import SettingsScreen from "@/components/SettingsScreen";
+import AdminPanel from "@/components/admin/AdminPanel";
 import { supabase } from "@/integrations/supabase/client";
 
 interface UpcomingReminder {
@@ -34,9 +36,7 @@ function useUpcomingDates(userId: string | undefined) {
       const upcoming: UpcomingReminder[] = [];
 
       for (const d of data) {
-        // Build date for this year
         let dateThisYear = new Date(now.getFullYear(), d.month - 1, d.day);
-        // If it already passed, check next year (but only within 7 days)
         if (dateThisYear < today) {
           dateThisYear = new Date(now.getFullYear() + 1, d.month - 1, d.day);
         }
@@ -63,6 +63,7 @@ function useUpcomingDates(userId: string | undefined) {
 
 const Index = () => {
   const { user, loading } = useAuth();
+  const { isAdmin } = useAdmin();
   const [activeTab, setActiveTab] = useState<Tab>("home");
   const [composerPrefill, setComposerPrefill] = useState<PrefilledRecipient | undefined>();
   const reminders = useUpcomingDates(user?.id);
@@ -82,7 +83,6 @@ const Index = () => {
   const handleSendNow = async (reminder: UpcomingReminder) => {
     const prefill: PrefilledRecipient = { name: reminder.name };
 
-    // If linked to a contact, fetch their email/phone
     if (reminder.contact_id) {
       const { data } = await supabase
         .from("recipients")
@@ -125,7 +125,6 @@ const Index = () => {
 
           <main className="flex flex-1 flex-col items-center justify-center px-6 pb-28">
             <div className="max-w-md w-full text-center animate-fade-in">
-              {/* Upcoming reminders */}
               {reminders.length > 0 && (
                 <div className="mb-8 space-y-3 text-left">
                   {reminders.map((r, i) => (
@@ -184,7 +183,9 @@ const Index = () => {
 
       {activeTab === "settings" && <SettingsScreen />}
 
-      <BottomNav active={activeTab} onChange={switchTab} />
+      {activeTab === "admin" && isAdmin && <AdminPanel />}
+
+      <BottomNav active={activeTab} onChange={switchTab} isAdmin={isAdmin} />
     </div>
   );
 };
