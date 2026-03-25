@@ -32,16 +32,23 @@ interface Recipient {
   phone: string | null;
 }
 
-interface MessageComposerProps {
-  onBack: () => void;
+export interface PrefilledRecipient {
+  name?: string;
+  email?: string;
+  phone?: string;
 }
 
-export default function MessageComposer({ onBack }: MessageComposerProps) {
+interface MessageComposerProps {
+  onBack: () => void;
+  prefill?: PrefilledRecipient;
+}
+
+export default function MessageComposer({ onBack, prefill }: MessageComposerProps) {
   const { user } = useAuth();
-  const [recipientInput, setRecipientInput] = useState("");
-  const [recipientName, setRecipientName] = useState("");
-  const [recipientEmail, setRecipientEmail] = useState("");
-  const [recipientPhone, setRecipientPhone] = useState("");
+  const [recipientInput, setRecipientInput] = useState(prefill?.name || "");
+  const [recipientName, setRecipientName] = useState(prefill?.name || "");
+  const [recipientEmail, setRecipientEmail] = useState(prefill?.email || "");
+  const [recipientPhone, setRecipientPhone] = useState(prefill?.phone || "");
   const [suggestions, setSuggestions] = useState<Recipient[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [message, setMessage] = useState("");
