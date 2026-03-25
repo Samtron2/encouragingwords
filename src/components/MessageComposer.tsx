@@ -270,16 +270,16 @@ export default function MessageComposer({ onBack }: MessageComposerProps) {
         <div className="flex gap-3">
           <Button
             onClick={() => handleSend("email")}
-            disabled={!hasRecipient || !message.trim() || sending || (!canSendEmail && !!recipientPhone)}
+            disabled={!canSendEmail || !message.trim() || sending}
             className="flex-1 gap-2 shadow-glow"
-            variant={canSendEmail || (!canSendEmail && !canSendSms) ? "default" : "secondary"}
+            variant={canSendEmail ? "default" : "secondary"}
           >
             <Mail className="h-4 w-4" />
             Send by email
           </Button>
           <Button
             onClick={() => handleSend("sms")}
-            disabled={!hasRecipient || !message.trim() || sending || (!canSendSms && !!recipientEmail)}
+            disabled={!canSendSms || !message.trim() || sending}
             className="flex-1 gap-2"
             variant={canSendSms ? "default" : "secondary"}
           >
