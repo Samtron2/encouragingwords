@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Heart, Send, Sparkles } from "lucide-react";
+import MessageComposer from "@/components/MessageComposer";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
+  const [showComposer, setShowComposer] = useState(false);
 
   if (loading) {
     return (
@@ -16,6 +19,10 @@ const Index = () => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  if (showComposer) {
+    return <MessageComposer onBack={() => setShowComposer(false)} />;
   }
 
   return (
@@ -45,7 +52,7 @@ const Index = () => {
             It only takes a moment to make someone smile.
           </p>
           <div className="mt-8">
-            <Button size="lg" className="gap-2 shadow-glow">
+            <Button size="lg" className="gap-2 shadow-glow" onClick={() => setShowComposer(true)}>
               <Send className="h-4 w-4" />
               Send an encouraging word
             </Button>
