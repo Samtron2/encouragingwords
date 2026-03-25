@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { ArrowLeft, Mail, MessageSquare, Check, User } from "lucide-react";
+import { Mail, MessageSquare, Check, User } from "lucide-react";
 
 const PROMPT_SUGGESTIONS = [
   "Thinking of you",
