@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      important_dates: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          day: number
+          id: string
+          month: number
+          name: string
+          occasion_type: string
+          user_id: string
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          day: number
+          id?: string
+          month: number
+          name: string
+          occasion_type?: string
+          user_id: string
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          day?: number
+          id?: string
+          month?: number
+          name?: string
+          occasion_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "important_dates_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "recipients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string

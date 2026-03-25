@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Camera, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import ImportantDates from "@/components/ImportantDates";
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
@@ -208,6 +209,12 @@ export default function SettingsScreen() {
               onCheckedChange={setBirthdayReminders}
             />
           </div>
+
+          {/* Divider */}
+          <div className="border-t border-border" />
+
+          {/* Important Dates */}
+          <ImportantDates />
         </div>
       </section>
 
