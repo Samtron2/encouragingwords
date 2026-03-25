@@ -112,7 +112,7 @@ export default function MessageComposer({ onBack }: MessageComposerProps) {
     if (recipientEmail) recipientData.email = recipientEmail;
     if (recipientPhone) recipientData.phone = recipientPhone;
 
-    await supabase.from("recipients").insert(recipientData);
+    await supabase.from("recipients").insert([recipientData as { user_id: string; name?: string; email?: string; phone?: string; last_contacted_at?: string }]);
 
     // Simulate sending
     await new Promise((r) => setTimeout(r, 800));
