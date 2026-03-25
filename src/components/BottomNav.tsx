@@ -1,20 +1,25 @@
-import { Home, Send, Settings } from "lucide-react";
+import { Home, Send, Settings, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type Tab = "home" | "send" | "settings";
+export type Tab = "home" | "send" | "settings" | "admin";
 
 interface BottomNavProps {
   active: Tab;
   onChange: (tab: Tab) => void;
+  isAdmin?: boolean;
 }
 
-const items: { tab: Tab; icon: typeof Home; label: string }[] = [
-  { tab: "home", icon: Home, label: "Home" },
-  { tab: "send", icon: Send, label: "Send" },
-  { tab: "settings", icon: Settings, label: "Settings" },
-];
+export default function BottomNav({ active, onChange, isAdmin }: BottomNavProps) {
+  const items: { tab: Tab; icon: typeof Home; label: string }[] = [
+    { tab: "home", icon: Home, label: "Home" },
+    { tab: "send", icon: Send, label: "Send" },
+    { tab: "settings", icon: Settings, label: "Settings" },
+  ];
 
-export default function BottomNav({ active, onChange }: BottomNavProps) {
+  if (isAdmin) {
+    items.push({ tab: "admin", icon: Shield, label: "Admin" });
+  }
+
   return (
     <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="flex items-end justify-around px-4 pb-[env(safe-area-inset-bottom)] h-16">
