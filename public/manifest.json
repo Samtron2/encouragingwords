@@ -1,0 +1,10 @@
+{
+  "name": "Encouraging Words",
+  "short_name": "Encourage",
+  "description": "Send short, positive messages to friends and family",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f4f0",
+  "theme_color": "#cc6644",
+  "icons": []
+}
