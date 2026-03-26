@@ -182,21 +182,7 @@ export default function SettingsScreen() {
         <div className="rounded-2xl bg-card p-6 space-y-5 shadow-card">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-base font-medium">Send to the Universe</p>
-              <p className="text-[15px] text-muted-foreground mt-0.5 leading-relaxed">
-                Occasionally send a word of hope out into the world.
-              </p>
-            </div>
-            <Switch
-              checked={sendToUniverse}
-              onCheckedChange={(v) => updateField(setSendToUniverse, v)}
-              className="data-[state=checked]:bg-accent"
-            />
-          </div>
-
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-base font-medium">Birthday reminders</p>
+              <p className="text-base font-medium">Important date reminders</p>
             </div>
             <Switch
               checked={birthdayReminders}
@@ -242,7 +228,7 @@ export default function SettingsScreen() {
             <span className="text-base text-muted-foreground">Version</span>
             <span className="text-base font-medium">1.0.0</span>
           </div>
-          <p className="text-base text-muted-foreground">Made with heart in Minneapolis.</p>
+          
         </div>
       </section>
 
