@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDailyVisuals } from "@/hooks/useDailyVisuals";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import { Mail, MessageSquare, Check, User, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
