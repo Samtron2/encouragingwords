@@ -62,6 +62,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [sendError, setSendError] = useState(false);
   const [isTouchDevice] = useState(() => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
+  const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
+  const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
+  const [nudgeValue, setNudgeValue] = useState("");
 
   // Mark draft as restored on mount
 
