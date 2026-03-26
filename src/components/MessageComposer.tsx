@@ -202,12 +202,12 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-accent/15 mb-6">
           <Check className="h-10 w-10 text-accent" />
         </div>
-        <h2 className="font-display text-3xl font-bold text-primary">Your words are on their way</h2>
-        <p className="mt-3 text-center text-muted-foreground max-w-xs leading-relaxed text-base">
+        <h2 className="font-display text-4xl font-bold text-primary">Your words are on their way</h2>
+        <p className="mt-3 text-center text-muted-foreground max-w-xs leading-relaxed text-lg">
           You just made someone's day a little brighter.
         </p>
         <Button
-          className="mt-8 rounded-full bg-accent text-accent-foreground font-bold px-8 py-5 shadow-glow hover:bg-accent/90"
+          className="mt-8 rounded-full bg-accent text-accent-foreground font-bold px-8 h-16 text-lg shadow-glow hover:bg-accent/90"
           onClick={onBack}
         >
           Back to home
@@ -219,7 +219,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   return (
     <div className="flex flex-1 flex-col items-center px-6 pb-24 pt-6 animate-fade-in">
       <div className="w-full max-w-[480px]">
-        <h1 className="font-display text-2xl font-bold text-primary mb-8">Send a word</h1>
+        <h1 className="font-display text-4xl font-bold text-primary mb-8">Send a word</h1>
 
         {sendError && (
           <div className="mb-6 flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
@@ -230,7 +230,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
         {/* STEP 1 — WHO */}
         <section className="mb-8">
-          <label className="text-base font-medium text-muted-foreground mb-2 block">
+          <label className="text-lg font-medium text-muted-foreground mb-2 block">
             Who is this for?
           </label>
           <div className="relative">
@@ -246,7 +246,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               }}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className="pl-10 text-base py-4"
+              className="pl-10 text-lg py-5"
             />
             {showSuggestions && suggestions.length > 0 && (
               <div className="absolute z-10 mt-1 w-full rounded-2xl border border-border bg-card shadow-card overflow-hidden">
@@ -272,7 +272,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
         {/* STEP 2 — WHAT */}
         <section className="mb-8">
-          <label className="text-base font-medium text-muted-foreground mb-2 block">
+          <label className="text-lg font-medium text-muted-foreground mb-2 block">
             Your message
           </label>
           <div className="relative">
@@ -283,7 +283,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               }}
               placeholder="Write something kind…"
               rows={4}
-              className="flex w-full rounded-2xl border border-input bg-card px-5 py-4 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-body shadow-card leading-relaxed"
+              className="flex w-full rounded-2xl border border-input bg-card px-5 py-5 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-body shadow-card leading-relaxed"
             />
             <span className="absolute bottom-3 right-4 text-[15px] text-muted-foreground">
               {message.length}/160
@@ -298,7 +298,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                   <button
                     key={prompt}
                     onClick={() => setMessage(prompt)}
-                    className={`shrink-0 rounded-full border px-4 py-2 text-base font-medium transition-colors whitespace-nowrap ${
+                    className={`shrink-0 rounded-full border px-5 py-3 text-lg font-medium transition-colors whitespace-nowrap ${
                       isSelected
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-background text-primary border-primary/30 hover:bg-primary/5"
@@ -313,7 +313,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
           {/* Visual carousel */}
           <div className="mt-6">
-            <p className="text-base text-muted-foreground mb-3">Choose a visual (optional)</p>
+            <p className="text-lg text-muted-foreground mb-3">Choose a visual (optional)</p>
             <div className="flex items-center justify-center gap-4">
               <button
                 onClick={prevVisual}
@@ -347,14 +347,14 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
         {/* STEP 3 — HOW */}
         <section>
-          <label className="text-base font-medium text-muted-foreground mb-3 block">
+          <label className="text-lg font-medium text-muted-foreground mb-3 block">
             How should we send it?
           </label>
           <div className="flex gap-3">
             <Button
               onClick={() => handleSend("email")}
               disabled={!canSendEmail || !message.trim() || sending}
-              className="flex-1 gap-2 rounded-full py-5 font-bold text-base bg-accent text-accent-foreground shadow-glow hover:bg-accent/90 disabled:opacity-40"
+              className="flex-1 gap-2 rounded-full h-16 font-bold text-lg bg-accent text-accent-foreground shadow-glow hover:bg-accent/90 disabled:opacity-40"
             >
               <Mail className="h-5 w-5" />
               {sending ? "Sending…" : "Send by email"}
@@ -362,7 +362,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             <Button
               onClick={() => handleSend("sms")}
               disabled={!canSendSms || !message.trim() || sending}
-              className="sms-only flex-1 gap-2 rounded-full py-5 font-bold text-base bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
+              className="sms-only flex-1 gap-2 rounded-full h-16 font-bold text-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
             >
               <MessageSquare className="h-5 w-5" />
               {sending ? "Sending…" : "Send by text"}
