@@ -4,8 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, Upload, Pencil } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus, X, Upload, Pencil, CalendarDays } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 const OCCASION_OPTIONS = ["Birthday", "Anniversary", "Quinceañera", "Graduation", "Holiday", "General", "Other"];
 const MOOD_OPTIONS = ["Warm", "Playful", "Gentle", "Bold"];
@@ -18,6 +21,7 @@ interface ContentItem {
   mood_tags: string[];
   active: boolean;
   featured: boolean;
+  featured_date: string | null;
 }
 
 function TagSelector({ options, selected, onChange, label }: {
@@ -68,6 +72,7 @@ export default function AdminContentTab() {
   const [moodTags, setMoodTags] = useState<string[]>([]);
   const [active, setActive] = useState(true);
   const [featured, setFeatured] = useState(false);
+  const [featuredDate, setFeaturedDate] = useState<Date | undefined>(undefined);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -77,7 +82,7 @@ export default function AdminContentTab() {
     setLoading(true);
     const { data } = await supabase
       .from("content_library")
-      .select("id, name, image_url, occasion_tags, mood_tags, active, featured")
+      .select("id, name, image_url, occasion_tags, mood_tags, active, featured, featured_date")
       .order("created_at", { ascending: false });
     setItems((data as ContentItem[]) || []);
     setLoading(false);
@@ -93,6 +98,7 @@ export default function AdminContentTab() {
     setMoodTags([]);
     setActive(true);
     setFeatured(false);
+    setFeaturedDate(undefined);
     setImageFile(null);
     setImagePreview(null);
     setEditing(null);
@@ -106,6 +112,7 @@ export default function AdminContentTab() {
     setMoodTags(item.mood_tags);
     setActive(item.active);
     setFeatured(item.featured);
+    setFeaturedDate(item.featured_date ? new Date(item.featured_date + "T00:00:00") : undefined);
     setImagePreview(item.image_url);
     setImageFile(null);
     setShowForm(true);
@@ -144,13 +151,14 @@ export default function AdminContentTab() {
       imageUrl = urlData.publicUrl;
     }
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       name: name.trim(),
       image_url: imageUrl,
       occasion_tags: occasionTags,
       mood_tags: moodTags,
       active,
       featured,
+      featured_date: featuredDate ? format(featuredDate, "yyyy-MM-dd") : null,
     };
 
     if (editing) {
@@ -167,7 +175,7 @@ export default function AdminContentTab() {
     } else {
       const { error } = await supabase
         .from("content_library")
-        .insert([payload]);
+        .insert([payload as { name: string }]);
       if (error) {
         toast({ title: "Couldn't save", description: error.message, variant: "destructive" });
         setSaving(false);
@@ -234,6 +242,41 @@ export default function AdminContentTab() {
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
           </div>
 
+          {/* Featured date picker */}
+          <div>
+            <p className="text-base font-medium text-muted-foreground mb-2">Feature on date (optional)</p>
+            <div className="flex items-center gap-3">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="justify-start text-left font-normal text-base gap-2"
+                  >
+                    <CalendarDays className="h-4 w-4" />
+                    {featuredDate ? format(featuredDate, "MMM d, yyyy") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={featuredDate}
+                    onSelect={setFeaturedDate}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+              {featuredDate && (
+                <button
+                  onClick={() => setFeaturedDate(undefined)}
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="flex items-center justify-between">
             <span className="text-base font-medium">Active</span>
             <Switch checked={active} onCheckedChange={setActive} className="data-[state=checked]:bg-accent" />
@@ -283,11 +326,19 @@ export default function AdminContentTab() {
                 !item.active ? "opacity-50" : ""
               }`}
             >
-              <div className="h-24 bg-secondary flex items-center justify-center">
+              <div className="relative h-24 bg-secondary flex items-center justify-center">
                 {item.image_url ? (
                   <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
                 ) : (
                   <div className="h-full w-full" style={{ backgroundColor: "hsl(30, 60%, 85%)" }} />
+                )}
+                {item.featured_date && (
+                  <div className="absolute top-1.5 right-1.5 flex items-center gap-1 rounded-full bg-card/90 backdrop-blur-sm px-2 py-0.5 shadow-sm" title={item.featured_date}>
+                    <CalendarDays className="h-3 w-3 text-accent" />
+                    <span className="text-[11px] font-medium text-accent">
+                      {format(new Date(item.featured_date + "T00:00:00"), "MMM d")}
+                    </span>
+                  </div>
                 )}
               </div>
               <div className="p-3 space-y-2">
