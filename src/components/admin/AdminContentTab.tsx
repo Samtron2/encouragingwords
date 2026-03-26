@@ -327,7 +327,9 @@ export default function AdminContentTab() {
               }`}
             >
               <div className="relative h-24 bg-secondary flex items-center justify-center">
-                {item.image_url ? (
+                {item.image_url?.startsWith("emoji:") ? (
+                  <span className="text-5xl">{item.image_url.replace("emoji:", "")}</span>
+                ) : item.image_url ? (
                   <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
                 ) : (
                   <div className="h-full w-full" style={{ backgroundColor: "hsl(30, 60%, 85%)" }} />
