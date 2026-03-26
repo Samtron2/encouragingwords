@@ -1,0 +1,1 @@
+ALTER TABLE public.content_library ADD COLUMN featured_date date;

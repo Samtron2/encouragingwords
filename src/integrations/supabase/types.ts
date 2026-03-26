@@ -19,6 +19,7 @@ export type Database = {
           active: boolean
           created_at: string
           featured: boolean
+          featured_date: string | null
           id: string
           image_url: string | null
           mood_tags: string[]
@@ -29,6 +30,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           featured?: boolean
+          featured_date?: string | null
           id?: string
           image_url?: string | null
           mood_tags?: string[]
@@ -39,6 +41,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           featured?: boolean
+          featured_date?: string | null
           id?: string
           image_url?: string | null
           mood_tags?: string[]
