@@ -224,6 +224,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          birthday_reminders: boolean
           created_at: string
           display_name: string | null
           email: string | null
@@ -236,6 +237,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          birthday_reminders?: boolean
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -248,6 +250,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          birthday_reminders?: boolean
           created_at?: string
           display_name?: string | null
           email?: string | null

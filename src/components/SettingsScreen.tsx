@@ -26,7 +26,7 @@ export default function SettingsScreen() {
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("display_name, profile_photo, send_to_universe")
+        .select("display_name, profile_photo, send_to_universe, birthday_reminders")
         .eq("user_id", user.id)
         .single();
 
@@ -34,6 +34,7 @@ export default function SettingsScreen() {
         setDisplayName(data.display_name || "");
         setProfilePhoto(data.profile_photo || null);
         setSendToUniverse(data.send_to_universe ?? false);
+        setBirthdayReminders((data as any).birthday_reminders ?? true);
       }
       setLoaded(true);
     })();
@@ -47,6 +48,7 @@ export default function SettingsScreen() {
       .update({
         display_name: displayName.trim() || null,
         send_to_universe: sendToUniverse,
+        birthday_reminders: birthdayReminders,
       })
       .eq("user_id", user.id);
 
@@ -186,7 +188,7 @@ export default function SettingsScreen() {
             </div>
             <Switch
               checked={birthdayReminders}
-              onCheckedChange={setBirthdayReminders}
+              onCheckedChange={(v) => updateField(setBirthdayReminders, v)}
               className="data-[state=checked]:bg-accent"
             />
           </div>
