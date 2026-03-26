@@ -426,7 +426,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 >
                   <CarouselContent>
                     {dailyVisuals.map((visual, idx) => (
-                      <CarouselItem key={visual.id} className="basis-[65%] min-w-0 flex flex-col items-center pl-3">
+                      <CarouselItem key={visual.id} className="basis-[55%] min-w-0 flex flex-col items-center pl-3">
                         <button
                           onClick={() => setSelectedVisual(selectedVisual === idx ? null : idx)}
                           className="flex flex-col items-center gap-2 transition-all"
