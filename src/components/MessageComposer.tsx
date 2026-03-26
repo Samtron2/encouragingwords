@@ -391,18 +391,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                     ))}
                   </CarouselContent>
                 </Carousel>
-                {/* Dot indicators */}
-                <div className="hidden md:flex justify-center gap-1.5 mt-3">
-                  {dailyVisuals.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => carouselApi?.scrollTo(idx)}
-                      className={`h-2 w-2 rounded-full transition-colors ${
-                        idx === visualIndex ? "bg-primary" : "bg-muted-foreground/30"
-                      }`}
-                    />
-                  ))}
-                </div>
               </div>
             )}
             <p className="font-display italic text-sm text-muted-foreground text-center mt-3">
