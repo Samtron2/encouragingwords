@@ -307,7 +307,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
           <div className="mt-3">
             <Carousel
-              opts={{ align: "center", loop: true }}
+              opts={{ align: "center", loop: false }}
               setApi={setChipApi}
               className="w-full"
             >
@@ -331,17 +331,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 })}
               </CarouselContent>
             </Carousel>
-            <div className="flex justify-center gap-1.5 mt-2">
-              {PROMPT_SUGGESTIONS.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => chipApi?.scrollTo(idx)}
-                  className={`h-2 w-2 rounded-full transition-colors ${
-                    idx === chipIndex ? "bg-primary" : "bg-muted-foreground/30"
-                  }`}
-                />
-              ))}
-            </div>
           </div>
 
           {/* Visual carousel */}
