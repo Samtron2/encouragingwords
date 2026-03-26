@@ -41,7 +41,7 @@ interface MessageComposerProps {
 export default function MessageComposer({ onBack, prefill }: MessageComposerProps) {
   const { user } = useAuth();
   const { visuals: dailyVisuals, loading: visualsLoading } = useDailyVisuals();
-  const { initialDraft, draftRestored, setDraftRestored, saveDraft, clearDraft } = useComposerDraft();
+  const { initialDraft, saveDraft, clearDraft } = useComposerDraft();
 
   const [recipientInput, setRecipientInput] = useState(prefill?.name || initialDraft?.recipientInput || "");
   const [recipientName, setRecipientName] = useState(prefill?.name || initialDraft?.recipientName || "");
@@ -63,11 +63,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Mark draft as restored on mount
-  useEffect(() => {
-    if (initialDraft && !prefill) {
-      setDraftRestored(true);
-    }
-  }, []);
 
   // Restore selectedVisual index from ID once visuals load
   useEffect(() => {
@@ -343,10 +338,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             </button>
           )}
         </div>
-        {draftRestored && (
-          <p className="font-display italic text-sm text-muted-foreground mb-6">Draft restored</p>
-        )}
-        {!draftRestored && <div className="mb-8" />}
+        <div className="mb-8" />
 
         {sendError && (
           <div className="mb-6 flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
