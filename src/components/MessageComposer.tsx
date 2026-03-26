@@ -126,6 +126,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         .single();
 
       const visual = selectedVisual !== null ? dailyVisuals[selectedVisual] : null;
+      const isEmoji = visual?.image_url?.startsWith("emoji:");
+      const emojiChar = isEmoji ? visual.image_url!.slice(6) : undefined;
+      const imageUrl = !isEmoji ? visual?.image_url || undefined : undefined;
 
       if (method === "email") {
         const sendResult = await supabase.functions.invoke("send-email", {
@@ -133,8 +136,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             recipientEmail,
             recipientName: recipientName || undefined,
             message: message.trim(),
-            visualLabel: visual?.name,
-            visualId: visual?.id,
+            visualImageUrl: imageUrl,
+            visualEmoji: emojiChar,
           },
         });
 
@@ -156,7 +159,13 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           return;
         }
       } else {
-        const smsBody = encodeURIComponent(message.trim());
+        let smsText = message.trim();
+        if (emojiChar) {
+          smsText = `${emojiChar} ${smsText}`;
+        } else if (imageUrl) {
+          smsText = `${smsText}\n${imageUrl}`;
+        }
+        const smsBody = encodeURIComponent(smsText);
         const smsUrl = `sms:${recipientPhone}?body=${smsBody}`;
 
         await supabase.from("messages").insert({
@@ -315,7 +324,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 {PROMPT_SUGGESTIONS.map((prompt) => {
                   const isSelected = message === prompt;
                   return (
-                    <CarouselItem key={prompt} className="flex justify-center">
+                    <CarouselItem key={prompt} className="basis-auto max-w-[70%] flex justify-center pl-2">
                       <button
                         onClick={() => setMessage(prompt)}
                         className={`rounded-full border px-5 py-3 text-lg font-medium transition-colors whitespace-nowrap ${
@@ -351,7 +360,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 >
                   <CarouselContent>
                     {dailyVisuals.map((visual, idx) => (
-                      <CarouselItem key={visual.id} className="flex flex-col items-center">
+                      <CarouselItem key={visual.id} className="basis-[65%] min-w-0 flex flex-col items-center pl-3">
                         <button
                           onClick={() => setSelectedVisual(selectedVisual === idx ? null : idx)}
                           className="flex flex-col items-center gap-2 transition-all"
