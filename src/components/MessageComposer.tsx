@@ -308,34 +308,56 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           {/* Visual carousel */}
           <div className="mt-6">
             <p className="text-lg text-muted-foreground mb-3">Choose a visual (optional)</p>
-            <div className="flex items-center justify-center gap-4">
-              <button
-                onClick={prevVisual}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-card text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={toggleVisualSelection}
-                className="flex flex-col items-center gap-2 transition-all"
-              >
-                <div
-                  className={`h-[200px] w-[200px] rounded-2xl transition-all shadow-card ${
-                    selectedVisual === visualIndex
-                      ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
-                      : ""
-                  }`}
-                  style={{ backgroundColor: PLACEHOLDER_VISUALS[visualIndex].color }}
-                />
-                <span className="text-[15px] text-muted-foreground">{PLACEHOLDER_VISUALS[visualIndex].label}</span>
-              </button>
-              <button
-                onClick={nextVisual}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-card text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
+            {visualsLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+              </div>
+            ) : dailyVisuals.length === 0 ? (
+              <p className="text-base text-muted-foreground text-center py-6">No visuals available today.</p>
+            ) : (
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={prevVisual}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-card text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={toggleVisualSelection}
+                  className="flex flex-col items-center gap-2 transition-all"
+                >
+                  {dailyVisuals[visualIndex]?.image_url ? (
+                    <img
+                      src={dailyVisuals[visualIndex].image_url!}
+                      alt={dailyVisuals[visualIndex].name}
+                      className={`h-[200px] w-[200px] rounded-2xl object-cover transition-all shadow-card ${
+                        selectedVisual === visualIndex
+                          ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
+                          : ""
+                      }`}
+                    />
+                  ) : (
+                    <div
+                      className={`h-[200px] w-[200px] rounded-2xl transition-all shadow-card bg-secondary ${
+                        selectedVisual === visualIndex
+                          ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
+                          : ""
+                      }`}
+                    />
+                  )}
+                  <span className="text-[15px] text-muted-foreground">{dailyVisuals[visualIndex]?.name}</span>
+                </button>
+                <button
+                  onClick={nextVisual}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-card text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+            )}
+            <p className="font-display italic text-sm text-muted-foreground text-center mt-3">
+              Today's visuals · refreshes at midnight
+            </p>
           </div>
         </section>
 
