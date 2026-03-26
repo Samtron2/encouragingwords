@@ -224,6 +224,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         window.open(smsUrl, "_self");
       }
 
+      clearDraft();
       setSending(false);
       setSent(true);
     } catch (err) {
