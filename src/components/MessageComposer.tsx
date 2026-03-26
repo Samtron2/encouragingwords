@@ -129,7 +129,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       const q = `%${recipientInput}%`;
       const { data } = await supabase
         .from("recipients")
-        .select("id, name, email, phone")
+        .select("id, name, email, phone, nudge_dismissed")
         .eq("user_id", user.id)
         .or(`name.ilike.${q},email.ilike.${q},phone.ilike.${q}`)
         .order("last_contacted_at", { ascending: false, nullsFirst: false })
