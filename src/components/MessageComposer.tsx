@@ -159,7 +159,13 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           return;
         }
       } else {
-        const smsBody = encodeURIComponent(message.trim());
+        let smsText = message.trim();
+        if (emojiChar) {
+          smsText = `${emojiChar} ${smsText}`;
+        } else if (imageUrl) {
+          smsText = `${smsText}\n${imageUrl}`;
+        }
+        const smsBody = encodeURIComponent(smsText);
         const smsUrl = `sms:${recipientPhone}?body=${smsBody}`;
 
         await supabase.from("messages").insert({

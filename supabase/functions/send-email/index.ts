@@ -42,7 +42,7 @@ serve(async (req) => {
       throw new Error("RESEND_API_KEY is not configured");
     }
 
-    const { recipientEmail, recipientName, message, visualLabel, visualColor } = await req.json();
+    const { recipientEmail, recipientName, message, visualImageUrl, visualEmoji } = await req.json();
 
     if (!recipientEmail || !message) {
       return new Response(JSON.stringify({ error: "Missing recipientEmail or message" }), {
@@ -52,9 +52,12 @@ serve(async (req) => {
     }
 
     // Build email HTML
-    const visualHtml = visualLabel && visualColor
-      ? `<div style="width:100%;height:120px;border-radius:12px;background-color:${visualColor};margin-bottom:24px;"></div>`
-      : "";
+    let visualHtml = "";
+    if (visualEmoji) {
+      visualHtml = `<div style="text-align:center;font-size:96px;line-height:1;margin-bottom:24px;">${visualEmoji}</div>`;
+    } else if (visualImageUrl) {
+      visualHtml = `<img src="${visualImageUrl}" alt="Visual" style="width:100%;max-width:400px;border-radius:12px;margin-bottom:24px;display:block;margin-left:auto;margin-right:auto;" />`;
+    }
 
     const toName = recipientName ? recipientName : "";
     const greeting = toName ? `<p style="font-size:16px;color:#333;margin-bottom:8px;">Dear ${toName},</p>` : "";
