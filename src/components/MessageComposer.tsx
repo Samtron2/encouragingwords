@@ -158,7 +158,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           user_id: user.id,
           recipient_id: recipientRow?.id || null,
           message_text: message.trim(),
-          visual_id: visual?.label || null,
+          visual_id: visual?.id || null,
           delivery_method: "sms_native",
           status: "initiated",
         });
