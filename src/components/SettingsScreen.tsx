@@ -48,6 +48,7 @@ export default function SettingsScreen() {
       .update({
         display_name: displayName.trim() || null,
         send_to_universe: sendToUniverse,
+        birthday_reminders: birthdayReminders,
       })
       .eq("user_id", user.id);
 
