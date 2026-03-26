@@ -313,7 +313,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
           {/* Visual carousel */}
           <div className="mt-6">
-            <p className="text-base text-muted-foreground mb-3">Choose a visual (optional)</p>
+            <p className="text-lg text-muted-foreground mb-3">Choose a visual (optional)</p>
             <div className="flex items-center justify-center gap-4">
               <button
                 onClick={prevVisual}
