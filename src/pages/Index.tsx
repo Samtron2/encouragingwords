@@ -168,10 +168,10 @@ const Index = () => {
                     onClick={() => switchTab("send")}
                     className="flex flex-col items-center justify-center rounded-full bg-accent text-white hover:bg-accent/90 transition-colors"
                     style={{
-                      width: '85vw',
-                      height: '85vw',
-                      maxWidth: '340px',
-                      maxHeight: '340px',
+                      width: '68vw',
+                      height: '68vw',
+                      maxWidth: '272px',
+                      maxHeight: '272px',
                       boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
                     }}
                   >
