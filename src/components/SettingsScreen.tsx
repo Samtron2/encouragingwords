@@ -228,7 +228,7 @@ export default function SettingsScreen() {
             <span className="text-base text-muted-foreground">Version</span>
             <span className="text-base font-medium">1.0.0</span>
           </div>
-          <p className="text-base text-muted-foreground">Made with heart in Minneapolis.</p>
+          
         </div>
       </section>
 

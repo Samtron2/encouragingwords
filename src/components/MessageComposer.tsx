@@ -390,7 +390,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 {PROMPT_SUGGESTIONS.map((prompt) => {
                   const isSelected = message === prompt;
                   return (
-                    <CarouselItem key={prompt} className="basis-auto max-w-[70%] flex justify-center pl-2">
+                    <CarouselItem key={prompt} className="basis-auto max-w-[55%] flex justify-center pl-2">
                       <button
                         onClick={() => setMessage(prompt)}
                         className={`rounded-full border px-5 py-3 text-lg font-medium transition-colors whitespace-nowrap ${
