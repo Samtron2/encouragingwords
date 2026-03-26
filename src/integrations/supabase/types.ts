@@ -88,6 +88,50 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          created_at: string
+          delivery_method: string
+          id: string
+          message_text: string
+          recipient_id: string | null
+          sent_at: string
+          status: string
+          user_id: string
+          visual_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          delivery_method: string
+          id?: string
+          message_text: string
+          recipient_id?: string | null
+          sent_at?: string
+          status?: string
+          user_id: string
+          visual_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          delivery_method?: string
+          id?: string
+          message_text?: string
+          recipient_id?: string | null
+          sent_at?: string
+          status?: string
+          user_id?: string
+          visual_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "recipients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string

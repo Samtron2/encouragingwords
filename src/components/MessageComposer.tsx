@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Mail, MessageSquare, Check, User } from "lucide-react";
+import { Mail, MessageSquare, Check, User, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 const PROMPT_SUGGESTIONS = [
   "Thinking of you",
@@ -55,9 +55,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [selectedVisual, setSelectedVisual] = useState<number | null>(null);
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Determine what the user typed — is it an email, phone, or name?
   const parseRecipientInput = (value: string) => {
     const trimmed = value.trim();
     if (trimmed.includes("@")) {
@@ -75,7 +75,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     }
   };
 
-  // Fetch saved contacts as the user types
   useEffect(() => {
     if (!user || recipientInput.length < 2) {
       setSuggestions([]);
@@ -109,27 +108,78 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const handleSend = async (method: "email" | "sms") => {
     if (!user || !message.trim()) return;
     setSending(true);
+    setSendError(false);
 
-    // Save recipient to contacts
-    const recipientData: Record<string, unknown> = {
-      user_id: user.id,
-      last_contacted_at: new Date().toISOString(),
-    };
-    if (recipientName) recipientData.name = recipientName;
-    if (recipientEmail) recipientData.email = recipientEmail;
-    if (recipientPhone) recipientData.phone = recipientPhone;
+    try {
+      // Save recipient to contacts
+      const recipientData: Record<string, unknown> = {
+        user_id: user.id,
+        last_contacted_at: new Date().toISOString(),
+      };
+      if (recipientName) recipientData.name = recipientName;
+      if (recipientEmail) recipientData.email = recipientEmail;
+      if (recipientPhone) recipientData.phone = recipientPhone;
 
-    await supabase.from("recipients").insert([recipientData as { user_id: string; name?: string; email?: string; phone?: string; last_contacted_at?: string }]);
+      const { data: recipientRow } = await supabase
+        .from("recipients")
+        .insert([recipientData as { user_id: string; name?: string; email?: string; phone?: string; last_contacted_at?: string }])
+        .select("id")
+        .single();
 
-    // Simulate sending
-    await new Promise((r) => setTimeout(r, 800));
-    setSending(false);
-    setSent(true);
+      const visual = selectedVisual !== null ? PLACEHOLDER_VISUALS[selectedVisual] : null;
+
+      // Send via edge function
+      let sendResult;
+      if (method === "email") {
+        sendResult = await supabase.functions.invoke("send-email", {
+          body: {
+            recipientEmail,
+            recipientName: recipientName || undefined,
+            message: message.trim(),
+            visualLabel: visual?.label,
+            visualColor: visual?.color,
+          },
+        });
+      } else {
+        sendResult = await supabase.functions.invoke("send-sms", {
+          body: {
+            recipientPhone,
+            message: message.trim(),
+            visualUrl: null, // No public URL for placeholder visuals yet
+          },
+        });
+      }
+
+      const status = sendResult.error ? "failed" : "sent";
+
+      // Save message record
+      await supabase.from("messages").insert({
+        user_id: user.id,
+        recipient_id: recipientRow?.id || null,
+        message_text: message.trim(),
+        visual_id: visual?.label || null,
+        delivery_method: method,
+        status,
+      });
+
+      if (sendResult.error || sendResult.data?.error) {
+        console.error("Send failed:", sendResult.error || sendResult.data?.error);
+        setSendError(true);
+        setSending(false);
+        return;
+      }
+
+      setSending(false);
+      setSent(true);
+    } catch (err) {
+      console.error("Send error:", err);
+      setSendError(true);
+      setSending(false);
+    }
   };
 
   const canSendEmail = !!recipientEmail;
   const canSendSms = !!recipientPhone;
-  const hasRecipient = !!(recipientName || recipientEmail || recipientPhone);
 
   if (sent) {
     return (
@@ -137,9 +187,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 mb-6">
           <Check className="h-10 w-10 text-primary" />
         </div>
-        <h2 className="font-display text-3xl font-semibold text-foreground">Sent with love</h2>
+        <h2 className="font-display text-3xl font-semibold text-foreground">Your words are on their way</h2>
         <p className="mt-3 text-center text-muted-foreground max-w-xs leading-relaxed">
-          Your encouraging words are on their way. You just made someone's day a little brighter.
+          You just made someone's day a little brighter.
         </p>
         <Button className="mt-8 shadow-glow" onClick={onBack}>
           Back to home
@@ -151,6 +201,13 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   return (
     <div className="flex flex-1 flex-col px-6 pb-24 pt-6 animate-fade-in">
       <h1 className="font-display text-2xl font-semibold mb-8">Send some warmth</h1>
+
+      {sendError && (
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+          <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+          <p className="text-sm text-destructive">Something went wrong. Please try again.</p>
+        </div>
+      )}
 
       {/* STEP 1 — WHO */}
       <section className="mb-8">
@@ -184,12 +241,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                     {(s.name || s.email || "?")[0].toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    {s.name && (
-                      <p className="text-sm font-medium truncate">{s.name}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground truncate">
-                      {s.email || s.phone}
-                    </p>
+                    {s.name && <p className="text-sm font-medium truncate">{s.name}</p>}
+                    <p className="text-xs text-muted-foreground truncate">{s.email || s.phone}</p>
                   </div>
                 </button>
               ))}
@@ -218,7 +271,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           </span>
         </div>
 
-        {/* Prompt suggestions */}
         <div className="mt-3 -mx-6 px-6">
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {PROMPT_SUGGESTIONS.map((prompt) => (
@@ -233,7 +285,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           </div>
         </div>
 
-        {/* Visual tiles */}
         <div className="mt-5">
           <p className="text-sm text-muted-foreground mb-2">Choose a visual (optional)</p>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
@@ -273,7 +324,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             variant={canSendEmail ? "default" : "secondary"}
           >
             <Mail className="h-4 w-4" />
-            Send by email
+            {sending ? "Sending…" : "Send by email"}
           </Button>
           <Button
             onClick={() => handleSend("sms")}
@@ -282,7 +333,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             variant={canSendSms ? "default" : "secondary"}
           >
             <MessageSquare className="h-4 w-4" />
-            Send by text
+            {sending ? "Sending…" : "Send by text"}
           </Button>
         </div>
       </section>
