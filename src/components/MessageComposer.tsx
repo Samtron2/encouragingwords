@@ -41,14 +41,17 @@ interface MessageComposerProps {
 export default function MessageComposer({ onBack, prefill }: MessageComposerProps) {
   const { user } = useAuth();
   const { visuals: dailyVisuals, loading: visualsLoading } = useDailyVisuals();
-  const [recipientInput, setRecipientInput] = useState(prefill?.name || "");
-  const [recipientName, setRecipientName] = useState(prefill?.name || "");
-  const [recipientEmail, setRecipientEmail] = useState(prefill?.email || "");
-  const [recipientPhone, setRecipientPhone] = useState(prefill?.phone || "");
+  const { initialDraft, draftRestored, setDraftRestored, saveDraft, clearDraft } = useComposerDraft();
+
+  const [recipientInput, setRecipientInput] = useState(prefill?.name || initialDraft?.recipientInput || "");
+  const [recipientName, setRecipientName] = useState(prefill?.name || initialDraft?.recipientName || "");
+  const [recipientEmail, setRecipientEmail] = useState(prefill?.email || initialDraft?.recipientEmail || "");
+  const [recipientPhone, setRecipientPhone] = useState(prefill?.phone || initialDraft?.recipientPhone || "");
   const [suggestions, setSuggestions] = useState<Recipient[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(initialDraft?.message || "");
   const [selectedVisual, setSelectedVisual] = useState<number | null>(null);
+  const [selectedVisualId, setSelectedVisualId] = useState<string | null>(initialDraft?.selectedVisualId || null);
   const [visualIndex, setVisualIndex] = useState(0);
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [chipApi, setChipApi] = useState<CarouselApi>();
@@ -58,6 +61,46 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [sendError, setSendError] = useState(false);
   const [isTouchDevice] = useState(() => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Mark draft as restored on mount
+  useEffect(() => {
+    if (initialDraft && !prefill) {
+      setDraftRestored(true);
+    }
+  }, []);
+
+  // Restore selectedVisual index from ID once visuals load
+  useEffect(() => {
+    if (selectedVisualId && dailyVisuals.length > 0 && selectedVisual === null) {
+      const idx = dailyVisuals.findIndex((v) => v.id === selectedVisualId);
+      if (idx >= 0) setSelectedVisual(idx);
+    }
+  }, [dailyVisuals, selectedVisualId]);
+
+  // Persist draft on changes
+  useEffect(() => {
+    saveDraft({
+      recipientInput,
+      recipientName,
+      recipientEmail,
+      recipientPhone,
+      message,
+      selectedVisualId: selectedVisual !== null ? dailyVisuals[selectedVisual]?.id || null : null,
+      selectedPrompt: PROMPT_SUGGESTIONS.includes(message) ? message : null,
+    });
+  }, [recipientInput, recipientName, recipientEmail, recipientPhone, message, selectedVisual, dailyVisuals]);
+
+  const handleClearDraft = () => {
+    clearDraft();
+    setRecipientInput("");
+    setRecipientName("");
+    setRecipientEmail("");
+    setRecipientPhone("");
+    setMessage("");
+    setSelectedVisual(null);
+    setSelectedVisualId(null);
+    setSendError(false);
+  };
 
   const parseRecipientInput = (value: string) => {
     const trimmed = value.trim();
