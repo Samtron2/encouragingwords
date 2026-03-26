@@ -73,7 +73,6 @@ export default function ImportantDates() {
     loadDates();
   }, [user]);
 
-  // Contact search
   useEffect(() => {
     if (!user || name.length < 2) {
       setContactSuggestions([]);
@@ -131,13 +130,12 @@ export default function ImportantDates() {
 
   return (
     <div className="space-y-3">
-      {/* Header */}
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium">Important Dates</p>
+        <p className="text-base font-medium">Important Dates</p>
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 gap-1 text-primary"
+          className="h-8 gap-1 text-accent"
           onClick={() => setShowForm(!showForm)}
         >
           {showForm ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
@@ -145,10 +143,8 @@ export default function ImportantDates() {
         </Button>
       </div>
 
-      {/* Add form */}
       {showForm && (
-        <div className="rounded-lg border border-border bg-background p-4 space-y-3 animate-fade-in">
-          {/* Name with contact suggestions */}
+        <div className="rounded-2xl border border-border bg-background p-4 space-y-3 animate-fade-in">
           <div className="relative">
             <Input
               placeholder="Who is this date for?"
@@ -160,25 +156,26 @@ export default function ImportantDates() {
               }}
               onFocus={() => setShowContactSuggestions(true)}
               onBlur={() => setTimeout(() => setShowContactSuggestions(false), 200)}
+              className="text-base"
             />
             {showContactSuggestions && contactSuggestions.length > 0 && (
-              <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-background shadow-soft overflow-hidden">
+              <div className="absolute z-10 mt-1 w-full rounded-2xl border border-border bg-card shadow-card overflow-hidden">
                 {contactSuggestions.map((c) => (
                   <button
                     key={c.id}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-secondary/60 transition-colors"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-base hover:bg-secondary/60 transition-colors"
                     onMouseDown={() => {
                       setName(c.name || "");
                       setLinkedContactId(c.id);
                       setShowContactSuggestions(false);
                     }}
                   >
-                    <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold text-muted-foreground">
+                    <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold text-muted-foreground">
                       {(c.name || "?")[0].toUpperCase()}
                     </div>
                     <span>{c.name}</span>
                     {c.email && (
-                      <span className="text-xs text-muted-foreground ml-auto truncate">
+                      <span className="text-sm text-muted-foreground ml-auto truncate">
                         {c.email}
                       </span>
                     )}
@@ -188,13 +185,12 @@ export default function ImportantDates() {
             )}
           </div>
 
-          {/* Date picker */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal",
+                  "w-full justify-start text-left font-normal text-base",
                   !selectedDate && "text-muted-foreground"
                 )}
               >
@@ -213,9 +209,8 @@ export default function ImportantDates() {
             </PopoverContent>
           </Popover>
 
-          {/* Occasion type */}
           <Select value={occasion} onValueChange={setOccasion}>
-            <SelectTrigger>
+            <SelectTrigger className="text-base">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -230,24 +225,23 @@ export default function ImportantDates() {
           <Button
             onClick={handleAdd}
             disabled={!name.trim() || !selectedDate || saving}
-            className="w-full shadow-glow"
+            className="w-full rounded-full bg-accent text-accent-foreground font-bold text-base py-5 shadow-glow hover:bg-accent/90"
           >
             {saving ? "Saving…" : "Save date"}
           </Button>
         </div>
       )}
 
-      {/* Saved dates list */}
       {dates.length > 0 && (
         <div className="space-y-1">
           {dates.map((d) => (
             <div
               key={d.id}
-              className="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-secondary/40 transition-colors group"
+              className="flex items-center justify-between rounded-2xl px-3 py-2.5 hover:bg-secondary/40 transition-colors group"
             >
               <div className="min-w-0">
-                <p className="text-sm font-medium truncate">{d.name}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-base font-medium truncate">{d.name}</p>
+                <p className="text-sm text-muted-foreground">
                   {monthDay(d.month, d.day)} · {d.occasion_type}
                 </p>
               </div>
@@ -263,7 +257,7 @@ export default function ImportantDates() {
       )}
 
       {dates.length === 0 && !showForm && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           No dates saved yet. Tap Add to remember someone special.
         </p>
       )}
