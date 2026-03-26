@@ -117,7 +117,7 @@
     transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  *, *::before, *::after {
+  .bg-decoration {
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
