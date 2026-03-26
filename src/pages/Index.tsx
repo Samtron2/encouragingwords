@@ -163,32 +163,26 @@ const Index = () => {
                   Send a short, heartfelt message to someone you care about.
                   It only takes a moment to make someone smile.
                 </p>
-                {/* VERSION A */}
-                <div className="mt-10 space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Version A</p>
-                  <div className="flex flex-col items-center gap-3">
-                    <button
-                      onClick={() => switchTab("send")}
-                      className="flex h-24 w-24 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-glow hover:bg-accent/90 transition-colors"
-                    >
-                      <ThumbsUp className="h-10 w-10" strokeWidth={2.5} />
-                    </button>
-                    <span className="font-display text-lg italic text-muted-foreground">Unum Accipere</span>
-                  </div>
-                </div>
-
-                {/* VERSION B */}
-                <div className="mt-10 space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Version B</p>
-                  <Button
-                    size="lg"
-                    className="w-full gap-2 rounded-full bg-accent text-accent-foreground font-bold text-[20px] h-16 shadow-glow hover:bg-accent/90"
+                <div className="mt-10 flex justify-center">
+                  <button
                     onClick={() => switchTab("send")}
+                    className="flex flex-col items-center justify-center rounded-full bg-accent text-white hover:bg-accent/90 transition-colors"
+                    style={{
+                      width: '85vw',
+                      height: '85vw',
+                      maxWidth: '340px',
+                      maxHeight: '340px',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                    }}
                   >
-                    <ThumbsUp className="h-5 w-5" />
-                    Send an encouraging word
-                  </Button>
-                  <p className="text-center font-display text-lg italic text-muted-foreground">Unum Accipere</p>
+                    <ThumbsUp className="h-14 w-14 mb-3" strokeWidth={2.5} />
+                    <span className="font-body font-bold text-[18px] leading-snug px-8 text-center">
+                      Send an encouraging word
+                    </span>
+                    <span className="font-display italic text-[14px] mt-1 opacity-80">
+                      Unum Accipere
+                    </span>
+                  </button>
                 </div>
               </div>
             </main>
