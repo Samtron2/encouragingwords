@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useTheme } from "@/hooks/useTheme";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Send, CalendarHeart, ThumbsUp } from "lucide-react";
@@ -90,6 +91,7 @@ function getRestoredTab(): Tab {
 const Index = () => {
   const { user, loading } = useAuth();
   const { isAdmin } = useAdmin();
+  useTheme(); // Load & apply profile theme immediately on auth
   const [activeTab, setActiveTab] = useState<Tab>(getRestoredTab);
   const [composerPrefill, setComposerPrefill] = useState<PrefilledRecipient | undefined>();
 
