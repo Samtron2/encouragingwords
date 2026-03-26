@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useTheme } from "@/hooks/useTheme";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Send, CalendarHeart, ThumbsUp } from "lucide-react";
