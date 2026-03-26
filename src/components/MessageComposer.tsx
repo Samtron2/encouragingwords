@@ -128,8 +128,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             recipientEmail,
             recipientName: recipientName || undefined,
             message: message.trim(),
-            visualLabel: visual?.label,
-            visualColor: visual?.color,
+            visualLabel: visual?.name,
+            visualId: visual?.id,
           },
         });
 
