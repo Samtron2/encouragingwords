@@ -427,23 +427,25 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           <label className="text-lg font-medium text-muted-foreground mb-3 block">
             How should we send it?
           </label>
-          <div className="flex gap-3">
+          <div className="flex gap-3 w-full">
             <Button
               onClick={() => handleSend("email")}
               disabled={!canSendEmail || !message.trim() || sending}
-              className="flex-1 gap-2 rounded-full h-16 font-bold text-lg font-body bg-accent text-white shadow-glow hover:bg-accent/90 disabled:opacity-40"
+              className="gap-2 h-16 font-bold text-lg font-body bg-accent text-white shadow-glow hover:bg-accent/90 disabled:opacity-40 min-w-0"
+              style={{ flex: "1 1 45%", borderRadius: "999px" }}
             >
-              <Mail className="h-5 w-5" />
-              {sending ? "Sending…" : "Send by email"}
+              <Mail className="h-5 w-5 shrink-0" />
+              <span className="truncate">{sending ? "Sending…" : "Send by email"}</span>
             </Button>
             {isTouchDevice && (
               <Button
                 onClick={() => handleSend("sms")}
                 disabled={!canSendSms || !message.trim() || sending}
-                className="flex-1 gap-2 rounded-full h-16 font-bold text-lg font-body bg-primary text-white hover:bg-primary/90 disabled:opacity-40"
+                className="gap-2 h-16 font-bold text-lg font-body bg-primary text-white hover:bg-primary/90 disabled:opacity-40 min-w-0"
+                style={{ flex: "1 1 45%", borderRadius: "999px" }}
               >
-                <MessageSquare className="h-5 w-5" />
-                {sending ? "Sending…" : "Send by text"}
+                <MessageSquare className="h-5 w-5 shrink-0" />
+                <span className="truncate">{sending ? "Sending…" : "Send by text"}</span>
               </Button>
             )}
           </div>
