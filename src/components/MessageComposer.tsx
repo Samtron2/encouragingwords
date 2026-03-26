@@ -307,7 +307,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
           <div className="mt-3">
             <Carousel
-              opts={{ align: "center", loop: true }}
+              opts={{ align: "center", loop: false }}
               setApi={setChipApi}
               className="w-full"
             >
@@ -331,17 +331,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 })}
               </CarouselContent>
             </Carousel>
-            <div className="flex justify-center gap-1.5 mt-2">
-              {PROMPT_SUGGESTIONS.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => chipApi?.scrollTo(idx)}
-                  className={`h-2 w-2 rounded-full transition-colors ${
-                    idx === chipIndex ? "bg-primary" : "bg-muted-foreground/30"
-                  }`}
-                />
-              ))}
-            </div>
           </div>
 
           {/* Visual carousel */}
@@ -356,7 +345,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             ) : (
               <div className="relative">
                 <Carousel
-                  opts={{ align: "center", loop: true }}
+                  opts={{ align: "center", loop: false }}
                   setApi={setCarouselApi}
                   className="w-full"
                 >
@@ -402,18 +391,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                     ))}
                   </CarouselContent>
                 </Carousel>
-                {/* Dot indicators */}
-                <div className="hidden md:flex justify-center gap-1.5 mt-3">
-                  {dailyVisuals.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => carouselApi?.scrollTo(idx)}
-                      className={`h-2 w-2 rounded-full transition-colors ${
-                        idx === visualIndex ? "bg-primary" : "bg-muted-foreground/30"
-                      }`}
-                    />
-                  ))}
-                </div>
               </div>
             )}
             <p className="font-display italic text-sm text-muted-foreground text-center mt-3">
@@ -441,8 +418,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               <Button
                 onClick={() => handleSend("sms")}
                 disabled={!canSendSms || !message.trim() || sending}
-                className="gap-2 h-16 font-bold text-lg font-body bg-primary text-white hover:bg-primary/90 disabled:opacity-40 min-w-0"
-                style={{ flex: "1 1 45%", borderRadius: "999px" }}
+                className="gap-2 h-16 font-bold text-lg font-body text-white hover:opacity-90 disabled:opacity-40 min-w-0"
+                style={{ flex: "1 1 45%", borderRadius: "999px", backgroundColor: "hsl(var(--primary))" }}
               >
                 <MessageSquare className="h-5 w-5 shrink-0" />
                 <span className="truncate">{sending ? "Sending…" : "Send by text"}</span>
