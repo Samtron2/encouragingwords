@@ -77,11 +77,26 @@ function useUpcomingDates(userId: string | undefined) {
   return reminders;
 }
 
+const TAB_KEY = "ew-active-tab";
+
+function getRestoredTab(): Tab {
+  try {
+    const saved = localStorage.getItem(TAB_KEY) as Tab | null;
+    if (saved && ["home", "send", "settings", "admin"].includes(saved)) return saved;
+  } catch {}
+  return "home";
+}
+
 const Index = () => {
   const { user, loading } = useAuth();
   const { isAdmin } = useAdmin();
-  const [activeTab, setActiveTab] = useState<Tab>("home");
+  const [activeTab, setActiveTab] = useState<Tab>(getRestoredTab);
   const [composerPrefill, setComposerPrefill] = useState<PrefilledRecipient | undefined>();
+
+  // Persist active tab
+  useEffect(() => {
+    try { localStorage.setItem(TAB_KEY, activeTab); } catch {}
+  }, [activeTab]);
   const reminders = useUpcomingDates(user?.id);
 
   if (loading) {

@@ -1,22 +1,20 @@
 const CACHE_NAME = "ew-cache-v1-2026-03-26";
 const STATIC_ASSETS = ["/", "/manifest.json"];
 
-// Install — precache static assets
+// Install — precache static assets (do NOT skipWaiting to avoid reload-on-focus)
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
-  self.skipWaiting();
 });
 
-// Activate — clean old caches
+// Activate — clean old caches (no clients.claim to avoid forced page takeover)
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   );
-  self.clients.claim();
 });
 
 // Fetch strategy
