@@ -231,6 +231,7 @@ export type Database = {
           profile_photo: string | null
           send_to_universe: boolean
           subscription_status: string
+          theme: string
           updated_at: string
           user_id: string
         }
@@ -242,6 +243,7 @@ export type Database = {
           profile_photo?: string | null
           send_to_universe?: boolean
           subscription_status?: string
+          theme?: string
           updated_at?: string
           user_id: string
         }
@@ -253,6 +255,7 @@ export type Database = {
           profile_photo?: string | null
           send_to_universe?: boolean
           subscription_status?: string
+          theme?: string
           updated_at?: string
           user_id?: string
         }
