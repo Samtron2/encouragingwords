@@ -180,13 +180,17 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const canSendEmail = !!recipientEmail;
   const canSendSms = !!recipientPhone;
 
-  const prevVisual = () => {
-    setVisualIndex((i) => (i === 0 ? dailyVisuals.length - 1 : i - 1));
-  };
+  const onCarouselSelect = useCallback(() => {
+    if (!carouselApi) return;
+    setVisualIndex(carouselApi.selectedScrollSnap());
+  }, [carouselApi]);
 
-  const nextVisual = () => {
-    setVisualIndex((i) => (i === dailyVisuals.length - 1 ? 0 : i + 1));
-  };
+  useEffect(() => {
+    if (!carouselApi) return;
+    onCarouselSelect();
+    carouselApi.on("select", onCarouselSelect);
+    return () => { carouselApi.off("select", onCarouselSelect); };
+  }, [carouselApi, onCarouselSelect]);
 
   const toggleVisualSelection = () => {
     setSelectedVisual(selectedVisual === visualIndex ? null : visualIndex);
