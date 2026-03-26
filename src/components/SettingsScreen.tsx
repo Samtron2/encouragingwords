@@ -34,6 +34,7 @@ export default function SettingsScreen() {
         setDisplayName(data.display_name || "");
         setProfilePhoto(data.profile_photo || null);
         setSendToUniverse(data.send_to_universe ?? false);
+        setBirthdayReminders((data as any).birthday_reminders ?? true);
       }
       setLoaded(true);
     })();
