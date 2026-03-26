@@ -179,11 +179,11 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const canSendSms = !!recipientPhone;
 
   const prevVisual = () => {
-    setVisualIndex((i) => (i === 0 ? PLACEHOLDER_VISUALS.length - 1 : i - 1));
+    setVisualIndex((i) => (i === 0 ? dailyVisuals.length - 1 : i - 1));
   };
 
   const nextVisual = () => {
-    setVisualIndex((i) => (i === PLACEHOLDER_VISUALS.length - 1 ? 0 : i + 1));
+    setVisualIndex((i) => (i === dailyVisuals.length - 1 ? 0 : i + 1));
   };
 
   const toggleVisualSelection = () => {
