@@ -21,7 +21,7 @@ export default function AdminUsersTab() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [cleaning, setCleaning] = useState(false);
+  
 
   const loadProfiles = async () => {
     setLoading(true);
