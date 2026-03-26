@@ -272,7 +272,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
         {/* STEP 2 — WHAT */}
         <section className="mb-8">
-          <label className="text-base font-medium text-muted-foreground mb-2 block">
+          <label className="text-lg font-medium text-muted-foreground mb-2 block">
             Your message
           </label>
           <div className="relative">
