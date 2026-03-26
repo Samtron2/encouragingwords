@@ -345,7 +345,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             ) : (
               <div className="relative">
                 <Carousel
-                  opts={{ align: "center", loop: true }}
+                  opts={{ align: "center", loop: false }}
                   setApi={setCarouselApi}
                   className="w-full"
                 >
