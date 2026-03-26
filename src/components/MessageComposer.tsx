@@ -63,11 +63,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Mark draft as restored on mount
-  useEffect(() => {
-    if (initialDraft && !prefill) {
-      setDraftRestored(true);
-    }
-  }, []);
 
   // Restore selectedVisual index from ID once visuals load
   useEffect(() => {
