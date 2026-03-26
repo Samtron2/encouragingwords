@@ -124,6 +124,17 @@ function TagSelector({ options, selected, onChange, label }: {
   );
 }
 
+interface ContentItem {
+  id: string;
+  name: string;
+  image_url: string | null;
+  occasion_tags: string[];
+  mood_tags: string[];
+  active: boolean;
+  featured: boolean;
+  featured_date: string | null;
+}
+
 export default function AdminContentTab() {
   const [items, setItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
