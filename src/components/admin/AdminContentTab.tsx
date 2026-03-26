@@ -10,19 +10,10 @@ import { Plus, X, Upload, Pencil, CalendarDays } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
-const OCCASION_OPTIONS = ["Birthday", "Anniversary", "Quinceañera", "Graduation", "Holiday", "General", "Other"];
-const MOOD_OPTIONS = ["Warm", "Playful", "Gentle", "Bold"];
+const OCCASION_OPTIONS = ["Birthday", "Anniversary", "Quinceañera", "Graduation", "Holiday", "Wedding", "New Baby", "Sympathy", "Get Well", "Retirement", "Just Because", "Encouragement", "Thank You", "Congratulations", "General", "Other"];
+const MOOD_OPTIONS = ["Warm", "Playful", "Gentle", "Bold", "Heartfelt", "Funny", "Inspirational", "Calm", "Celebratory", "Sincere"];
 
-interface ContentItem {
-  id: string;
-  name: string;
-  image_url: string | null;
-  occasion_tags: string[];
-  mood_tags: string[];
-  active: boolean;
-  featured: boolean;
-  featured_date: string | null;
-}
+const VISIBLE_COUNT = 6;
 
 function TagSelector({ options, selected, onChange, label }: {
   options: string[];
@@ -30,6 +21,9 @@ function TagSelector({ options, selected, onChange, label }: {
   onChange: (tags: string[]) => void;
   label: string;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const [filter, setFilter] = useState("");
+
   const toggle = (tag: string) => {
     onChange(
       selected.includes(tag)
@@ -38,11 +32,60 @@ function TagSelector({ options, selected, onChange, label }: {
     );
   };
 
+  const collapse = () => {
+    setExpanded(false);
+    setFilter("");
+  };
+
+  const filtered = filter
+    ? options.filter((o) => o.toLowerCase().includes(filter.toLowerCase()))
+    : options;
+
+  const visibleOptions = expanded ? filtered : filtered.slice(0, VISIBLE_COUNT);
+  const hiddenCount = filtered.length - VISIBLE_COUNT;
+
+  // Selected tags not currently visible in the pill list
+  const selectedNotVisible = selected.filter((t) => !visibleOptions.includes(t));
+
   return (
     <div>
       <p className="text-base font-medium text-muted-foreground mb-2">{label}</p>
+
+      {/* Selected chips (always visible) */}
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {selected.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground text-xs font-medium px-2.5 py-1"
+            >
+              {tag}
+              <button
+                type="button"
+                onClick={() => toggle(tag)}
+                className="hover:opacity-70"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Filter input */}
+      {expanded && (
+        <input
+          type="text"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="Filter tags…"
+          className="flex h-8 w-full rounded-full border border-input bg-background px-3 py-1 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 mb-2"
+        />
+      )}
+
+      {/* Pill buttons */}
       <div className="flex flex-wrap gap-1.5">
-        {options.map((o) => (
+        {visibleOptions.map((o) => (
           <button
             key={o}
             type="button"
@@ -56,7 +99,27 @@ function TagSelector({ options, selected, onChange, label }: {
             {o}
           </button>
         ))}
+
+        {!expanded && hiddenCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            className="rounded-full px-3 py-1.5 text-[15px] font-medium border border-primary/30 text-primary/60 hover:text-primary hover:border-primary/50 transition-colors"
+          >
+            + {hiddenCount} more
+          </button>
+        )}
       </div>
+
+      {expanded && (
+        <button
+          type="button"
+          onClick={collapse}
+          className="text-sm text-muted-foreground hover:text-foreground mt-1.5"
+        >
+          Show less
+        </button>
+      )}
     </div>
   );
 }
