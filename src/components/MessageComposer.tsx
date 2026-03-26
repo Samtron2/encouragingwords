@@ -305,24 +305,42 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             </span>
           </div>
 
-          <div className="mt-3 -mx-6 px-6">
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              {PROMPT_SUGGESTIONS.map((prompt) => {
-                const isSelected = message === prompt;
-                return (
-                  <button
-                    key={prompt}
-                    onClick={() => setMessage(prompt)}
-                    className={`shrink-0 rounded-full border px-5 py-3 text-lg font-medium transition-colors whitespace-nowrap ${
-                      isSelected
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background text-primary border-primary/30 hover:bg-primary/5"
-                    }`}
-                  >
-                    {prompt}
-                  </button>
-                );
-              })}
+          <div className="mt-3">
+            <Carousel
+              opts={{ align: "center", loop: true }}
+              setApi={setChipApi}
+              className="w-full"
+            >
+              <CarouselContent>
+                {PROMPT_SUGGESTIONS.map((prompt) => {
+                  const isSelected = message === prompt;
+                  return (
+                    <CarouselItem key={prompt} className="flex justify-center">
+                      <button
+                        onClick={() => setMessage(prompt)}
+                        className={`rounded-full border px-5 py-3 text-lg font-medium transition-colors whitespace-nowrap ${
+                          isSelected
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background text-primary border-primary/30 hover:bg-primary/5"
+                        }`}
+                      >
+                        {prompt}
+                      </button>
+                    </CarouselItem>
+                  );
+                })}
+              </CarouselContent>
+            </Carousel>
+            <div className="flex justify-center gap-1.5 mt-2">
+              {PROMPT_SUGGESTIONS.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => chipApi?.scrollTo(idx)}
+                  className={`h-2 w-2 rounded-full transition-colors ${
+                    idx === chipIndex ? "bg-primary" : "bg-muted-foreground/30"
+                  }`}
+                />
+              ))}
             </div>
           </div>
 
