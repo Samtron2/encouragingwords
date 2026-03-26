@@ -179,10 +179,10 @@ const Index = () => {
                     <span className="font-body font-bold text-[18px] leading-snug px-8 text-center">
                       Send an encouraging word
                     </span>
-                    <span className="font-display italic text-[14px] mt-1 opacity-80">
-                      Unum Accipere
-                    </span>
                   </button>
+                  <span className="font-display italic text-[13px] text-muted-foreground mt-3 block text-center">
+                    Unum Accipere
+                  </span>
                 </div>
               </div>
             </main>
