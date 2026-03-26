@@ -347,7 +347,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
         {/* STEP 3 — HOW */}
         <section>
-          <label className="text-base font-medium text-muted-foreground mb-3 block">
+          <label className="text-lg font-medium text-muted-foreground mb-3 block">
             How should we send it?
           </label>
           <div className="flex gap-3">
