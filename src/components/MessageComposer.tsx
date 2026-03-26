@@ -338,10 +338,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             </button>
           )}
         </div>
-        {draftRestored && (
-          <p className="font-display italic text-sm text-muted-foreground mb-6">Draft restored</p>
-        )}
-        {!draftRestored && <div className="mb-8" />}
+        <div className="mb-8" />
 
         {sendError && (
           <div className="mb-6 flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
