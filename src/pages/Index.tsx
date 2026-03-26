@@ -116,7 +116,7 @@ const Index = () => {
     <div className="flex min-h-screen flex-col">
       {activeTab === "home" && (
         <>
-          <header className="flex items-center justify-between px-6 py-5">
+          <header className="flex items-center justify-center px-6 py-5">
             <span className="font-display text-2xl font-bold text-primary tracking-tight">Encouraging Words</span>
           </header>
 
