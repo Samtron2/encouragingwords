@@ -195,6 +195,18 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     return () => { carouselApi.off("select", onCarouselSelect); };
   }, [carouselApi, onCarouselSelect]);
 
+  const onChipSelect = useCallback(() => {
+    if (!chipApi) return;
+    setChipIndex(chipApi.selectedScrollSnap());
+  }, [chipApi]);
+
+  useEffect(() => {
+    if (!chipApi) return;
+    onChipSelect();
+    chipApi.on("select", onChipSelect);
+    return () => { chipApi.off("select", onChipSelect); };
+  }, [chipApi, onChipSelect]);
+
   const toggleVisualSelection = () => {
     setSelectedVisual(selectedVisual === visualIndex ? null : visualIndex);
   };
