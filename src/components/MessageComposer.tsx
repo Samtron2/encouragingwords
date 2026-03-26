@@ -288,7 +288,23 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   return (
     <div className="flex flex-1 flex-col items-center px-6 pb-24 pt-6 animate-fade-in overflow-x-hidden max-w-full">
       <div className="w-full max-w-[480px] mx-auto text-center">
-        <h1 className="font-display text-4xl font-bold text-primary mb-8">Send a word</h1>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <h1 className="font-display text-4xl font-bold text-primary">Send a word</h1>
+          {(recipientInput || message || selectedVisual !== null) && (
+            <button
+              onClick={handleClearDraft}
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Clear draft"
+            >
+              <X className="h-4 w-4" />
+              <span>Clear</span>
+            </button>
+          )}
+        </div>
+        {draftRestored && (
+          <p className="font-display italic text-sm text-muted-foreground mb-6">Draft restored</p>
+        )}
+        {!draftRestored && <div className="mb-8" />}
 
         {sendError && (
           <div className="mb-6 flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
