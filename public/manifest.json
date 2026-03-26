@@ -1,10 +1,10 @@
 {
   "name": "Encouraging Words",
   "short_name": "Encourage",
-  "description": "Send short, positive messages to friends and family",
+  "description": "Send a beautiful, personal message to someone who needs it. One tap. One moment. One encouraging word.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f7f4f0",
-  "theme_color": "#cc6644",
+  "theme_color": "#2D6E6E",
   "icons": []
 }

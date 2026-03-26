@@ -2,10 +2,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useDailyVisuals } from "@/hooks/useDailyVisuals";
+import { useComposerDraft } from "@/hooks/useComposerDraft";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
-import { Mail, MessageSquare, Check, User, AlertCircle } from "lucide-react";
+import { Mail, MessageSquare, Check, User, AlertCircle, X } from "lucide-react";
 import { toast } from "sonner";
 
 const PROMPT_SUGGESTIONS = [
@@ -40,14 +41,17 @@ interface MessageComposerProps {
 export default function MessageComposer({ onBack, prefill }: MessageComposerProps) {
   const { user } = useAuth();
   const { visuals: dailyVisuals, loading: visualsLoading } = useDailyVisuals();
-  const [recipientInput, setRecipientInput] = useState(prefill?.name || "");
-  const [recipientName, setRecipientName] = useState(prefill?.name || "");
-  const [recipientEmail, setRecipientEmail] = useState(prefill?.email || "");
-  const [recipientPhone, setRecipientPhone] = useState(prefill?.phone || "");
+  const { initialDraft, draftRestored, setDraftRestored, saveDraft, clearDraft } = useComposerDraft();
+
+  const [recipientInput, setRecipientInput] = useState(prefill?.name || initialDraft?.recipientInput || "");
+  const [recipientName, setRecipientName] = useState(prefill?.name || initialDraft?.recipientName || "");
+  const [recipientEmail, setRecipientEmail] = useState(prefill?.email || initialDraft?.recipientEmail || "");
+  const [recipientPhone, setRecipientPhone] = useState(prefill?.phone || initialDraft?.recipientPhone || "");
   const [suggestions, setSuggestions] = useState<Recipient[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(initialDraft?.message || "");
   const [selectedVisual, setSelectedVisual] = useState<number | null>(null);
+  const [selectedVisualId, setSelectedVisualId] = useState<string | null>(initialDraft?.selectedVisualId || null);
   const [visualIndex, setVisualIndex] = useState(0);
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [chipApi, setChipApi] = useState<CarouselApi>();
@@ -57,6 +61,46 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [sendError, setSendError] = useState(false);
   const [isTouchDevice] = useState(() => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Mark draft as restored on mount
+  useEffect(() => {
+    if (initialDraft && !prefill) {
+      setDraftRestored(true);
+    }
+  }, []);
+
+  // Restore selectedVisual index from ID once visuals load
+  useEffect(() => {
+    if (selectedVisualId && dailyVisuals.length > 0 && selectedVisual === null) {
+      const idx = dailyVisuals.findIndex((v) => v.id === selectedVisualId);
+      if (idx >= 0) setSelectedVisual(idx);
+    }
+  }, [dailyVisuals, selectedVisualId]);
+
+  // Persist draft on changes
+  useEffect(() => {
+    saveDraft({
+      recipientInput,
+      recipientName,
+      recipientEmail,
+      recipientPhone,
+      message,
+      selectedVisualId: selectedVisual !== null ? dailyVisuals[selectedVisual]?.id || null : null,
+      selectedPrompt: PROMPT_SUGGESTIONS.includes(message) ? message : null,
+    });
+  }, [recipientInput, recipientName, recipientEmail, recipientPhone, message, selectedVisual, dailyVisuals]);
+
+  const handleClearDraft = () => {
+    clearDraft();
+    setRecipientInput("");
+    setRecipientName("");
+    setRecipientEmail("");
+    setRecipientPhone("");
+    setMessage("");
+    setSelectedVisual(null);
+    setSelectedVisualId(null);
+    setSendError(false);
+  };
 
   const parseRecipientInput = (value: string) => {
     const trimmed = value.trim();
@@ -180,6 +224,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         window.open(smsUrl, "_self");
       }
 
+      clearDraft();
       setSending(false);
       setSent(true);
     } catch (err) {
@@ -243,7 +288,23 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   return (
     <div className="flex flex-1 flex-col items-center px-6 pb-24 pt-6 animate-fade-in overflow-x-hidden max-w-full">
       <div className="w-full max-w-[480px] mx-auto text-center">
-        <h1 className="font-display text-4xl font-bold text-primary mb-8">Send a word</h1>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <h1 className="font-display text-4xl font-bold text-primary">Send a word</h1>
+          {(recipientInput || message || selectedVisual !== null) && (
+            <button
+              onClick={handleClearDraft}
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Clear draft"
+            >
+              <X className="h-4 w-4" />
+              <span>Clear</span>
+            </button>
+          )}
+        </div>
+        {draftRestored && (
+          <p className="font-display italic text-sm text-muted-foreground mb-6">Draft restored</p>
+        )}
+        {!draftRestored && <div className="mb-8" />}
 
         {sendError && (
           <div className="mb-6 flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
