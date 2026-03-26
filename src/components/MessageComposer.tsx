@@ -230,7 +230,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
         {/* STEP 1 — WHO */}
         <section className="mb-8">
-          <label className="text-base font-medium text-muted-foreground mb-2 block">
+          <label className="text-lg font-medium text-muted-foreground mb-2 block">
             Who is this for?
           </label>
           <div className="relative">
