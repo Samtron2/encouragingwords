@@ -156,17 +156,17 @@ const Index = () => {
                   </div>
                 )}
 
-                <h1 className="font-display text-4xl md:text-5xl font-bold text-primary leading-tight">
+                <h1 className="font-display text-[52px] md:text-6xl font-bold text-primary leading-[1.1]">
                   Brighten someone's day
                 </h1>
-                <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
+                <p className="mt-5 text-[20px] leading-relaxed text-muted-foreground">
                   Send a short, heartfelt message to someone you care about.
                   It only takes a moment to make someone smile.
                 </p>
                 <div className="mt-10">
                   <Button
                     size="lg"
-                    className="w-full gap-2 rounded-full bg-accent text-accent-foreground font-bold text-base py-6 shadow-glow hover:bg-accent/90"
+                    className="w-full gap-2 rounded-full bg-accent text-accent-foreground font-bold text-[20px] h-16 shadow-glow hover:bg-accent/90"
                     onClick={() => switchTab("send")}
                   >
                     <Send className="h-5 w-5" />
