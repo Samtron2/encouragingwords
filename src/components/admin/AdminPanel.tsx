@@ -15,18 +15,17 @@ export default function AdminPanel() {
 
   return (
     <div className="flex flex-1 flex-col px-6 pt-6 pb-24 animate-fade-in">
-      <h1 className="font-display text-2xl font-semibold mb-4">Admin</h1>
+      <h1 className="font-display text-2xl font-bold text-primary mb-4">Admin</h1>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 rounded-lg bg-secondary/60 p-1">
+      <div className="flex gap-1 mb-6 rounded-2xl bg-secondary p-1">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={cn(
-              "flex-1 rounded-md py-2 text-sm font-medium transition-all",
+              "flex-1 rounded-xl py-2.5 text-base font-medium transition-all",
               activeTab === tab.key
-                ? "bg-background text-foreground shadow-soft"
+                ? "bg-card text-foreground shadow-card"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >

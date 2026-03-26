@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Nunito:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Nunito:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,51 +6,52 @@
 
 @layer base {
   :root {
-    --background: 36 33% 97%;
-    --foreground: 25 25% 20%;
+    --background: 37 33% 96%;
+    --foreground: 0 0% 11%;
 
-    --card: 36 40% 95%;
-    --card-foreground: 25 25% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 11%;
 
-    --popover: 36 33% 97%;
-    --popover-foreground: 25 25% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 11%;
 
-    --primary: 15 60% 55%;
-    --primary-foreground: 36 33% 97%;
+    --primary: 300 52% 18%;
+    --primary-foreground: 37 33% 96%;
 
-    --secondary: 30 40% 90%;
-    --secondary-foreground: 25 25% 20%;
+    --secondary: 37 33% 93%;
+    --secondary-foreground: 0 0% 11%;
 
-    --muted: 30 20% 92%;
-    --muted-foreground: 25 15% 50%;
+    --muted: 37 20% 93%;
+    --muted-foreground: 0 0% 42%;
 
-    --accent: 340 45% 65%;
-    --accent-foreground: 36 33% 97%;
+    --accent: 43 53% 54%;
+    --accent-foreground: 300 52% 18%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 36 33% 97%;
+    --destructive: 4 64% 46%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 30 20% 88%;
-    --input: 30 20% 88%;
-    --ring: 15 60% 55%;
+    --border: 37 15% 88%;
+    --input: 37 15% 88%;
+    --ring: 300 52% 18%;
 
     --radius: 1rem;
 
-    --sidebar-background: 36 33% 97%;
-    --sidebar-foreground: 25 25% 20%;
-    --sidebar-primary: 15 60% 55%;
-    --sidebar-primary-foreground: 36 33% 97%;
-    --sidebar-accent: 30 40% 90%;
-    --sidebar-accent-foreground: 25 25% 20%;
-    --sidebar-border: 30 20% 88%;
-    --sidebar-ring: 15 60% 55%;
+    --sidebar-background: 37 33% 96%;
+    --sidebar-foreground: 0 0% 11%;
+    --sidebar-primary: 300 52% 18%;
+    --sidebar-primary-foreground: 37 33% 96%;
+    --sidebar-accent: 43 53% 54%;
+    --sidebar-accent-foreground: 300 52% 18%;
+    --sidebar-border: 37 15% 88%;
+    --sidebar-ring: 300 52% 18%;
 
     --font-display: 'Playfair Display', Georgia, serif;
     --font-body: 'Nunito', system-ui, sans-serif;
 
-    --gradient-warm: linear-gradient(135deg, hsl(15, 60%, 55%), hsl(340, 45%, 65%));
-    --shadow-soft: 0 4px 24px -4px hsl(25 25% 20% / 0.08);
-    --shadow-glow: 0 8px 32px -8px hsl(15 60% 55% / 0.2);
+    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+    --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.06);
+    --shadow-glow: 0 4px 20px rgba(74, 25, 66, 0.15);
+    --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -62,9 +63,17 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    font-size: 16px;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
+  }
+}
+
+/* Hide SMS button on non-touch / desktop devices */
+@media (hover: hover) and (pointer: fine) {
+  .sms-only {
+    display: none !important;
   }
 }

@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Heart, Send, Sparkles, CalendarHeart } from "lucide-react";
+import { Send, CalendarHeart } from "lucide-react";
 import MessageComposer, { type PrefilledRecipient } from "@/components/MessageComposer";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import SettingsScreen from "@/components/SettingsScreen";
@@ -71,7 +71,7 @@ const Index = () => {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Heart className="h-8 w-8 animate-pulse text-primary" />
+        <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -116,37 +116,37 @@ const Index = () => {
     <div className="flex min-h-screen flex-col">
       {activeTab === "home" && (
         <>
-          <header className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-primary" />
-              <span className="font-display text-lg font-semibold">Encouraging Words</span>
+          <header className="flex items-center justify-between px-6 py-5">
+            <div className="flex items-center gap-3">
+              <span className="font-display text-3xl font-bold text-primary tracking-tight">EW</span>
+              <span className="font-body text-sm text-muted-foreground">Encouraging Words</span>
             </div>
           </header>
 
           <main className="flex flex-1 flex-col items-center justify-center px-6 pb-28">
             <div className="max-w-md w-full text-center animate-fade-in">
               {reminders.length > 0 && (
-                <div className="mb-8 space-y-3 text-left">
+                <div className="mb-10 space-y-3 text-left">
                   {reminders.map((r, i) => (
                     <div
                       key={i}
-                      className="rounded-xl border border-border bg-card p-4 shadow-soft flex items-center gap-4"
+                      className="rounded-2xl bg-card p-5 shadow-card flex items-center gap-4"
                     >
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/15">
                         <CalendarHeart className="h-5 w-5 text-accent" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium leading-snug">
+                        <p className="text-base font-medium leading-snug">
                           {r.name}'s {occasionLabel(r.occasion_type)} is{" "}
-                          <span className="text-primary font-semibold">{daysLabel(r.days_away)}</span>.
+                          <span className="text-accent font-semibold">{daysLabel(r.days_away)}</span>.
                         </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="text-sm text-muted-foreground mt-0.5">
                           Send her an encouraging word?
                         </p>
                       </div>
                       <Button
                         size="sm"
-                        className="shrink-0 shadow-glow"
+                        className="shrink-0"
                         onClick={() => handleSendNow(r)}
                       >
                         Send now
@@ -156,19 +156,20 @@ const Index = () => {
                 </div>
               )}
 
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                <Sparkles className="h-10 w-10 text-primary" />
-              </div>
-              <h1 className="font-display text-4xl font-semibold tracking-tight">
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-primary leading-tight">
                 Brighten someone's day
               </h1>
-              <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+              <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
                 Send a short, heartfelt message to someone you care about.
                 It only takes a moment to make someone smile.
               </p>
-              <div className="mt-8">
-                <Button size="lg" className="gap-2 shadow-glow" onClick={() => switchTab("send")}>
-                  <Send className="h-4 w-4" />
+              <div className="mt-10">
+                <Button
+                  size="lg"
+                  className="w-full gap-2 rounded-full bg-accent text-accent-foreground font-bold text-base py-6 shadow-glow hover:bg-accent/90"
+                  onClick={() => switchTab("send")}
+                >
+                  <Send className="h-5 w-5" />
                   Send an encouraging word
                 </Button>
               </div>
