@@ -41,7 +41,7 @@ interface MessageComposerProps {
 export default function MessageComposer({ onBack, prefill }: MessageComposerProps) {
   const { user } = useAuth();
   const { visuals: dailyVisuals, loading: visualsLoading } = useDailyVisuals();
-  const { initialDraft, draftRestored, setDraftRestored, saveDraft, clearDraft } = useComposerDraft();
+  const { initialDraft, saveDraft, clearDraft } = useComposerDraft();
 
   const [recipientInput, setRecipientInput] = useState(prefill?.name || initialDraft?.recipientInput || "");
   const [recipientName, setRecipientName] = useState(prefill?.name || initialDraft?.recipientName || "");
