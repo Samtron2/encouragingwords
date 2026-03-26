@@ -53,6 +53,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
+  const [isTouchDevice] = useState(() => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const parseRecipientInput = (value: string) => {
@@ -398,19 +399,21 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             <Button
               onClick={() => handleSend("email")}
               disabled={!canSendEmail || !message.trim() || sending}
-              className="flex-1 gap-2 rounded-full h-16 font-bold text-lg bg-accent text-accent-foreground shadow-glow hover:bg-accent/90 disabled:opacity-40"
+              className="flex-1 gap-2 rounded-full h-16 font-bold text-lg font-body bg-accent text-white shadow-glow hover:bg-accent/90 disabled:opacity-40"
             >
               <Mail className="h-5 w-5" />
               {sending ? "Sending…" : "Send by email"}
             </Button>
-            <Button
-              onClick={() => handleSend("sms")}
-              disabled={!canSendSms || !message.trim() || sending}
-              className="sms-only flex-1 gap-2 rounded-full h-16 font-bold text-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
-            >
-              <MessageSquare className="h-5 w-5" />
-              {sending ? "Sending…" : "Send by text"}
-            </Button>
+            {isTouchDevice && (
+              <Button
+                onClick={() => handleSend("sms")}
+                disabled={!canSendSms || !message.trim() || sending}
+                className="flex-1 gap-2 rounded-full h-16 font-bold text-lg font-body bg-primary text-white hover:bg-primary/90 disabled:opacity-40"
+              >
+                <MessageSquare className="h-5 w-5" />
+                {sending ? "Sending…" : "Send by text"}
+              </Button>
+            )}
           </div>
         </section>
       </div>
