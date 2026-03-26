@@ -2,20 +2,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Trash2, ChevronLeft, Loader2 } from "lucide-react";
+import { Search, Trash2, ChevronLeft } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 interface Profile {
   id: string;
@@ -32,7 +21,7 @@ export default function AdminUsersTab() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [cleaning, setCleaning] = useState(false);
+  
 
   const loadProfiles = async () => {
     setLoading(true);
@@ -129,78 +118,6 @@ export default function AdminUsersTab() {
   }
 
 
-  const handleCleanDuplicates = async () => {
-    setCleaning(true);
-    try {
-      // Fetch all recipients
-      const { data: allRecipients, error: fetchErr } = await supabase
-        .from("recipients")
-        .select("id, user_id, email, phone, name, last_contacted_at");
-
-      if (fetchErr || !allRecipients) {
-        toast({ title: "Error loading contacts", description: fetchErr?.message, variant: "destructive" });
-        return;
-      }
-
-      // Group by user_id+email and user_id+phone
-      const groups = new Map<string, typeof allRecipients>();
-
-      for (const r of allRecipients) {
-        const key = r.email
-          ? `email:${r.user_id}:${r.email.toLowerCase()}`
-          : r.phone
-          ? `phone:${r.user_id}:${r.phone}`
-          : null;
-        if (!key) continue;
-        const group = groups.get(key) || [];
-        group.push(r);
-        groups.set(key, group);
-      }
-
-      let deletedCount = 0;
-
-      for (const [, group] of groups) {
-        if (group.length <= 1) continue;
-
-        // Keep the one with most recent last_contacted_at (nulls last)
-        group.sort((a, b) => {
-          if (!a.last_contacted_at && !b.last_contacted_at) return 0;
-          if (!a.last_contacted_at) return 1;
-          if (!b.last_contacted_at) return -1;
-          return new Date(b.last_contacted_at).getTime() - new Date(a.last_contacted_at).getTime();
-        });
-
-        const keeper = group[0];
-        const duplicates = group.slice(1);
-        const dupeIds = duplicates.map((d) => d.id);
-
-        // Re-point messages from duplicate recipients to the keeper
-        for (const dupeId of dupeIds) {
-          await supabase
-            .from("messages")
-            .update({ recipient_id: keeper.id })
-            .eq("recipient_id", dupeId);
-        }
-
-        // Delete duplicates
-        const { error: delErr } = await supabase
-          .from("recipients")
-          .delete()
-          .in("id", dupeIds);
-
-        if (!delErr) {
-          deletedCount += dupeIds.length;
-        }
-      }
-
-      toast({ title: "Duplicates removed", description: `${deletedCount} duplicate contact${deletedCount !== 1 ? "s" : ""} cleaned up.` });
-    } catch (err: any) {
-      toast({ title: "Cleanup failed", description: err?.message || "Unknown error", variant: "destructive" });
-    } finally {
-      setCleaning(false);
-    }
-  };
-
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="relative">
@@ -244,34 +161,6 @@ export default function AdminUsersTab() {
           ))}
         </div>
       )}
-
-      <div className="pt-4 border-t border-border">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-destructive border-destructive/30 hover:bg-destructive/5 hover:text-destructive"
-              disabled={cleaning}
-            >
-              {cleaning && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-              Clean up duplicate contacts
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Clean up duplicates</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will remove duplicate contacts and reassign their message history to the kept contact. Continue?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleCleanDuplicates}>Continue</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
     </div>
   );
 }
