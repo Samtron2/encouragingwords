@@ -151,7 +151,7 @@
 .bg-decoration::after {
   width: 500px;
   height: 500px;
-  background: #C97B84;
+  background: var(--bg-circle-2);
   bottom: 0;
   left: 0;
   transform: translateX(-30%) translateY(30%);
