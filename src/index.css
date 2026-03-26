@@ -140,7 +140,7 @@
 .bg-decoration::before {
   width: 600px;
   height: 600px;
-  background: #2D6E6E;
+  background: var(--bg-circle-1);
   top: 0;
   right: 0;
   transform: translateX(30%) translateY(-30%);
