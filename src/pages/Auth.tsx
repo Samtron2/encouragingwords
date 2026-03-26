@@ -39,15 +39,15 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm animate-fade-in">
+    <div className="relative flex min-h-screen items-center justify-center px-4">
+      <div className="bg-decoration" />
+      <div className="relative z-10 w-full max-w-sm animate-fade-in">
         <div className="mb-8 text-center">
-          <h1 className="font-display text-5xl font-bold text-primary tracking-tight">
-            EW
+          <h1 className="font-display text-3xl font-bold text-primary tracking-tight">
+            Encouraging Words
           </h1>
-          <p className="font-body text-sm text-muted-foreground mt-1">Encouraging Words</p>
           <p className="mt-4 text-base text-muted-foreground">
-            {isSignUp ? "Create your account to start spreading joy" : "Welcome back, sunshine ☀️"}
+            {isSignUp ? "Create your account to start spreading joy" : "Welcome back ☀️"}
           </p>
         </div>
 

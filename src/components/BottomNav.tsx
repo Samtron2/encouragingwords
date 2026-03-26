@@ -42,10 +42,10 @@ export default function BottomNav({ active, onChange, isAdmin }: BottomNavProps)
                       : "bg-primary/90 hover:bg-primary"
                   )}
                 >
-                  <Icon className="h-6 w-6 text-accent" />
+                  <Icon className="h-6 w-6 text-primary-foreground" />
                 </div>
                 <span className={cn(
-                  "text-[10px] font-medium mt-0.5",
+                  "text-[11px] font-medium mt-0.5",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )}>
                   {label}
@@ -64,9 +64,9 @@ export default function BottomNav({ active, onChange, isAdmin }: BottomNavProps)
               )}
             >
               <Icon className="h-5 w-5" />
-              <span className="text-[10px] font-medium">{label}</span>
+              <span className="text-[11px] font-medium">{label}</span>
               {isActive && (
-                <span className="absolute -bottom-0.5 h-0.5 w-5 rounded-full bg-accent" />
+                <span className="absolute -bottom-0.5 h-1 w-1 rounded-full bg-accent" />
               )}
             </button>
           );

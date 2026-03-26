@@ -43,7 +43,7 @@ function TagSelector({ options, selected, onChange, label }: {
             key={o}
             type="button"
             onClick={() => toggle(o)}
-            className={`rounded-full px-3 py-1.5 text-sm font-medium border transition-colors ${
+            className={`rounded-full px-3 py-1.5 text-[15px] font-medium border transition-colors ${
               selected.includes(o)
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-background text-primary border-primary/30 hover:bg-primary/5"

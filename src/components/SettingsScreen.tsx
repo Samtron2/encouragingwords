@@ -107,7 +107,7 @@ export default function SettingsScreen() {
 
       {/* ACCOUNT */}
       <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-primary mb-3">
           Account
         </h2>
         <div className="rounded-2xl bg-card p-6 space-y-5 shadow-card">
@@ -133,7 +133,7 @@ export default function SettingsScreen() {
               <p className="text-base font-medium">Profile photo</p>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="text-sm text-accent hover:underline"
+                className="text-[15px] text-accent hover:underline"
               >
                 Tap to change
               </button>
@@ -174,14 +174,14 @@ export default function SettingsScreen() {
 
       {/* PREFERENCES */}
       <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-primary mb-3">
           Preferences
         </h2>
         <div className="rounded-2xl bg-card p-6 space-y-5 shadow-card">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-base font-medium">Send to the Universe</p>
-              <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">
+              <p className="text-[15px] text-muted-foreground mt-0.5 leading-relaxed">
                 Occasionally send a word of hope out into the world.
               </p>
             </div>
@@ -211,7 +211,7 @@ export default function SettingsScreen() {
 
       {/* ABOUT */}
       <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-primary mb-3">
           About
         </h2>
         <div className="rounded-2xl bg-card p-6 shadow-card space-y-2">
