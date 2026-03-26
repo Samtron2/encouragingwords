@@ -38,6 +38,7 @@ interface MessageComposerProps {
 
 export default function MessageComposer({ onBack, prefill }: MessageComposerProps) {
   const { user } = useAuth();
+  const { visuals: dailyVisuals, loading: visualsLoading } = useDailyVisuals();
   const [recipientInput, setRecipientInput] = useState(prefill?.name || "");
   const [recipientName, setRecipientName] = useState(prefill?.name || "");
   const [recipientEmail, setRecipientEmail] = useState(prefill?.email || "");
