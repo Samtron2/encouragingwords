@@ -232,7 +232,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center px-6 pb-24 pt-6 animate-fade-in">
+    <div className="flex flex-1 flex-col items-center px-6 pb-24 pt-6 animate-fade-in overflow-x-hidden max-w-full">
       <div className="w-full max-w-[480px] mx-auto text-center">
         <h1 className="font-display text-4xl font-bold text-primary mb-8">Send a word</h1>
 
