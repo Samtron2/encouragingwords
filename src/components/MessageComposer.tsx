@@ -147,6 +147,45 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setRecipientEmail(r.email || "");
     setRecipientPhone(r.phone || "");
     setShowSuggestions(false);
+    setSelectedRecipient(r);
+    setNudgeInputVisible(false);
+    setNudgeValue("");
+
+    // Determine if nudge is needed
+    if (r.nudge_dismissed) {
+      setNudgeField(null);
+    } else if (r.phone && !r.email) {
+      setNudgeField("email");
+    } else if (r.email && !r.phone) {
+      setNudgeField("phone");
+    } else {
+      setNudgeField(null);
+    }
+  };
+
+  const handleNudgeSave = async () => {
+    if (!selectedRecipient || !nudgeValue.trim()) return;
+    const update: Record<string, string> = {};
+    if (nudgeField === "email") {
+      update.email = nudgeValue.trim();
+      setRecipientEmail(nudgeValue.trim());
+    } else {
+      update.phone = nudgeValue.trim();
+      setRecipientPhone(nudgeValue.trim());
+    }
+    await supabase.from("recipients").update(update).eq("id", selectedRecipient.id);
+    setSelectedRecipient({ ...selectedRecipient, ...update } as Recipient);
+    setNudgeField(null);
+    setNudgeInputVisible(false);
+    setNudgeValue("");
+    toast.success("Contact updated!");
+  };
+
+  const handleNudgeDismiss = async () => {
+    if (!selectedRecipient) return;
+    await supabase.from("recipients").update({ nudge_dismissed: true } as any).eq("id", selectedRecipient.id);
+    setNudgeField(null);
+    setNudgeInputVisible(false);
   };
 
   const handleSend = async (method: "email" | "sms") => {
