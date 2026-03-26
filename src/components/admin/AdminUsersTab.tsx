@@ -160,35 +160,6 @@ export default function AdminUsersTab() {
             </button>
           ))}
         </div>
-      )}
-
-      <div className="pt-4 border-t border-border">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-destructive border-destructive/30 hover:bg-destructive/5 hover:text-destructive"
-              disabled={cleaning}
-            >
-              {cleaning && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-              Clean up duplicate contacts
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Clean up duplicates</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will remove duplicate contacts and reassign their message history to the kept contact. Continue?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleCleanDuplicates}>Continue</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
     </div>
   );
 }
