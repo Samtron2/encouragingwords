@@ -246,7 +246,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               }}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className="pl-10 text-base py-4"
+              className="pl-10 text-lg py-5"
             />
             {showSuggestions && suggestions.length > 0 && (
               <div className="absolute z-10 mt-1 w-full rounded-2xl border border-border bg-card shadow-card overflow-hidden">
