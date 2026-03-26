@@ -23,6 +23,11 @@ function TagSelector({ options, selected, onChange, label }: {
 }) {
   const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState("");
+  const [customInput, setCustomInput] = useState("");
+
+  const otherSelected = selected.includes("Other");
+  // Custom tags = selected tags not in the standard options list
+  const customTags = selected.filter((t) => t !== "Other" && !options.includes(t));
 
   const toggle = (tag: string) => {
     onChange(
@@ -30,6 +35,14 @@ function TagSelector({ options, selected, onChange, label }: {
         ? selected.filter((t) => t !== tag)
         : [...selected, tag]
     );
+  };
+
+  const addCustomTag = () => {
+    const val = customInput.trim();
+    if (val && !selected.includes(val)) {
+      onChange([...selected, val]);
+    }
+    setCustomInput("");
   };
 
   const collapse = () => {
@@ -44,8 +57,8 @@ function TagSelector({ options, selected, onChange, label }: {
   const visibleOptions = expanded ? filtered : filtered.slice(0, VISIBLE_COUNT);
   const hiddenCount = filtered.length - VISIBLE_COUNT;
 
-  // Selected tags not currently visible in the pill list
-  const selectedNotVisible = selected.filter((t) => !visibleOptions.includes(t));
+  // All removable chips: standard selected + custom tags
+  const allChips = selected.filter((t) => options.includes(t) || !options.includes(t));
 
   return (
     <div>
@@ -119,6 +132,28 @@ function TagSelector({ options, selected, onChange, label }: {
         >
           Show less
         </button>
+      )}
+
+      {/* Custom tag input when "Other" is selected */}
+      {otherSelected && (
+        <div className="flex items-center gap-2 mt-2">
+          <input
+            type="text"
+            value={customInput}
+            onChange={(e) => setCustomInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomTag(); } }}
+            placeholder="Add custom tag…"
+            className="flex h-8 flex-1 rounded-full border border-input bg-background px-3 py-1 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          />
+          <button
+            type="button"
+            onClick={addCustomTag}
+            disabled={!customInput.trim()}
+            className="h-8 w-8 rounded-full border border-primary/30 text-primary hover:bg-primary/5 flex items-center justify-center disabled:opacity-40 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
       )}
     </div>
   );
