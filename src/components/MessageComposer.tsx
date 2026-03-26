@@ -25,6 +25,7 @@ interface Recipient {
   name: string | null;
   email: string | null;
   phone: string | null;
+  nudge_dismissed: boolean;
 }
 
 export interface PrefilledRecipient {
@@ -61,6 +62,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [sendError, setSendError] = useState(false);
   const [isTouchDevice] = useState(() => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
+  const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
+  const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
+  const [nudgeValue, setNudgeValue] = useState("");
 
   // Mark draft as restored on mount
 
@@ -124,7 +129,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       const q = `%${recipientInput}%`;
       const { data } = await supabase
         .from("recipients")
-        .select("id, name, email, phone")
+        .select("id, name, email, phone, nudge_dismissed")
         .eq("user_id", user.id)
         .or(`name.ilike.${q},email.ilike.${q},phone.ilike.${q}`)
         .order("last_contacted_at", { ascending: false, nullsFirst: false })
@@ -142,6 +147,45 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setRecipientEmail(r.email || "");
     setRecipientPhone(r.phone || "");
     setShowSuggestions(false);
+    setSelectedRecipient(r);
+    setNudgeInputVisible(false);
+    setNudgeValue("");
+
+    // Determine if nudge is needed
+    if (r.nudge_dismissed) {
+      setNudgeField(null);
+    } else if (r.phone && !r.email) {
+      setNudgeField("email");
+    } else if (r.email && !r.phone) {
+      setNudgeField("phone");
+    } else {
+      setNudgeField(null);
+    }
+  };
+
+  const handleNudgeSave = async () => {
+    if (!selectedRecipient || !nudgeValue.trim()) return;
+    const update: Record<string, string> = {};
+    if (nudgeField === "email") {
+      update.email = nudgeValue.trim();
+      setRecipientEmail(nudgeValue.trim());
+    } else {
+      update.phone = nudgeValue.trim();
+      setRecipientPhone(nudgeValue.trim());
+    }
+    await supabase.from("recipients").update(update).eq("id", selectedRecipient.id);
+    setSelectedRecipient({ ...selectedRecipient, ...update } as Recipient);
+    setNudgeField(null);
+    setNudgeInputVisible(false);
+    setNudgeValue("");
+    toast.success("Contact updated!");
+  };
+
+  const handleNudgeDismiss = async () => {
+    if (!selectedRecipient) return;
+    await supabase.from("recipients").update({ nudge_dismissed: true } as any).eq("id", selectedRecipient.id);
+    setNudgeField(null);
+    setNudgeInputVisible(false);
   };
 
   const handleSend = async (method: "email" | "sms") => {
@@ -387,6 +431,56 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               </div>
             )}
           </div>
+
+          {/* Contact nudge */}
+          {nudgeField && selectedRecipient && (
+            <div className="mt-2 text-left">
+              {!nudgeInputVisible ? (
+                <p className="text-sm italic text-muted-foreground">
+                  {nudgeField === "email"
+                    ? `Add ${selectedRecipient.name || "an"}'s email?`
+                    : `Add ${selectedRecipient.name || "a"}'s phone number?`}
+                  {" "}
+                  <button
+                    type="button"
+                    onClick={() => setNudgeInputVisible(true)}
+                    className="underline text-accent hover:text-accent/80 not-italic font-medium"
+                  >
+                    Add
+                  </button>
+                  {" · "}
+                  <button
+                    type="button"
+                    onClick={handleNudgeDismiss}
+                    className="underline text-muted-foreground/70 hover:text-muted-foreground not-italic"
+                  >
+                    don't ask again
+                  </button>
+                </p>
+              ) : (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); handleNudgeSave(); }}
+                  className="flex items-center gap-2"
+                >
+                  <Input
+                    autoFocus
+                    placeholder={nudgeField === "email" ? "Email address" : "Phone number"}
+                    value={nudgeValue}
+                    onChange={(e) => setNudgeValue(e.target.value)}
+                    className="text-sm h-8 rounded-full flex-1"
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={!nudgeValue.trim()}
+                    className="rounded-full h-8 px-4 text-sm bg-accent text-accent-foreground hover:bg-accent/90"
+                  >
+                    Save
+                  </Button>
+                </form>
+              )}
+            </div>
+          )}
         </section>
 
         {/* STEP 2 — WHAT */}

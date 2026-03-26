@@ -271,6 +271,7 @@ export type Database = {
           id: string
           last_contacted_at: string | null
           name: string | null
+          nudge_dismissed: boolean
           phone: string | null
           user_id: string
         }
@@ -280,6 +281,7 @@ export type Database = {
           id?: string
           last_contacted_at?: string | null
           name?: string | null
+          nudge_dismissed?: boolean
           phone?: string | null
           user_id: string
         }
@@ -289,6 +291,7 @@ export type Database = {
           id?: string
           last_contacted_at?: string | null
           name?: string | null
+          nudge_dismissed?: boolean
           phone?: string | null
           user_id?: string
         }

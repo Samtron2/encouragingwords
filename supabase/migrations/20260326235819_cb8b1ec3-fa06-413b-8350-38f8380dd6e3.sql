@@ -1,0 +1,1 @@
+ALTER TABLE public.recipients ADD COLUMN nudge_dismissed boolean NOT NULL DEFAULT false;
