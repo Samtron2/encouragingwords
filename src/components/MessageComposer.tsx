@@ -321,7 +321,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             ) : dailyVisuals.length === 0 ? (
               <p className="text-base text-muted-foreground text-center py-6">No visuals available today.</p>
             ) : (
-              <div className="relative px-12">
+              <div className="relative">
                 <Carousel
                   opts={{ align: "center", loop: true }}
                   setApi={setCarouselApi}
@@ -358,9 +358,19 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious className="left-0 h-10 w-10 rounded-full bg-card shadow-card border-0 text-muted-foreground hover:text-foreground" />
-                  <CarouselNext className="right-0 h-10 w-10 rounded-full bg-card shadow-card border-0 text-muted-foreground hover:text-foreground" />
                 </Carousel>
+                {/* Dot indicators */}
+                <div className="hidden md:flex justify-center gap-1.5 mt-3">
+                  {dailyVisuals.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => carouselApi?.scrollTo(idx)}
+                      className={`h-2 w-2 rounded-full transition-colors ${
+                        idx === visualIndex ? "bg-primary" : "bg-muted-foreground/30"
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
             )}
             <p className="font-display italic text-sm text-muted-foreground text-center mt-3">
