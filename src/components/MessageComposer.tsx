@@ -53,6 +53,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
+  const [isTouchDevice] = useState(() => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const parseRecipientInput = (value: string) => {
