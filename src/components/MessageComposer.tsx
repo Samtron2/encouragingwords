@@ -175,13 +175,18 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       const imageUrl = !isEmoji ? visual?.image_url || undefined : undefined;
 
       if (method === "email") {
-        const sendResult = await supabase.functions.invoke("send-email", {
+        const idempotencyKey = `encouraging-${user.id}-${Date.now()}`;
+        const sendResult = await supabase.functions.invoke("send-transactional-email", {
           body: {
+            templateName: "encouraging-message",
             recipientEmail,
-            recipientName: recipientName || undefined,
-            message: message.trim(),
-            visualImageUrl: imageUrl,
-            visualEmoji: emojiChar,
+            idempotencyKey,
+            templateData: {
+              recipientName: recipientName || undefined,
+              message: message.trim(),
+              visualImageUrl: imageUrl,
+              visualEmoji: emojiChar,
+            },
           },
         });
 
