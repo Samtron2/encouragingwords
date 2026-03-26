@@ -207,7 +207,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           You just made someone's day a little brighter.
         </p>
         <Button
-          className="mt-8 rounded-full bg-accent text-accent-foreground font-bold px-8 py-5 shadow-glow hover:bg-accent/90"
+          className="mt-8 rounded-full bg-accent text-accent-foreground font-bold px-8 h-16 text-lg shadow-glow hover:bg-accent/90"
           onClick={onBack}
         >
           Back to home
