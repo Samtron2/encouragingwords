@@ -128,7 +128,6 @@ export default function AdminUsersTab() {
     );
   }
 
-  const [cleaning, setCleaning] = useState(false);
 
   const handleCleanDuplicates = async () => {
     setCleaning(true);
