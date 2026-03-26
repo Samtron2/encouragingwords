@@ -283,7 +283,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               }}
               placeholder="Write something kind…"
               rows={4}
-              className="flex w-full rounded-2xl border border-input bg-card px-5 py-4 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-body shadow-card leading-relaxed"
+              className="flex w-full rounded-2xl border border-input bg-card px-5 py-5 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-body shadow-card leading-relaxed"
             />
             <span className="absolute bottom-3 right-4 text-[15px] text-muted-foreground">
               {message.length}/160
