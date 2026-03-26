@@ -26,7 +26,7 @@ export default function SettingsScreen() {
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("display_name, profile_photo, send_to_universe")
+        .select("display_name, profile_photo, send_to_universe, birthday_reminders")
         .eq("user_id", user.id)
         .single();
 
