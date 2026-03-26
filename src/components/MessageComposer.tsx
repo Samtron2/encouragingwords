@@ -128,10 +128,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
       const visual = selectedVisual !== null ? PLACEHOLDER_VISUALS[selectedVisual] : null;
 
-      // Send via edge function
-      let sendResult;
       if (method === "email") {
-        sendResult = await supabase.functions.invoke("send-email", {
+        // Send via edge function
+        const sendResult = await supabase.functions.invoke("send-email", {
           body: {
             recipientEmail,
             recipientName: recipientName || undefined,
@@ -140,33 +139,40 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             visualColor: visual?.color,
           },
         });
-      } else {
-        sendResult = await supabase.functions.invoke("send-sms", {
-          body: {
-            recipientPhone,
-            message: message.trim(),
-            visualUrl: null, // No public URL for placeholder visuals yet
-          },
+
+        const status = sendResult.error ? "failed" : "sent";
+
+        await supabase.from("messages").insert({
+          user_id: user.id,
+          recipient_id: recipientRow?.id || null,
+          message_text: message.trim(),
+          visual_id: visual?.label || null,
+          delivery_method: "email",
+          status,
         });
-      }
 
-      const status = sendResult.error ? "failed" : "sent";
+        if (sendResult.error || sendResult.data?.error) {
+          console.error("Send failed:", sendResult.error || sendResult.data?.error);
+          setSendError(true);
+          setSending(false);
+          return;
+        }
+      } else {
+        // Native SMS deep link
+        const smsBody = encodeURIComponent(message.trim());
+        const smsUrl = `sms:${recipientPhone}?body=${smsBody}`;
 
-      // Save message record
-      await supabase.from("messages").insert({
-        user_id: user.id,
-        recipient_id: recipientRow?.id || null,
-        message_text: message.trim(),
-        visual_id: visual?.label || null,
-        delivery_method: method,
-        status,
-      });
+        // Log as initiated since we can't confirm delivery
+        await supabase.from("messages").insert({
+          user_id: user.id,
+          recipient_id: recipientRow?.id || null,
+          message_text: message.trim(),
+          visual_id: visual?.label || null,
+          delivery_method: "sms_native",
+          status: "initiated",
+        });
 
-      if (sendResult.error || sendResult.data?.error) {
-        console.error("Send failed:", sendResult.error || sendResult.data?.error);
-        setSendError(true);
-        setSending(false);
-        return;
+        window.open(smsUrl, "_self");
       }
 
       setSending(false);
