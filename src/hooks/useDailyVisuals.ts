@@ -34,7 +34,7 @@ function todayDateString(): string {
   return `${y}-${m}-${d}`;
 }
 
-const MAX_DAILY = 15;
+const MAX_DAILY = 30;
 
 export function useDailyVisuals() {
   const [visuals, setVisuals] = useState<Visual[]>([]);

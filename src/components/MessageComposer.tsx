@@ -334,7 +334,17 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                           onClick={() => setSelectedVisual(selectedVisual === idx ? null : idx)}
                           className="flex flex-col items-center gap-2 transition-all"
                         >
-                          {visual.image_url ? (
+                          {visual.image_url?.startsWith("emoji:") ? (
+                            <div
+                              className={`h-[200px] w-[200px] rounded-2xl flex items-center justify-center transition-all shadow-card bg-[#F5F0E8] ${
+                                selectedVisual === idx
+                                  ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
+                                  : ""
+                              }`}
+                            >
+                              <span className="text-[128px] leading-none">{visual.image_url.slice(6)}</span>
+                            </div>
+                          ) : visual.image_url ? (
                             <img
                               src={visual.image_url}
                               alt={visual.name}
