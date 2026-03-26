@@ -50,6 +50,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [selectedVisual, setSelectedVisual] = useState<number | null>(null);
   const [visualIndex, setVisualIndex] = useState(0);
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [chipApi, setChipApi] = useState<CarouselApi>();
+  const [chipIndex, setChipIndex] = useState(0);
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
