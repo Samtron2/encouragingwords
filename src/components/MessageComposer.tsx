@@ -354,7 +354,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             ) : (
               <div className="relative">
                 <Carousel
-                  opts={{ align: "center", loop: false }}
+                  opts={{ align: "center", loop: false, startIndex: Math.floor(dailyVisuals.length / 2) }}
                   setApi={setCarouselApi}
                   className="w-full"
                 >
