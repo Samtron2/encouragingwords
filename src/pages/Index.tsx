@@ -113,77 +113,81 @@ const Index = () => {
   const occasionLabel = (type: string) => type.toLowerCase();
 
   return (
-    <div className="flex min-h-screen flex-col">
-      {activeTab === "home" && (
-        <>
-          <header className="flex items-center justify-center px-6 py-5">
-            <span className="font-display text-2xl font-bold text-primary tracking-tight">Encouraging Words</span>
-          </header>
+    <div className="relative flex min-h-screen flex-col">
+      <div className="bg-decoration" />
 
-          <main className="flex flex-1 flex-col items-center justify-center px-6 pb-28">
-            <div className="max-w-md w-full text-center animate-fade-in">
-              {reminders.length > 0 && (
-                <div className="mb-10 space-y-3 text-left">
-                  {reminders.map((r, i) => (
-                    <div
-                      key={i}
-                      className="rounded-2xl bg-card p-5 shadow-card flex items-center gap-4"
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/15">
-                        <CalendarHeart className="h-5 w-5 text-accent" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-base font-medium leading-snug">
-                          {r.name}'s {occasionLabel(r.occasion_type)} is{" "}
-                          <span className="text-accent font-semibold">{daysLabel(r.days_away)}</span>.
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-0.5">
-                          Send her an encouraging word?
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        className="shrink-0"
-                        onClick={() => handleSendNow(r)}
+      <div className="relative z-10 flex min-h-screen flex-col">
+        {activeTab === "home" && (
+          <>
+            <header className="flex items-center justify-center px-6 py-5">
+              <span className="font-display text-2xl font-bold text-primary tracking-tight">Encouraging Words</span>
+            </header>
+
+            <main className="flex flex-1 flex-col items-center justify-center px-6 pb-28">
+              <div className="max-w-md w-full text-center animate-fade-in">
+                {reminders.length > 0 && (
+                  <div className="mb-10 space-y-3 text-left">
+                    {reminders.map((r, i) => (
+                      <div
+                        key={i}
+                        className="rounded-2xl bg-card p-5 shadow-card flex items-center gap-4"
                       >
-                        Send now
-                      </Button>
-                    </div>
-                  ))}
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/15">
+                          <CalendarHeart className="h-5 w-5 text-accent" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-base font-medium leading-snug">
+                            {r.name}'s {occasionLabel(r.occasion_type)} is{" "}
+                            <span className="text-accent font-semibold">{daysLabel(r.days_away)}</span>.
+                          </p>
+                          <p className="text-[15px] text-muted-foreground mt-0.5">
+                            Send her an encouraging word?
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          className="shrink-0"
+                          onClick={() => handleSendNow(r)}
+                        >
+                          Send now
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <h1 className="font-display text-4xl md:text-5xl font-bold text-primary leading-tight">
+                  Brighten someone's day
+                </h1>
+                <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
+                  Send a short, heartfelt message to someone you care about.
+                  It only takes a moment to make someone smile.
+                </p>
+                <div className="mt-10">
+                  <Button
+                    size="lg"
+                    className="w-full gap-2 rounded-full bg-accent text-accent-foreground font-bold text-base py-6 shadow-glow hover:bg-accent/90"
+                    onClick={() => switchTab("send")}
+                  >
+                    <Send className="h-5 w-5" />
+                    Send an encouraging word
+                  </Button>
                 </div>
-              )}
-
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-primary leading-tight">
-                Brighten someone's day
-              </h1>
-              <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-                Send a short, heartfelt message to someone you care about.
-                It only takes a moment to make someone smile.
-              </p>
-              <div className="mt-10">
-                <Button
-                  size="lg"
-                  className="w-full gap-2 rounded-full bg-accent text-accent-foreground font-bold text-base py-6 shadow-glow hover:bg-accent/90"
-                  onClick={() => switchTab("send")}
-                >
-                  <Send className="h-5 w-5" />
-                  Send an encouraging word
-                </Button>
               </div>
-            </div>
-          </main>
-        </>
-      )}
+            </main>
+          </>
+        )}
 
-      {activeTab === "send" && (
-        <MessageComposer onBack={() => switchTab("home")} prefill={composerPrefill} />
-      )}
+        {activeTab === "send" && (
+          <MessageComposer onBack={() => switchTab("home")} prefill={composerPrefill} />
+        )}
 
-      {activeTab === "settings" && <SettingsScreen />}
+        {activeTab === "settings" && <SettingsScreen />}
 
-      {activeTab === "admin" && isAdmin && <AdminPanel />}
+        {activeTab === "admin" && isAdmin && <AdminPanel />}
 
-      <BottomNav active={activeTab} onChange={switchTab} isAdmin={isAdmin} />
+        <BottomNav active={activeTab} onChange={switchTab} isAdmin={isAdmin} />
+      </div>
     </div>
   );
 };

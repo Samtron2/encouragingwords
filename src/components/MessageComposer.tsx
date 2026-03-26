@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Mail, MessageSquare, Check, User, AlertCircle } from "lucide-react";
+import { Mail, MessageSquare, Check, User, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 const PROMPT_SUGGESTIONS = [
@@ -53,6 +53,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [message, setMessage] = useState("");
   const [selectedVisual, setSelectedVisual] = useState<number | null>(null);
+  const [visualIndex, setVisualIndex] = useState(0);
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
@@ -183,6 +184,18 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const canSendEmail = !!recipientEmail;
   const canSendSms = !!recipientPhone;
 
+  const prevVisual = () => {
+    setVisualIndex((i) => (i === 0 ? PLACEHOLDER_VISUALS.length - 1 : i - 1));
+  };
+
+  const nextVisual = () => {
+    setVisualIndex((i) => (i === PLACEHOLDER_VISUALS.length - 1 ? 0 : i + 1));
+  };
+
+  const toggleVisualSelection = () => {
+    setSelectedVisual(selectedVisual === visualIndex ? null : visualIndex);
+  };
+
   if (sent) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6 animate-fade-in">
@@ -204,159 +217,159 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   }
 
   return (
-    <div className="flex flex-1 flex-col px-6 pb-24 pt-6 animate-fade-in">
-      <h1 className="font-display text-2xl font-bold text-primary mb-8">Send some warmth</h1>
+    <div className="flex flex-1 flex-col items-center px-6 pb-24 pt-6 animate-fade-in">
+      <div className="w-full max-w-[480px]">
+        <h1 className="font-display text-2xl font-bold text-primary mb-8">Send a word</h1>
 
-      {sendError && (
-        <div className="mb-6 flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
-          <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
-          <p className="text-base text-destructive">Something went wrong. Please try again.</p>
-        </div>
-      )}
-
-      {/* STEP 1 — WHO */}
-      <section className="mb-8">
-        <label className="text-base font-medium text-muted-foreground mb-2 block">
-          Who is this for?
-        </label>
-        <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            ref={inputRef}
-            placeholder="Name, email, or phone number"
-            value={recipientInput}
-            onChange={(e) => {
-              setRecipientInput(e.target.value);
-              parseRecipientInput(e.target.value);
-              setShowSuggestions(true);
-            }}
-            onFocus={() => setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            className="pl-10 text-base"
-          />
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute z-10 mt-1 w-full rounded-2xl border border-border bg-card shadow-card overflow-hidden">
-              {suggestions.map((s) => (
-                <button
-                  key={s.id}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/60 transition-colors"
-                  onMouseDown={() => selectSuggestion(s)}
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground text-sm font-semibold">
-                    {(s.name || s.email || "?")[0].toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    {s.name && <p className="text-base font-medium truncate">{s.name}</p>}
-                    <p className="text-sm text-muted-foreground truncate">{s.email || s.phone}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* STEP 2 — WHAT */}
-      <section className="mb-8">
-        <label className="text-base font-medium text-muted-foreground mb-2 block">
-          Your message
-        </label>
-        <div className="relative">
-          <textarea
-            value={message}
-            onChange={(e) => {
-              if (e.target.value.length <= 160) setMessage(e.target.value);
-            }}
-            placeholder="Write something kind…"
-            rows={3}
-            className="flex w-full rounded-2xl border border-input bg-card px-4 py-3 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-body shadow-card"
-          />
-          <span className="absolute bottom-3 right-3 text-sm text-muted-foreground">
-            {message.length}/160
-          </span>
-        </div>
-
-        <div className="mt-3 -mx-6 px-6">
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {PROMPT_SUGGESTIONS.map((prompt) => {
-              const isSelected = message === prompt;
-              return (
-                <button
-                  key={prompt}
-                  onClick={() => setMessage(prompt)}
-                  className={`shrink-0 rounded-full border px-4 py-2 text-base font-medium transition-colors whitespace-nowrap ${
-                    isSelected
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background text-primary border-primary/30 hover:bg-primary/5"
-                  }`}
-                >
-                  {prompt}
-                </button>
-              );
-            })}
+        {sendError && (
+          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+            <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+            <p className="text-base text-destructive">Something went wrong. Please try again.</p>
           </div>
-        </div>
+        )}
 
-        <div className="mt-5">
-          <p className="text-base text-muted-foreground mb-2">Choose a visual (optional)</p>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
-            {PLACEHOLDER_VISUALS.map((v, i) => (
+        {/* STEP 1 — WHO */}
+        <section className="mb-8">
+          <label className="text-base font-medium text-muted-foreground mb-2 block">
+            Who is this for?
+          </label>
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              ref={inputRef}
+              placeholder="Name, email, or phone number"
+              value={recipientInput}
+              onChange={(e) => {
+                setRecipientInput(e.target.value);
+                parseRecipientInput(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              className="pl-10 text-base py-4"
+            />
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full rounded-2xl border border-border bg-card shadow-card overflow-hidden">
+                {suggestions.map((s) => (
+                  <button
+                    key={s.id}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/60 transition-colors"
+                    onMouseDown={() => selectSuggestion(s)}
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground text-[15px] font-semibold">
+                      {(s.name || s.email || "?")[0].toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      {s.name && <p className="text-base font-medium truncate">{s.name}</p>}
+                      <p className="text-[15px] text-muted-foreground truncate">{s.email || s.phone}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* STEP 2 — WHAT */}
+        <section className="mb-8">
+          <label className="text-base font-medium text-muted-foreground mb-2 block">
+            Your message
+          </label>
+          <div className="relative">
+            <textarea
+              value={message}
+              onChange={(e) => {
+                if (e.target.value.length <= 160) setMessage(e.target.value);
+              }}
+              placeholder="Write something kind…"
+              rows={4}
+              className="flex w-full rounded-2xl border border-input bg-card px-5 py-4 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-body shadow-card leading-relaxed"
+            />
+            <span className="absolute bottom-3 right-4 text-[15px] text-muted-foreground">
+              {message.length}/160
+            </span>
+          </div>
+
+          <div className="mt-3 -mx-6 px-6">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {PROMPT_SUGGESTIONS.map((prompt) => {
+                const isSelected = message === prompt;
+                return (
+                  <button
+                    key={prompt}
+                    onClick={() => setMessage(prompt)}
+                    className={`shrink-0 rounded-full border px-4 py-2 text-base font-medium transition-colors whitespace-nowrap ${
+                      isSelected
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-primary border-primary/30 hover:bg-primary/5"
+                    }`}
+                  >
+                    {prompt}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Visual carousel */}
+          <div className="mt-6">
+            <p className="text-base text-muted-foreground mb-3">Choose a visual (optional)</p>
+            <div className="flex items-center justify-center gap-4">
               <button
-                key={v.label}
-                onClick={() => setSelectedVisual(selectedVisual === i ? null : i)}
-                className={`shrink-0 flex flex-col items-center gap-1.5 transition-all ${
-                  selectedVisual === i ? "scale-105" : ""
-                }`}
+                onClick={prevVisual}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-card text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                onClick={toggleVisualSelection}
+                className="flex flex-col items-center gap-2 transition-all"
               >
                 <div
-                  className={`h-24 w-24 rounded-2xl transition-all ${
-                    selectedVisual === i
+                  className={`h-[200px] w-[200px] rounded-2xl transition-all shadow-card ${
+                    selectedVisual === visualIndex
                       ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
-                      : "shadow-card"
+                      : ""
                   }`}
-                  style={{ backgroundColor: v.color }}
+                  style={{ backgroundColor: PLACEHOLDER_VISUALS[visualIndex].color }}
                 />
-                <span className="text-sm text-muted-foreground">{v.label}</span>
+                <span className="text-[15px] text-muted-foreground">{PLACEHOLDER_VISUALS[visualIndex].label}</span>
               </button>
-            ))}
+              <button
+                onClick={nextVisual}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-card text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* STEP 3 — HOW */}
-      <section>
-        <label className="text-base font-medium text-muted-foreground mb-3 block">
-          How should we send it?
-        </label>
-        <div className="flex gap-3">
-          <Button
-            onClick={() => handleSend("email")}
-            disabled={!canSendEmail || !message.trim() || sending}
-            className={`flex-1 gap-2 rounded-full py-5 font-bold text-base ${
-              canSendEmail
-                ? "bg-accent text-accent-foreground shadow-glow hover:bg-accent/90"
-                : "bg-secondary text-muted-foreground"
-            }`}
-            variant={canSendEmail ? "default" : "secondary"}
-          >
-            <Mail className="h-5 w-5" />
-            {sending ? "Sending…" : "Send by email"}
-          </Button>
-          <Button
-            onClick={() => handleSend("sms")}
-            disabled={!canSendSms || !message.trim() || sending}
-            className={`sms-only flex-1 gap-2 rounded-full py-5 font-bold text-base ${
-              canSendSms
-                ? "bg-accent text-accent-foreground shadow-glow hover:bg-accent/90"
-                : "bg-secondary text-muted-foreground"
-            }`}
-            variant={canSendSms ? "default" : "secondary"}
-          >
-            <MessageSquare className="h-5 w-5" />
-            {sending ? "Sending…" : "Send by text"}
-          </Button>
-        </div>
-      </section>
+        {/* STEP 3 — HOW */}
+        <section>
+          <label className="text-base font-medium text-muted-foreground mb-3 block">
+            How should we send it?
+          </label>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => handleSend("email")}
+              disabled={!canSendEmail || !message.trim() || sending}
+              className="flex-1 gap-2 rounded-full py-5 font-bold text-base bg-accent text-accent-foreground shadow-glow hover:bg-accent/90 disabled:opacity-40"
+            >
+              <Mail className="h-5 w-5" />
+              {sending ? "Sending…" : "Send by email"}
+            </Button>
+            <Button
+              onClick={() => handleSend("sms")}
+              disabled={!canSendSms || !message.trim() || sending}
+              className="sms-only flex-1 gap-2 rounded-full py-5 font-bold text-base bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
+            >
+              <MessageSquare className="h-5 w-5" />
+              {sending ? "Sending…" : "Send by text"}
+            </Button>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

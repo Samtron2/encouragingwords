@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Nunito:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Lato:wght@300;400;700;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -15,8 +15,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 11%;
 
-    --primary: 300 52% 18%;
-    --primary-foreground: 37 33% 96%;
+    --primary: 180 43% 30%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 37 33% 93%;
     --secondary-foreground: 0 0% 11%;
@@ -24,33 +24,33 @@
     --muted: 37 20% 93%;
     --muted-foreground: 0 0% 42%;
 
-    --accent: 43 53% 54%;
-    --accent-foreground: 300 52% 18%;
+    --accent: 348 38% 63%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 4 64% 46%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 37 15% 88%;
     --input: 37 15% 88%;
-    --ring: 300 52% 18%;
+    --ring: 180 43% 30%;
 
     --radius: 1rem;
 
     --sidebar-background: 37 33% 96%;
     --sidebar-foreground: 0 0% 11%;
-    --sidebar-primary: 300 52% 18%;
-    --sidebar-primary-foreground: 37 33% 96%;
-    --sidebar-accent: 43 53% 54%;
-    --sidebar-accent-foreground: 300 52% 18%;
+    --sidebar-primary: 180 43% 30%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 348 38% 63%;
+    --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 37 15% 88%;
-    --sidebar-ring: 300 52% 18%;
+    --sidebar-ring: 180 43% 30%;
 
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-body: 'Nunito', system-ui, sans-serif;
+    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-body: 'Lato', system-ui, sans-serif;
 
     --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
     --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.06);
-    --shadow-glow: 0 4px 20px rgba(74, 25, 66, 0.15);
+    --shadow-glow: 0 4px 20px rgba(201, 123, 132, 0.25);
     --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.1);
   }
 }
@@ -69,6 +69,44 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
   }
+}
+
+/* Background decoration — soft blurred circles */
+.bg-decoration {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bg-decoration::before,
+.bg-decoration::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+.bg-decoration::before {
+  width: 600px;
+  height: 600px;
+  background: #2D6E6E;
+  top: 0;
+  right: 0;
+  transform: translateX(30%) translateY(-30%);
+  filter: blur(120px);
+  opacity: 0.07;
+}
+
+.bg-decoration::after {
+  width: 500px;
+  height: 500px;
+  background: #C97B84;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-30%) translateY(30%);
+  filter: blur(120px);
+  opacity: 0.07;
 }
 
 /* Hide SMS button on non-touch / desktop devices */
