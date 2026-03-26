@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Camera, Check } from "lucide-react";
@@ -9,6 +10,7 @@ import ImportantDates from "@/components/ImportantDates";
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [displayName, setDisplayName] = useState("");
@@ -201,6 +203,27 @@ export default function SettingsScreen() {
               onCheckedChange={setBirthdayReminders}
               className="data-[state=checked]:bg-accent"
             />
+          </div>
+
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-base font-medium">Theme</p>
+            </div>
+            <div className="flex gap-1.5">
+              {(["light", "dark"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTheme(t)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all ${
+                    theme === t
+                      ? "bg-primary text-primary-foreground"
+                      : "border border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {t === "light" ? "Light" : "Classic"}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="border-t border-border" />

@@ -52,6 +52,56 @@
     --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.06);
     --shadow-glow: 0 4px 20px rgba(201, 123, 132, 0.25);
     --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.1);
+
+    --bg-circle-1: #2D6E6E;
+    --bg-circle-2: #C97B84;
+  }
+
+  .theme-dark {
+    --background: 234 29% 14%;
+    --foreground: 30 14% 95%;
+
+    --card: 234 22% 20%;
+    --card-foreground: 30 14% 95%;
+
+    --popover: 234 22% 20%;
+    --popover-foreground: 30 14% 95%;
+
+    --primary: 43 52% 54%;
+    --primary-foreground: 234 29% 14%;
+
+    --secondary: 234 22% 24%;
+    --secondary-foreground: 30 14% 95%;
+
+    --muted: 234 15% 25%;
+    --muted-foreground: 0 0% 67%;
+
+    --accent: 14 78% 57%;
+    --accent-foreground: 30 14% 95%;
+
+    --destructive: 4 64% 46%;
+    --destructive-foreground: 30 14% 95%;
+
+    --border: 234 15% 28%;
+    --input: 234 15% 28%;
+    --ring: 43 52% 54%;
+
+    --sidebar-background: 234 29% 14%;
+    --sidebar-foreground: 30 14% 95%;
+    --sidebar-primary: 43 52% 54%;
+    --sidebar-primary-foreground: 234 29% 14%;
+    --sidebar-accent: 14 78% 57%;
+    --sidebar-accent-foreground: 30 14% 95%;
+    --sidebar-border: 234 15% 28%;
+    --sidebar-ring: 43 52% 54%;
+
+    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.3);
+    --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.3);
+    --shadow-glow: 0 4px 20px rgba(232, 97, 58, 0.25);
+    --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+    --bg-circle-1: #C9A84C;
+    --bg-circle-2: #E8613A;
   }
 }
 
@@ -64,6 +114,11 @@
     @apply bg-background text-foreground;
     font-family: var(--font-body);
     font-size: 16px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  *, *::before, *::after {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -90,7 +145,7 @@
 .bg-decoration::before {
   width: 600px;
   height: 600px;
-  background: #2D6E6E;
+  background: var(--bg-circle-1);
   top: 0;
   right: 0;
   transform: translateX(30%) translateY(-30%);
@@ -101,7 +156,7 @@
 .bg-decoration::after {
   width: 500px;
   height: 500px;
-  background: #C97B84;
+  background: var(--bg-circle-2);
   bottom: 0;
   left: 0;
   transform: translateX(-30%) translateY(30%);
