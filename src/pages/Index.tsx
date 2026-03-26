@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Send, CalendarHeart } from "lucide-react";
+import { Send, CalendarHeart, ThumbsUp } from "lucide-react";
 import MessageComposer, { type PrefilledRecipient } from "@/components/MessageComposer";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import SettingsScreen from "@/components/SettingsScreen";
