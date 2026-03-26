@@ -354,7 +354,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             <Button
               onClick={() => handleSend("email")}
               disabled={!canSendEmail || !message.trim() || sending}
-              className="flex-1 gap-2 rounded-full py-5 font-bold text-base bg-accent text-accent-foreground shadow-glow hover:bg-accent/90 disabled:opacity-40"
+              className="flex-1 gap-2 rounded-full h-16 font-bold text-lg bg-accent text-accent-foreground shadow-glow hover:bg-accent/90 disabled:opacity-40"
             >
               <Mail className="h-5 w-5" />
               {sending ? "Sending…" : "Send by email"}
