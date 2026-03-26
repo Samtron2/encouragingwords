@@ -205,6 +205,27 @@ export default function SettingsScreen() {
             />
           </div>
 
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-base font-medium">Theme</p>
+            </div>
+            <div className="flex gap-1.5">
+              {(["light", "dark"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTheme(t)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all ${
+                    theme === t
+                      ? "bg-primary text-primary-foreground"
+                      : "border border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {t === "light" ? "Light" : "Classic"}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="border-t border-border" />
 
           <ImportantDates />
