@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS birthday_reminders boolean NOT NULL DEFAULT true;
