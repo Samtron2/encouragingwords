@@ -10,6 +10,7 @@ import ImportantDates from "@/components/ImportantDates";
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [displayName, setDisplayName] = useState("");
