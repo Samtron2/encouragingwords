@@ -126,6 +126,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         .single();
 
       const visual = selectedVisual !== null ? dailyVisuals[selectedVisual] : null;
+      const isEmoji = visual?.image_url?.startsWith("emoji:");
+      const emojiChar = isEmoji ? visual.image_url!.slice(6) : undefined;
+      const imageUrl = !isEmoji ? visual?.image_url || undefined : undefined;
 
       if (method === "email") {
         const sendResult = await supabase.functions.invoke("send-email", {
@@ -133,8 +136,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             recipientEmail,
             recipientName: recipientName || undefined,
             message: message.trim(),
-            visualLabel: visual?.name,
-            visualId: visual?.id,
+            visualImageUrl: imageUrl,
+            visualEmoji: emojiChar,
           },
         });
 
