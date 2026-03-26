@@ -186,7 +186,7 @@ export default function SettingsScreen() {
             </div>
             <Switch
               checked={birthdayReminders}
-              onCheckedChange={setBirthdayReminders}
+              onCheckedChange={(v) => updateField(setBirthdayReminders, v)}
               className="data-[state=checked]:bg-accent"
             />
           </div>
