@@ -316,7 +316,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
           <div className="mt-3">
             <Carousel
-              opts={{ align: "center", loop: false }}
+              opts={{ align: "center", loop: false, startIndex: Math.floor(PROMPT_SUGGESTIONS.length / 2) }}
               setApi={setChipApi}
               className="w-full"
             >
@@ -354,7 +354,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             ) : (
               <div className="relative">
                 <Carousel
-                  opts={{ align: "center", loop: false }}
+                  opts={{ align: "center", loop: false, startIndex: Math.floor(dailyVisuals.length / 2) }}
                   setApi={setCarouselApi}
                   className="w-full"
                 >
