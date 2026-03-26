@@ -420,7 +420,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 disabled={!canSendSms || !message.trim() || sending}
                 className="gap-2 h-16 font-bold text-lg font-body text-white hover:opacity-90 disabled:opacity-40 min-w-0"
                 style={{ flex: "1 1 45%", borderRadius: "999px", backgroundColor: "hsl(var(--primary))" }}
-                style={{ flex: "1 1 45%", borderRadius: "999px" }}
               >
                 <MessageSquare className="h-5 w-5 shrink-0" />
                 <span className="truncate">{sending ? "Sending…" : "Send by text"}</span>
