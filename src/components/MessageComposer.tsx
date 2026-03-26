@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useDailyVisuals } from "@/hooks/useDailyVisuals";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Mail, MessageSquare, Check, User, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
@@ -15,14 +16,6 @@ const PROMPT_SUGGESTIONS = [
   "You are enough",
   "Keep shining ✨",
   "I believe in you",
-];
-
-const PLACEHOLDER_VISUALS = [
-  { label: "Sunrise", color: "hsl(30, 60%, 80%)" },
-  { label: "Bloom", color: "hsl(340, 40%, 82%)" },
-  { label: "Meadow", color: "hsl(120, 30%, 82%)" },
-  { label: "Ocean", color: "hsl(200, 40%, 80%)" },
-  { label: "Sunset", color: "hsl(15, 55%, 78%)" },
 ];
 
 interface Recipient {
@@ -45,6 +38,7 @@ interface MessageComposerProps {
 
 export default function MessageComposer({ onBack, prefill }: MessageComposerProps) {
   const { user } = useAuth();
+  const { visuals: dailyVisuals, loading: visualsLoading } = useDailyVisuals();
   const [recipientInput, setRecipientInput] = useState(prefill?.name || "");
   const [recipientName, setRecipientName] = useState(prefill?.name || "");
   const [recipientEmail, setRecipientEmail] = useState(prefill?.email || "");
@@ -126,7 +120,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         .select("id")
         .single();
 
-      const visual = selectedVisual !== null ? PLACEHOLDER_VISUALS[selectedVisual] : null;
+      const visual = selectedVisual !== null ? dailyVisuals[selectedVisual] : null;
 
       if (method === "email") {
         const sendResult = await supabase.functions.invoke("send-email", {
@@ -134,8 +128,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             recipientEmail,
             recipientName: recipientName || undefined,
             message: message.trim(),
-            visualLabel: visual?.label,
-            visualColor: visual?.color,
+            visualLabel: visual?.name,
+            visualId: visual?.id,
           },
         });
 
@@ -145,7 +139,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           user_id: user.id,
           recipient_id: recipientRow?.id || null,
           message_text: message.trim(),
-          visual_id: visual?.label || null,
+          visual_id: visual?.id || null,
           delivery_method: "email",
           status,
         });
@@ -164,7 +158,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           user_id: user.id,
           recipient_id: recipientRow?.id || null,
           message_text: message.trim(),
-          visual_id: visual?.label || null,
+          visual_id: visual?.id || null,
           delivery_method: "sms_native",
           status: "initiated",
         });
@@ -185,11 +179,11 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const canSendSms = !!recipientPhone;
 
   const prevVisual = () => {
-    setVisualIndex((i) => (i === 0 ? PLACEHOLDER_VISUALS.length - 1 : i - 1));
+    setVisualIndex((i) => (i === 0 ? dailyVisuals.length - 1 : i - 1));
   };
 
   const nextVisual = () => {
-    setVisualIndex((i) => (i === PLACEHOLDER_VISUALS.length - 1 ? 0 : i + 1));
+    setVisualIndex((i) => (i === dailyVisuals.length - 1 ? 0 : i + 1));
   };
 
   const toggleVisualSelection = () => {
@@ -314,34 +308,56 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           {/* Visual carousel */}
           <div className="mt-6">
             <p className="text-lg text-muted-foreground mb-3">Choose a visual (optional)</p>
-            <div className="flex items-center justify-center gap-4">
-              <button
-                onClick={prevVisual}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-card text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={toggleVisualSelection}
-                className="flex flex-col items-center gap-2 transition-all"
-              >
-                <div
-                  className={`h-[200px] w-[200px] rounded-2xl transition-all shadow-card ${
-                    selectedVisual === visualIndex
-                      ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
-                      : ""
-                  }`}
-                  style={{ backgroundColor: PLACEHOLDER_VISUALS[visualIndex].color }}
-                />
-                <span className="text-[15px] text-muted-foreground">{PLACEHOLDER_VISUALS[visualIndex].label}</span>
-              </button>
-              <button
-                onClick={nextVisual}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-card text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
+            {visualsLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+              </div>
+            ) : dailyVisuals.length === 0 ? (
+              <p className="text-base text-muted-foreground text-center py-6">No visuals available today.</p>
+            ) : (
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={prevVisual}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-card text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={toggleVisualSelection}
+                  className="flex flex-col items-center gap-2 transition-all"
+                >
+                  {dailyVisuals[visualIndex]?.image_url ? (
+                    <img
+                      src={dailyVisuals[visualIndex].image_url!}
+                      alt={dailyVisuals[visualIndex].name}
+                      className={`h-[200px] w-[200px] rounded-2xl object-cover transition-all shadow-card ${
+                        selectedVisual === visualIndex
+                          ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
+                          : ""
+                      }`}
+                    />
+                  ) : (
+                    <div
+                      className={`h-[200px] w-[200px] rounded-2xl transition-all shadow-card bg-secondary ${
+                        selectedVisual === visualIndex
+                          ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
+                          : ""
+                      }`}
+                    />
+                  )}
+                  <span className="text-[15px] text-muted-foreground">{dailyVisuals[visualIndex]?.name}</span>
+                </button>
+                <button
+                  onClick={nextVisual}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-card text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+            )}
+            <p className="font-display italic text-sm text-muted-foreground text-center mt-3">
+              Today's visuals · refreshes at midnight
+            </p>
           </div>
         </section>
 
