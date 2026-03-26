@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useDailyVisuals } from "@/hooks/useDailyVisuals";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Mail, MessageSquare, Check, User, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from "@/components/ui/carousel";
+import { Mail, MessageSquare, Check, User, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const PROMPT_SUGGESTIONS = [
