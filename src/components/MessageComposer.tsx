@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useDailyVisuals } from "@/hooks/useDailyVisuals";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Mail, MessageSquare, Check, User, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from "@/components/ui/carousel";
+import { Mail, MessageSquare, Check, User, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const PROMPT_SUGGESTIONS = [
@@ -48,6 +49,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [message, setMessage] = useState("");
   const [selectedVisual, setSelectedVisual] = useState<number | null>(null);
   const [visualIndex, setVisualIndex] = useState(0);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
@@ -178,13 +180,17 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const canSendEmail = !!recipientEmail;
   const canSendSms = !!recipientPhone;
 
-  const prevVisual = () => {
-    setVisualIndex((i) => (i === 0 ? dailyVisuals.length - 1 : i - 1));
-  };
+  const onCarouselSelect = useCallback(() => {
+    if (!carouselApi) return;
+    setVisualIndex(carouselApi.selectedScrollSnap());
+  }, [carouselApi]);
 
-  const nextVisual = () => {
-    setVisualIndex((i) => (i === dailyVisuals.length - 1 ? 0 : i + 1));
-  };
+  useEffect(() => {
+    if (!carouselApi) return;
+    onCarouselSelect();
+    carouselApi.on("select", onCarouselSelect);
+    return () => { carouselApi.off("select", onCarouselSelect); };
+  }, [carouselApi, onCarouselSelect]);
 
   const toggleVisualSelection = () => {
     setSelectedVisual(selectedVisual === visualIndex ? null : visualIndex);
@@ -315,44 +321,46 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             ) : dailyVisuals.length === 0 ? (
               <p className="text-base text-muted-foreground text-center py-6">No visuals available today.</p>
             ) : (
-              <div className="flex items-center justify-center gap-4">
-                <button
-                  onClick={prevVisual}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-card text-muted-foreground hover:text-foreground transition-colors"
+              <div className="relative px-12">
+                <Carousel
+                  opts={{ align: "center", loop: true }}
+                  setApi={setCarouselApi}
+                  className="w-full"
                 >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={toggleVisualSelection}
-                  className="flex flex-col items-center gap-2 transition-all"
-                >
-                  {dailyVisuals[visualIndex]?.image_url ? (
-                    <img
-                      src={dailyVisuals[visualIndex].image_url!}
-                      alt={dailyVisuals[visualIndex].name}
-                      className={`h-[200px] w-[200px] rounded-2xl object-cover transition-all shadow-card ${
-                        selectedVisual === visualIndex
-                          ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
-                          : ""
-                      }`}
-                    />
-                  ) : (
-                    <div
-                      className={`h-[200px] w-[200px] rounded-2xl transition-all shadow-card bg-secondary ${
-                        selectedVisual === visualIndex
-                          ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
-                          : ""
-                      }`}
-                    />
-                  )}
-                  <span className="text-[15px] text-muted-foreground">{dailyVisuals[visualIndex]?.name}</span>
-                </button>
-                <button
-                  onClick={nextVisual}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-card text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
+                  <CarouselContent>
+                    {dailyVisuals.map((visual, idx) => (
+                      <CarouselItem key={visual.id} className="flex flex-col items-center">
+                        <button
+                          onClick={() => setSelectedVisual(selectedVisual === idx ? null : idx)}
+                          className="flex flex-col items-center gap-2 transition-all"
+                        >
+                          {visual.image_url ? (
+                            <img
+                              src={visual.image_url}
+                              alt={visual.name}
+                              className={`h-[200px] w-[200px] rounded-2xl object-cover transition-all shadow-card ${
+                                selectedVisual === idx
+                                  ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
+                                  : ""
+                              }`}
+                            />
+                          ) : (
+                            <div
+                              className={`h-[200px] w-[200px] rounded-2xl transition-all shadow-card bg-secondary ${
+                                selectedVisual === idx
+                                  ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
+                                  : ""
+                              }`}
+                            />
+                          )}
+                          <span className="text-[15px] text-muted-foreground">{visual.name}</span>
+                        </button>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-0 h-10 w-10 rounded-full bg-card shadow-card border-0 text-muted-foreground hover:text-foreground" />
+                  <CarouselNext className="right-0 h-10 w-10 rounded-full bg-card shadow-card border-0 text-muted-foreground hover:text-foreground" />
+                </Carousel>
               </div>
             )}
             <p className="font-display italic text-sm text-muted-foreground text-center mt-3">
