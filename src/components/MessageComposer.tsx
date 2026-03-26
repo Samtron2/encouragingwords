@@ -120,7 +120,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         .select("id")
         .single();
 
-      const visual = selectedVisual !== null ? PLACEHOLDER_VISUALS[selectedVisual] : null;
+      const visual = selectedVisual !== null ? dailyVisuals[selectedVisual] : null;
 
       if (method === "email") {
         const sendResult = await supabase.functions.invoke("send-email", {
