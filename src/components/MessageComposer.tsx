@@ -25,6 +25,7 @@ interface Recipient {
   name: string | null;
   email: string | null;
   phone: string | null;
+  nudge_dismissed: boolean;
 }
 
 export interface PrefilledRecipient {
