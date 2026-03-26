@@ -362,7 +362,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             <Button
               onClick={() => handleSend("sms")}
               disabled={!canSendSms || !message.trim() || sending}
-              className="sms-only flex-1 gap-2 rounded-full py-5 font-bold text-base bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
+              className="sms-only flex-1 gap-2 rounded-full h-16 font-bold text-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
             >
               <MessageSquare className="h-5 w-5" />
               {sending ? "Sending…" : "Send by text"}
