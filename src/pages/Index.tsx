@@ -17,11 +17,26 @@ interface UpcomingReminder {
   contact_id: string | null;
 }
 
+const STALE_TIME = 5 * 60 * 1000; // 5 minutes
+const remindersCache: { data: UpcomingReminder[]; fetchedAt: number; userId: string } | null = null;
+let remindersCacheRef = remindersCache;
+
 function useUpcomingDates(userId: string | undefined) {
   const [reminders, setReminders] = useState<UpcomingReminder[]>([]);
 
   useEffect(() => {
     if (!userId) return;
+
+    // Return cached data if fresh
+    if (
+      remindersCacheRef &&
+      remindersCacheRef.userId === userId &&
+      Date.now() - remindersCacheRef.fetchedAt < STALE_TIME
+    ) {
+      setReminders(remindersCacheRef.data);
+      return;
+    }
+
     (async () => {
       const { data } = await supabase
         .from("important_dates")
@@ -54,6 +69,7 @@ function useUpcomingDates(userId: string | undefined) {
       }
 
       upcoming.sort((a, b) => a.days_away - b.days_away);
+      remindersCacheRef = { data: upcoming, fetchedAt: Date.now(), userId };
       setReminders(upcoming);
     })();
   }, [userId]);
