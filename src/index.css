@@ -164,6 +164,14 @@
   opacity: 0.40;
 }
 
+/* Visual tile emoji background */
+.visual-tile-emoji {
+  background-color: #F5F0E8;
+}
+.theme-dark .visual-tile-emoji {
+  background-color: hsl(234 22% 20%);
+}
+
 /* Hide SMS button on non-touch / desktop devices */
 @media (hover: hover) and (pointer: fine) {
   .sms-only {

@@ -425,45 +425,39 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                   className="w-full"
                 >
                   <CarouselContent>
-                    {dailyVisuals.map((visual, idx) => (
-                      <CarouselItem key={visual.id} className="basis-[55%] min-w-0 flex flex-col items-center pl-3">
-                        <button
-                          onClick={() => setSelectedVisual(selectedVisual === idx ? null : idx)}
-                          className="flex flex-col items-center gap-2 transition-all"
-                        >
-                          {visual.image_url?.startsWith("emoji:") ? (
-                            <div
-                              className={`h-[200px] w-[200px] rounded-2xl flex items-center justify-center transition-all shadow-card bg-[#F5F0E8] ${
-                                selectedVisual === idx
-                                  ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
-                                  : ""
-                              }`}
-                            >
-                              <span className="text-[128px] leading-none">{visual.image_url.slice(6)}</span>
-                            </div>
-                          ) : visual.image_url ? (
-                            <img
-                              src={visual.image_url}
-                              alt={visual.name}
-                              className={`h-[200px] w-[200px] rounded-2xl object-cover transition-all shadow-card ${
-                                selectedVisual === idx
-                                  ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
-                                  : ""
-                              }`}
-                            />
-                          ) : (
-                            <div
-                              className={`h-[200px] w-[200px] rounded-2xl transition-all shadow-card bg-secondary ${
-                                selectedVisual === idx
-                                  ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
-                                  : ""
-                              }`}
-                            />
-                          )}
-                          <span className="text-[15px] text-muted-foreground">{visual.name}</span>
-                        </button>
-                      </CarouselItem>
-                    ))}
+                    {dailyVisuals.map((visual, idx) => {
+                      const isSelected = selectedVisual === idx;
+                      const selectedClass = isSelected
+                        ? "ring-[3px] ring-accent ring-offset-2 ring-offset-background scale-[1.03]"
+                        : "";
+                      return (
+                        <CarouselItem key={visual.id} className="basis-[55%] min-w-0 flex flex-col items-center pl-3">
+                          <button
+                            onClick={() => setSelectedVisual(isSelected ? null : idx)}
+                            className="flex flex-col items-center gap-2 transition-all"
+                          >
+                            {visual.image_url?.startsWith("emoji:") ? (
+                              <div
+                                className={`h-[240px] w-[240px] rounded-[16px] flex items-center justify-center transition-all visual-tile-emoji ${selectedClass}`}
+                              >
+                                <span className="text-[100px] leading-none">{visual.image_url.slice(6)}</span>
+                              </div>
+                            ) : visual.image_url ? (
+                              <img
+                                src={visual.image_url}
+                                alt={visual.name}
+                                className={`h-[240px] w-[240px] rounded-[16px] object-cover transition-all ${selectedClass}`}
+                              />
+                            ) : (
+                              <div
+                                className={`h-[240px] w-[240px] rounded-[16px] transition-all bg-secondary ${selectedClass}`}
+                              />
+                            )}
+                            <span className="text-[15px] text-muted-foreground">{visual.name}</span>
+                          </button>
+                        </CarouselItem>
+                      );
+                    })}
                   </CarouselContent>
                 </Carousel>
               </div>
