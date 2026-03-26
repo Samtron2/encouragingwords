@@ -163,11 +163,48 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       if (recipientEmail) recipientData.email = recipientEmail;
       if (recipientPhone) recipientData.phone = recipientPhone;
 
-      const { data: recipientRow } = await supabase
-        .from("recipients")
-        .insert([recipientData as { user_id: string; name?: string; email?: string; phone?: string; last_contacted_at?: string }])
-        .select("id")
-        .single();
+      // Deduplicate recipients: match on user_id + email, or user_id + phone if no email
+      let recipientRow: { id: string } | null = null;
+
+      if (recipientEmail) {
+        const { data: existing } = await supabase
+          .from("recipients")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("email", recipientEmail)
+          .maybeSingle();
+
+        if (existing) {
+          const updateData: Record<string, unknown> = { last_contacted_at: new Date().toISOString() };
+          if (recipientName) updateData.name = recipientName;
+          if (recipientPhone) updateData.phone = recipientPhone;
+          await supabase.from("recipients").update(updateData).eq("id", existing.id);
+          recipientRow = existing;
+        }
+      } else if (recipientPhone) {
+        const { data: existing } = await supabase
+          .from("recipients")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("phone", recipientPhone)
+          .maybeSingle();
+
+        if (existing) {
+          const updateData: Record<string, unknown> = { last_contacted_at: new Date().toISOString() };
+          if (recipientName) updateData.name = recipientName;
+          await supabase.from("recipients").update(updateData).eq("id", existing.id);
+          recipientRow = existing;
+        }
+      }
+
+      if (!recipientRow) {
+        const { data: inserted } = await supabase
+          .from("recipients")
+          .insert([recipientData as { user_id: string; name?: string; email?: string; phone?: string; last_contacted_at?: string }])
+          .select("id")
+          .single();
+        recipientRow = inserted;
+      }
 
       const visual = selectedVisual !== null ? dailyVisuals[selectedVisual] : null;
       const isEmoji = visual?.image_url?.startsWith("emoji:");
