@@ -19,7 +19,6 @@ export default function SettingsScreen() {
   const [dirty, setDirty] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  // Load profile
   useEffect(() => {
     if (!user) return;
     (async () => {
@@ -104,15 +103,14 @@ export default function SettingsScreen() {
 
   return (
     <div className="flex flex-1 flex-col px-6 pt-6 pb-24 animate-fade-in overflow-y-auto">
-      <h1 className="font-display text-2xl font-semibold mb-6">Settings</h1>
+      <h1 className="font-display text-2xl font-bold text-primary mb-6">Settings</h1>
 
       {/* ACCOUNT */}
       <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">
           Account
         </h2>
-        <div className="rounded-xl border border-border bg-card p-5 space-y-5 shadow-soft">
-          {/* Profile photo */}
+        <div className="rounded-2xl bg-card p-6 space-y-5 shadow-card">
           <div className="flex items-center gap-4">
             <button
               onClick={() => fileInputRef.current?.click()}
@@ -120,11 +118,7 @@ export default function SettingsScreen() {
             >
               <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center overflow-hidden ring-2 ring-border">
                 {profilePhoto ? (
-                  <img
-                    src={profilePhoto}
-                    alt="Profile"
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={profilePhoto} alt="Profile" className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-2xl font-display text-muted-foreground">
                     {(displayName || user?.email || "?")[0].toUpperCase()}
@@ -136,10 +130,10 @@ export default function SettingsScreen() {
               </div>
             </button>
             <div className="min-w-0">
-              <p className="text-sm font-medium">Profile photo</p>
+              <p className="text-base font-medium">Profile photo</p>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="text-xs text-primary hover:underline"
+                className="text-sm text-accent hover:underline"
               >
                 Tap to change
               </button>
@@ -153,27 +147,26 @@ export default function SettingsScreen() {
             />
           </div>
 
-          {/* Display name */}
           <div>
-            <label className="text-sm font-medium text-muted-foreground mb-1.5 block">
+            <label className="text-base font-medium text-muted-foreground mb-1.5 block">
               Display name
             </label>
             <Input
               value={displayName}
               onChange={(e) => updateField(setDisplayName, e.target.value)}
               placeholder="Your name"
+              className="text-base"
             />
           </div>
 
-          {/* Email */}
           <div>
-            <label className="text-sm font-medium text-muted-foreground mb-1.5 block">
+            <label className="text-base font-medium text-muted-foreground mb-1.5 block">
               Email
             </label>
             <Input
               value={user?.email || ""}
               readOnly
-              className="bg-muted cursor-not-allowed"
+              className="bg-muted cursor-not-allowed text-base"
             />
           </div>
         </div>
@@ -181,54 +174,52 @@ export default function SettingsScreen() {
 
       {/* PREFERENCES */}
       <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">
           Preferences
         </h2>
-        <div className="rounded-xl border border-border bg-card p-5 space-y-5 shadow-soft">
-          {/* Send to the Universe */}
+        <div className="rounded-2xl bg-card p-6 space-y-5 shadow-card">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-sm font-medium">Send to the Universe</p>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+              <p className="text-base font-medium">Send to the Universe</p>
+              <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">
                 Occasionally send a word of hope out into the world.
               </p>
             </div>
             <Switch
               checked={sendToUniverse}
               onCheckedChange={(v) => updateField(setSendToUniverse, v)}
+              className="data-[state=checked]:bg-accent"
             />
           </div>
 
-          {/* Birthday reminders */}
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-sm font-medium">Birthday reminders</p>
+              <p className="text-base font-medium">Birthday reminders</p>
             </div>
             <Switch
               checked={birthdayReminders}
               onCheckedChange={setBirthdayReminders}
+              className="data-[state=checked]:bg-accent"
             />
           </div>
 
-          {/* Divider */}
           <div className="border-t border-border" />
 
-          {/* Important Dates */}
           <ImportantDates />
         </div>
       </section>
 
       {/* ABOUT */}
       <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">
           About
         </h2>
-        <div className="rounded-xl border border-border bg-card p-5 shadow-soft space-y-2">
+        <div className="rounded-2xl bg-card p-6 shadow-card space-y-2">
           <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">Version</span>
-            <span className="text-sm font-medium">1.0.0</span>
+            <span className="text-base text-muted-foreground">Version</span>
+            <span className="text-base font-medium">1.0.0</span>
           </div>
-          <p className="text-sm text-muted-foreground">Made with heart in Minneapolis.</p>
+          <p className="text-base text-muted-foreground">Made with heart in Minneapolis.</p>
         </div>
       </section>
 
@@ -238,10 +229,10 @@ export default function SettingsScreen() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-all hover:bg-primary/90 disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 rounded-full bg-accent py-4 text-base font-bold text-accent-foreground shadow-glow transition-all hover:bg-accent/90 disabled:opacity-50"
           >
             {saving ? (
-              <div className="h-4 w-4 rounded-full border-2 border-primary-foreground border-t-transparent animate-spin" />
+              <div className="h-4 w-4 rounded-full border-2 border-accent-foreground border-t-transparent animate-spin" />
             ) : (
               <Check className="h-4 w-4" />
             )}
@@ -254,7 +245,7 @@ export default function SettingsScreen() {
       <div className="mt-auto pt-4 pb-2 text-center">
         <button
           onClick={signOut}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="text-base text-muted-foreground hover:text-foreground transition-colors"
         >
           Sign out
         </button>

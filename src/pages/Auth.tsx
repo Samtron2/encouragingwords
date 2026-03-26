@@ -4,7 +4,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
@@ -43,20 +42,18 @@ const Auth = () => {
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm animate-fade-in">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-            <Heart className="h-7 w-7 text-primary" />
-          </div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">
-            Encouraging Words
+          <h1 className="font-display text-5xl font-bold text-primary tracking-tight">
+            EW
           </h1>
-          <p className="mt-2 text-muted-foreground">
+          <p className="font-body text-sm text-muted-foreground mt-1">Encouraging Words</p>
+          <p className="mt-4 text-base text-muted-foreground">
             {isSignUp ? "Create your account to start spreading joy" : "Welcome back, sunshine ☀️"}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-base">Email</Label>
             <Input
               id="email"
               type="email"
@@ -64,10 +61,11 @@ const Auth = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="text-base"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-base">Password</Label>
             <Input
               id="password"
               type="password"
@@ -76,14 +74,20 @@ const Auth = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
+              className="text-base"
             />
           </div>
-          <Button type="submit" className="w-full" size="lg" disabled={submitting}>
+          <Button
+            type="submit"
+            className="w-full rounded-full bg-accent text-accent-foreground font-bold text-base py-5 shadow-glow hover:bg-accent/90"
+            size="lg"
+            disabled={submitting}
+          >
             {submitting ? "One moment…" : isSignUp ? "Create Account" : "Sign In"}
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
+        <p className="mt-6 text-center text-base text-muted-foreground">
           {isSignUp ? "Already have an account?" : "New here?"}{" "}
           <button
             onClick={() => setIsSignUp(!isSignUp)}

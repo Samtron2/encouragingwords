@@ -36,17 +36,17 @@ function TagSelector({ options, selected, onChange, label }: {
 
   return (
     <div>
-      <p className="text-sm font-medium text-muted-foreground mb-2">{label}</p>
+      <p className="text-base font-medium text-muted-foreground mb-2">{label}</p>
       <div className="flex flex-wrap gap-1.5">
         {options.map((o) => (
           <button
             key={o}
             type="button"
             onClick={() => toggle(o)}
-            className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+            className={`rounded-full px-3 py-1.5 text-sm font-medium border transition-colors ${
               selected.includes(o)
                 ? "bg-primary text-primary-foreground border-primary"
-                : "bg-secondary/50 text-foreground border-border hover:bg-secondary"
+                : "bg-background text-primary border-primary/30 hover:bg-primary/5"
             }`}
           >
             {o}
@@ -63,7 +63,6 @@ export default function AdminContentTab() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<ContentItem | null>(null);
 
-  // Form state
   const [name, setName] = useState("");
   const [occasionTags, setOccasionTags] = useState<string[]>([]);
   const [moodTags, setMoodTags] = useState<string[]>([]);
@@ -194,7 +193,7 @@ export default function AdminContentTab() {
     return (
       <div className="space-y-4 animate-fade-in">
         <div className="flex items-center justify-between">
-          <h3 className="font-display text-lg font-semibold">
+          <h3 className="font-display text-lg font-bold text-primary">
             {editing ? "Edit content" : "Add content"}
           </h3>
           <button onClick={resetForm} className="text-muted-foreground hover:text-foreground transition-colors">
@@ -202,20 +201,19 @@ export default function AdminContentTab() {
           </button>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-5 space-y-4 shadow-soft">
+        <div className="rounded-2xl bg-card p-6 space-y-4 shadow-card">
           <div>
-            <label className="text-sm font-medium text-muted-foreground mb-1.5 block">Name</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Content name" />
+            <label className="text-base font-medium text-muted-foreground mb-1.5 block">Name</label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Content name" className="text-base" />
           </div>
 
           <TagSelector options={OCCASION_OPTIONS} selected={occasionTags} onChange={setOccasionTags} label="Occasion tags" />
           <TagSelector options={MOOD_OPTIONS} selected={moodTags} onChange={setMoodTags} label="Mood tags" />
 
-          {/* Image upload */}
           <div>
-            <p className="text-sm font-medium text-muted-foreground mb-2">Image</p>
+            <p className="text-base font-medium text-muted-foreground mb-2">Image</p>
             {imagePreview ? (
-              <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-border">
+              <div className="relative w-32 h-32 rounded-2xl overflow-hidden border border-border">
                 <img src={imagePreview} alt="" className="h-full w-full object-cover" />
                 <button
                   onClick={() => { setImageFile(null); setImagePreview(null); }}
@@ -227,26 +225,29 @@ export default function AdminContentTab() {
             ) : (
               <button
                 onClick={() => fileRef.current?.click()}
-                className="flex h-32 w-32 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                className="flex h-32 w-32 flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-border text-muted-foreground hover:border-accent hover:text-accent transition-colors"
               >
                 <Upload className="h-5 w-5" />
-                <span className="text-xs">Upload</span>
+                <span className="text-sm">Upload</span>
               </button>
             )}
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
           </div>
 
-          {/* Toggles */}
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Active</span>
-            <Switch checked={active} onCheckedChange={setActive} />
+            <span className="text-base font-medium">Active</span>
+            <Switch checked={active} onCheckedChange={setActive} className="data-[state=checked]:bg-accent" />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Featured</span>
-            <Switch checked={featured} onCheckedChange={setFeatured} />
+            <span className="text-base font-medium">Featured</span>
+            <Switch checked={featured} onCheckedChange={setFeatured} className="data-[state=checked]:bg-accent" />
           </div>
 
-          <Button onClick={handleSave} disabled={!name.trim() || saving} className="w-full shadow-glow">
+          <Button
+            onClick={handleSave}
+            disabled={!name.trim() || saving}
+            className="w-full rounded-full bg-accent text-accent-foreground font-bold text-base py-5 shadow-glow hover:bg-accent/90"
+          >
             {saving ? "Saving…" : editing ? "Update" : "Add content"}
           </Button>
         </div>
@@ -257,7 +258,11 @@ export default function AdminContentTab() {
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex justify-end">
-        <Button size="sm" className="gap-1.5" onClick={() => setShowForm(true)}>
+        <Button
+          size="sm"
+          className="gap-1.5 rounded-full bg-accent text-accent-foreground font-bold hover:bg-accent/90"
+          onClick={() => setShowForm(true)}
+        >
           <Plus className="h-3.5 w-3.5" />
           Add content
         </Button>
@@ -268,17 +273,16 @@ export default function AdminContentTab() {
           <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
         </div>
       ) : items.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-10">No content yet.</p>
+        <p className="text-base text-muted-foreground text-center py-10">No content yet.</p>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {items.map((item) => (
             <div
               key={item.id}
-              className={`rounded-xl border bg-card shadow-soft overflow-hidden transition-opacity ${
+              className={`rounded-2xl bg-card shadow-card overflow-hidden transition-opacity ${
                 !item.active ? "opacity-50" : ""
               }`}
             >
-              {/* Color/image tile */}
               <div className="h-24 bg-secondary flex items-center justify-center">
                 {item.image_url ? (
                   <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
@@ -287,15 +291,15 @@ export default function AdminContentTab() {
                 )}
               </div>
               <div className="p-3 space-y-2">
-                <p className="text-sm font-medium truncate">{item.name}</p>
+                <p className="text-base font-medium truncate">{item.name}</p>
                 <div className="flex flex-wrap gap-1">
                   {item.occasion_tags.slice(0, 2).map((t) => (
-                    <Badge key={t} variant="secondary" className="text-[10px] px-1.5 py-0">
+                    <Badge key={t} variant="secondary" className="text-xs px-2 py-0.5">
                       {t}
                     </Badge>
                   ))}
                   {item.occasion_tags.length > 2 && (
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    <Badge variant="secondary" className="text-xs px-2 py-0.5">
                       +{item.occasion_tags.length - 2}
                     </Badge>
                   )}
@@ -303,14 +307,14 @@ export default function AdminContentTab() {
                 <div className="flex items-center gap-2 pt-1">
                   <button
                     onClick={() => openEdit(item)}
-                    className="text-xs text-primary hover:underline flex items-center gap-0.5"
+                    className="text-sm text-accent hover:underline flex items-center gap-0.5"
                   >
                     <Pencil className="h-3 w-3" />
                     Edit
                   </button>
                   <button
                     onClick={() => toggleActive(item)}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-auto"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors ml-auto"
                   >
                     {item.active ? "Deactivate" : "Activate"}
                   </button>

@@ -32,20 +32,17 @@ export default function BottomNav({ active, onChange, isAdmin }: BottomNavProps)
               <button
                 key={tab}
                 onClick={() => onChange(tab)}
-                className={cn(
-                  "flex flex-col items-center gap-0.5 -mt-4 transition-all",
-                  isActive ? "text-primary-foreground" : "text-muted-foreground"
-                )}
+                className="flex flex-col items-center gap-0.5 -mt-4 transition-all"
               >
                 <div
                   className={cn(
-                    "flex h-14 w-14 items-center justify-center rounded-full shadow-glow transition-all",
+                    "flex h-14 w-14 items-center justify-center rounded-full shadow-elevated transition-all",
                     isActive
                       ? "bg-primary scale-105"
-                      : "bg-primary/80 hover:bg-primary"
+                      : "bg-primary/90 hover:bg-primary"
                   )}
                 >
-                  <Icon className="h-6 w-6 text-primary-foreground" />
+                  <Icon className="h-6 w-6 text-accent" />
                 </div>
                 <span className={cn(
                   "text-[10px] font-medium mt-0.5",
@@ -62,12 +59,15 @@ export default function BottomNav({ active, onChange, isAdmin }: BottomNavProps)
               key={tab}
               onClick={() => onChange(tab)}
               className={cn(
-                "flex flex-col items-center gap-0.5 py-2 px-3 transition-colors",
+                "flex flex-col items-center gap-0.5 py-2 px-3 transition-colors relative",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
               <Icon className="h-5 w-5" />
               <span className="text-[10px] font-medium">{label}</span>
+              {isActive && (
+                <span className="absolute -bottom-0.5 h-0.5 w-5 rounded-full bg-accent" />
+              )}
             </button>
           );
         })}

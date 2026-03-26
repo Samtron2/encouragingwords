@@ -68,8 +68,10 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
+        card: "var(--shadow-card)",
         soft: "var(--shadow-soft)",
         glow: "var(--shadow-glow)",
+        elevated: "var(--shadow-elevated)",
       },
       keyframes: {
         "accordion-down": {

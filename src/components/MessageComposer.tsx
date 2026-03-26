@@ -111,7 +111,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setSendError(false);
 
     try {
-      // Save recipient to contacts
       const recipientData: Record<string, unknown> = {
         user_id: user.id,
         last_contacted_at: new Date().toISOString(),
@@ -129,7 +128,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       const visual = selectedVisual !== null ? PLACEHOLDER_VISUALS[selectedVisual] : null;
 
       if (method === "email") {
-        // Send via edge function
         const sendResult = await supabase.functions.invoke("send-email", {
           body: {
             recipientEmail,
@@ -158,11 +156,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           return;
         }
       } else {
-        // Native SMS deep link
         const smsBody = encodeURIComponent(message.trim());
         const smsUrl = `sms:${recipientPhone}?body=${smsBody}`;
 
-        // Log as initiated since we can't confirm delivery
         await supabase.from("messages").insert({
           user_id: user.id,
           recipient_id: recipientRow?.id || null,
@@ -190,14 +186,17 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   if (sent) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6 animate-fade-in">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 mb-6">
-          <Check className="h-10 w-10 text-primary" />
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-accent/15 mb-6">
+          <Check className="h-10 w-10 text-accent" />
         </div>
-        <h2 className="font-display text-3xl font-semibold text-foreground">Your words are on their way</h2>
-        <p className="mt-3 text-center text-muted-foreground max-w-xs leading-relaxed">
+        <h2 className="font-display text-3xl font-bold text-primary">Your words are on their way</h2>
+        <p className="mt-3 text-center text-muted-foreground max-w-xs leading-relaxed text-base">
           You just made someone's day a little brighter.
         </p>
-        <Button className="mt-8 shadow-glow" onClick={onBack}>
+        <Button
+          className="mt-8 rounded-full bg-accent text-accent-foreground font-bold px-8 py-5 shadow-glow hover:bg-accent/90"
+          onClick={onBack}
+        >
           Back to home
         </Button>
       </div>
@@ -206,18 +205,18 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   return (
     <div className="flex flex-1 flex-col px-6 pb-24 pt-6 animate-fade-in">
-      <h1 className="font-display text-2xl font-semibold mb-8">Send some warmth</h1>
+      <h1 className="font-display text-2xl font-bold text-primary mb-8">Send some warmth</h1>
 
       {sendError && (
-        <div className="mb-6 flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+        <div className="mb-6 flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
           <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
-          <p className="text-sm text-destructive">Something went wrong. Please try again.</p>
+          <p className="text-base text-destructive">Something went wrong. Please try again.</p>
         </div>
       )}
 
       {/* STEP 1 — WHO */}
       <section className="mb-8">
-        <label className="text-sm font-medium text-muted-foreground mb-2 block">
+        <label className="text-base font-medium text-muted-foreground mb-2 block">
           Who is this for?
         </label>
         <div className="relative">
@@ -233,22 +232,22 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             }}
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            className="pl-10"
+            className="pl-10 text-base"
           />
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-background shadow-soft overflow-hidden">
+            <div className="absolute z-10 mt-1 w-full rounded-2xl border border-border bg-card shadow-card overflow-hidden">
               {suggestions.map((s) => (
                 <button
                   key={s.id}
                   className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/60 transition-colors"
                   onMouseDown={() => selectSuggestion(s)}
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground text-xs font-semibold">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground text-sm font-semibold">
                     {(s.name || s.email || "?")[0].toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    {s.name && <p className="text-sm font-medium truncate">{s.name}</p>}
-                    <p className="text-xs text-muted-foreground truncate">{s.email || s.phone}</p>
+                    {s.name && <p className="text-base font-medium truncate">{s.name}</p>}
+                    <p className="text-sm text-muted-foreground truncate">{s.email || s.phone}</p>
                   </div>
                 </button>
               ))}
@@ -259,7 +258,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
       {/* STEP 2 — WHAT */}
       <section className="mb-8">
-        <label className="text-sm font-medium text-muted-foreground mb-2 block">
+        <label className="text-base font-medium text-muted-foreground mb-2 block">
           Your message
         </label>
         <div className="relative">
@@ -270,29 +269,36 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             }}
             placeholder="Write something kind…"
             rows={3}
-            className="flex w-full rounded-lg border border-input bg-background px-4 py-3 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-body"
+            className="flex w-full rounded-2xl border border-input bg-card px-4 py-3 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-body shadow-card"
           />
-          <span className="absolute bottom-3 right-3 text-xs text-muted-foreground">
+          <span className="absolute bottom-3 right-3 text-sm text-muted-foreground">
             {message.length}/160
           </span>
         </div>
 
         <div className="mt-3 -mx-6 px-6">
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {PROMPT_SUGGESTIONS.map((prompt) => (
-              <button
-                key={prompt}
-                onClick={() => setMessage(prompt)}
-                className="shrink-0 rounded-full border border-border bg-secondary/50 px-4 py-1.5 text-sm text-foreground hover:bg-secondary transition-colors whitespace-nowrap"
-              >
-                {prompt}
-              </button>
-            ))}
+            {PROMPT_SUGGESTIONS.map((prompt) => {
+              const isSelected = message === prompt;
+              return (
+                <button
+                  key={prompt}
+                  onClick={() => setMessage(prompt)}
+                  className={`shrink-0 rounded-full border px-4 py-2 text-base font-medium transition-colors whitespace-nowrap ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-primary border-primary/30 hover:bg-primary/5"
+                  }`}
+                >
+                  {prompt}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         <div className="mt-5">
-          <p className="text-sm text-muted-foreground mb-2">Choose a visual (optional)</p>
+          <p className="text-base text-muted-foreground mb-2">Choose a visual (optional)</p>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
             {PLACEHOLDER_VISUALS.map((v, i) => (
               <button
@@ -303,14 +309,14 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 }`}
               >
                 <div
-                  className={`h-20 w-20 rounded-xl shadow-soft transition-all ${
+                  className={`h-24 w-24 rounded-2xl transition-all ${
                     selectedVisual === i
-                      ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                      : ""
+                      ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-elevated"
+                      : "shadow-card"
                   }`}
                   style={{ backgroundColor: v.color }}
                 />
-                <span className="text-xs text-muted-foreground">{v.label}</span>
+                <span className="text-sm text-muted-foreground">{v.label}</span>
               </button>
             ))}
           </div>
@@ -319,26 +325,34 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
       {/* STEP 3 — HOW */}
       <section>
-        <label className="text-sm font-medium text-muted-foreground mb-3 block">
+        <label className="text-base font-medium text-muted-foreground mb-3 block">
           How should we send it?
         </label>
         <div className="flex gap-3">
           <Button
             onClick={() => handleSend("email")}
             disabled={!canSendEmail || !message.trim() || sending}
-            className="flex-1 gap-2 shadow-glow"
+            className={`flex-1 gap-2 rounded-full py-5 font-bold text-base ${
+              canSendEmail
+                ? "bg-accent text-accent-foreground shadow-glow hover:bg-accent/90"
+                : "bg-secondary text-muted-foreground"
+            }`}
             variant={canSendEmail ? "default" : "secondary"}
           >
-            <Mail className="h-4 w-4" />
+            <Mail className="h-5 w-5" />
             {sending ? "Sending…" : "Send by email"}
           </Button>
           <Button
             onClick={() => handleSend("sms")}
             disabled={!canSendSms || !message.trim() || sending}
-            className="flex-1 gap-2"
+            className={`sms-only flex-1 gap-2 rounded-full py-5 font-bold text-base ${
+              canSendSms
+                ? "bg-accent text-accent-foreground shadow-glow hover:bg-accent/90"
+                : "bg-secondary text-muted-foreground"
+            }`}
             variant={canSendSms ? "default" : "secondary"}
           >
-            <MessageSquare className="h-4 w-4" />
+            <MessageSquare className="h-5 w-5" />
             {sending ? "Sending…" : "Send by text"}
           </Button>
         </div>
