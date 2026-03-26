@@ -18,14 +18,6 @@ const PROMPT_SUGGESTIONS = [
   "I believe in you",
 ];
 
-const PLACEHOLDER_VISUALS = [
-  { label: "Sunrise", color: "hsl(30, 60%, 80%)" },
-  { label: "Bloom", color: "hsl(340, 40%, 82%)" },
-  { label: "Meadow", color: "hsl(120, 30%, 82%)" },
-  { label: "Ocean", color: "hsl(200, 40%, 80%)" },
-  { label: "Sunset", color: "hsl(15, 55%, 78%)" },
-];
-
 interface Recipient {
   id: string;
   name: string | null;
