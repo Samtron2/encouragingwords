@@ -141,7 +141,7 @@ const Index = () => {
                             <span className="text-accent font-semibold">{daysLabel(r.days_away)}</span>.
                           </p>
                           <p className="text-[15px] text-muted-foreground mt-0.5">
-                            Send her an encouraging word?
+                            Send them an encouraging word?
                           </p>
                         </div>
                         <Button
