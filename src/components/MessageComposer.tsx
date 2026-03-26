@@ -298,7 +298,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                   <button
                     key={prompt}
                     onClick={() => setMessage(prompt)}
-                    className={`shrink-0 rounded-full border px-4 py-2 text-base font-medium transition-colors whitespace-nowrap ${
+                    className={`shrink-0 rounded-full border px-5 py-3 text-lg font-medium transition-colors whitespace-nowrap ${
                       isSelected
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-background text-primary border-primary/30 hover:bg-primary/5"
