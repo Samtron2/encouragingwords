@@ -431,6 +431,56 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               </div>
             )}
           </div>
+
+          {/* Contact nudge */}
+          {nudgeField && selectedRecipient && (
+            <div className="mt-2 text-left">
+              {!nudgeInputVisible ? (
+                <p className="text-sm italic text-muted-foreground">
+                  {nudgeField === "email"
+                    ? `Add ${selectedRecipient.name || "an"}'s email?`
+                    : `Add ${selectedRecipient.name || "a"}'s phone number?`}
+                  {" "}
+                  <button
+                    type="button"
+                    onClick={() => setNudgeInputVisible(true)}
+                    className="underline text-accent hover:text-accent/80 not-italic font-medium"
+                  >
+                    Add
+                  </button>
+                  {" · "}
+                  <button
+                    type="button"
+                    onClick={handleNudgeDismiss}
+                    className="underline text-muted-foreground/70 hover:text-muted-foreground not-italic"
+                  >
+                    don't ask again
+                  </button>
+                </p>
+              ) : (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); handleNudgeSave(); }}
+                  className="flex items-center gap-2"
+                >
+                  <Input
+                    autoFocus
+                    placeholder={nudgeField === "email" ? "Email address" : "Phone number"}
+                    value={nudgeValue}
+                    onChange={(e) => setNudgeValue(e.target.value)}
+                    className="text-sm h-8 rounded-full flex-1"
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={!nudgeValue.trim()}
+                    className="rounded-full h-8 px-4 text-sm bg-accent text-accent-foreground hover:bg-accent/90"
+                  >
+                    Save
+                  </Button>
+                </form>
+              )}
+            </div>
+          )}
         </section>
 
         {/* STEP 2 — WHAT */}
