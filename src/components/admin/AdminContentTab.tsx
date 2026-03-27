@@ -270,19 +270,41 @@ export default function AdminContentTab() {
   };
   const uploadRef = useRef<HTMLInputElement>(null);
 
-  const loadItems = async () => {
-    setLoading(true);
-    const { data } = await supabase
+  const loadItems = async (append = false) => {
+    if (append) setLoadingMore(true); else setLoading(true);
+    const offset = append ? items.length : 0;
+
+    let query = supabase
       .from("content_library")
-      .select("id, name, image_url, occasion_tags, mood_tags, active, featured, featured_date")
+      .select("id, name, image_url, occasion_tags, mood_tags, active, featured, featured_date", { count: "exact" })
       .order("created_at", { ascending: false });
-    setItems((data as ContentItem[]) || []);
+
+    if (searchQuery.trim()) {
+      query = query.ilike("name", `%${searchQuery.trim()}%`);
+    }
+    if (statusFilter === "active") query = query.eq("active", true);
+    if (statusFilter === "inactive") query = query.eq("active", false);
+
+    query = query.range(offset, offset + PAGE_SIZE - 1);
+
+    const { data, count } = await query;
+    const fetched = (data as ContentItem[]) || [];
+    const total = count ?? 0;
+
+    if (append) {
+      setItems((prev) => [...prev, ...fetched]);
+    } else {
+      setItems(fetched);
+    }
+    setTotalCount(total);
+    setHasMore(offset + fetched.length < total);
     setLoading(false);
+    setLoadingMore(false);
   };
 
   useEffect(() => {
     loadItems();
-  }, []);
+  }, [searchQuery, statusFilter]);
 
   const resetForm = () => {
     setName("");
