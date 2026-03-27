@@ -86,12 +86,12 @@ const Landing = () => {
       {/* Cream background */}
       <div className="absolute inset-0 bg-[#FAF7F2]" />
 
-      {/* Teal diagonal — desktop: diagonal, mobile: gentler diagonal */}
+      {/* Teal diagonal */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 hidden md:block"
         style={{
           backgroundColor: "#2D6E6E",
-          clipPath: "polygon(100% 35%, 100% 100%, 0 100%, 0 70%)",
+          clipPath: "polygon(100% 30%, 100% 100%, 0 100%, 0 65%)",
         }}
       />
       <div
@@ -101,8 +101,6 @@ const Landing = () => {
           clipPath: "polygon(100% 45%, 100% 100%, 0 100%, 0 55%)",
         }}
       />
-      <div
-        className="absolute inset-0 hidden md:block"
         style={{
           backgroundColor: "#2D6E6E",
           clipPath: "polygon(100% 30%, 100% 100%, 0 100%, 0 65%)",
