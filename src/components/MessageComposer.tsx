@@ -123,6 +123,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setSendError(false);
     setNameConfirmed(false);
     setContactInput("");
+    setSelfiePreview(null);
+    setSelfieSelected(false);
     setSelectedRecipient(null);
     setNudgeField(null);
     setNudgeInputVisible(false);
