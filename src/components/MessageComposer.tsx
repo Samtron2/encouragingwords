@@ -338,8 +338,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             templateData: {
               recipientName: recipientName || undefined,
               message: message.trim(),
-              visualImageUrl: imageUrl,
-              visualEmoji: emojiChar,
+              visualImageUrl: selfieSelected && selfiePreview ? selfiePreview : imageUrl,
+              visualEmoji: selfieSelected ? undefined : emojiChar,
             },
           },
         });
