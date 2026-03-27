@@ -188,9 +188,20 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     }
   };
 
+  const isNameInvalid = (value: string): boolean => {
+    const trimmed = value.trim();
+    if (!trimmed) return false;
+    if (/^\+?\d[\d\s\-()]{6,}$/.test(trimmed)) return true;
+    if (trimmed.includes("@")) return true;
+    if (!/[a-zA-Z]/.test(trimmed)) return true;
+    return false;
+  };
+
+  const nameInputInvalid = isNameInvalid(recipientInput);
+
   const confirmName = () => {
     const trimmed = recipientInput.trim();
-    if (trimmed.length < 2) return;
+    if (trimmed.length < 2 || isNameInvalid(trimmed)) return;
     setRecipientName(trimmed);
     setNameConfirmed(true);
     setShowSuggestions(false);
