@@ -101,11 +101,6 @@ const Landing = () => {
           clipPath: "polygon(100% 45%, 100% 100%, 0 100%, 0 55%)",
         }}
       />
-        style={{
-          backgroundColor: "#2D6E6E",
-          clipPath: "polygon(100% 30%, 100% 100%, 0 100%, 0 65%)",
-        }}
-      />
 
       {/* Content */}
       <div className="relative z-10 flex min-h-screen flex-col">
