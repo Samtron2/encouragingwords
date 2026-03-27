@@ -200,7 +200,7 @@ const Index = () => {
             <main className="flex flex-1 flex-col items-center justify-start px-6 pb-28 pt-10">
               <div className="max-w-md w-full text-center animate-fade-in space-y-8">
                 {/* Personal greeting */}
-                <h1 className="font-display text-4xl font-bold text-primary leading-tight mt-12">
+                <h1 className="font-display text-5xl font-bold text-primary leading-tight mt-0">
                   {greeting}
                 </h1>
 
