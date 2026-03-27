@@ -39,21 +39,24 @@ const Auth = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-4">
+    <div className="relative flex min-h-screen justify-start items-start px-4 pt-16">
       <div className="bg-decoration" />
-      <div className="relative z-10 w-full max-w-sm animate-fade-in">
+      <div className="relative z-10 w-full max-w-sm mx-auto animate-fade-in">
         <div className="mb-8 text-center">
-          <h1 className="font-display text-3xl font-bold text-primary tracking-tight">
+          <h1 className="font-display text-5xl font-bold text-primary tracking-tight leading-tight">
             Encouraging Words
           </h1>
-          <p className="mt-4 text-base text-muted-foreground">
+          <p className="mt-3 text-lg text-muted-foreground font-display italic">
+            Because some things deserve more than a text.
+          </p>
+          <p className="mt-3 text-base text-muted-foreground">
             {isSignUp ? "Create your account to start spreading joy" : "Welcome back ☀️"}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-base">Email</Label>
+            <Label htmlFor="email" className="text-lg">Email</Label>
             <Input
               id="email"
               type="email"
@@ -61,11 +64,11 @@ const Auth = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="text-base"
+              className="text-lg py-3"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-base">Password</Label>
+            <Label htmlFor="password" className="text-lg">Password</Label>
             <Input
               id="password"
               type="password"
@@ -74,12 +77,12 @@ const Auth = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="text-base"
+              className="text-lg py-3"
             />
           </div>
           <Button
             type="submit"
-            className="w-full rounded-full bg-accent text-accent-foreground font-bold text-base py-5 shadow-glow hover:bg-accent/90"
+            className="w-full rounded-full bg-accent text-accent-foreground font-bold text-lg py-6 shadow-glow hover:bg-accent/90"
             size="lg"
             disabled={submitting}
           >
@@ -87,7 +90,7 @@ const Auth = () => {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-base text-muted-foreground">
+        <p className="mt-6 text-center text-lg text-muted-foreground">
           {isSignUp ? "Already have an account?" : "New here?"}{" "}
           <button
             onClick={() => setIsSignUp(!isSignUp)}
