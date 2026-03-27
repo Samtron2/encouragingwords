@@ -249,14 +249,14 @@ const Index = () => {
                     onClick={() => switchTab("send")}
                     className="flex flex-col items-center justify-center rounded-full bg-accent text-white hover:bg-accent/90 transition-colors"
                     style={{
-                      width: '68vw',
-                      height: '68vw',
-                      maxWidth: '272px',
-                      maxHeight: '272px',
+                      width: '52vw',
+                      height: '52vw',
+                      maxWidth: '210px',
+                      maxHeight: '210px',
                       boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
                     }}
                   >
-                    <ThumbsUp className="h-14 w-14 mb-3" strokeWidth={2.5} />
+                    <ThumbsUp className="h-10 w-10 mb-3" strokeWidth={2.5} />
                     <span className="font-body font-bold text-[18px] leading-snug px-8 text-center">
                       Send an encouraging word
                     </span>
