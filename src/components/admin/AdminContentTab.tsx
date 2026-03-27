@@ -206,6 +206,60 @@ export default function AdminContentTab() {
   const [importProgress, setImportProgress] = useState<string | null>(null);
   const [manifestItems, setManifestItems] = useState<{ name: string; url: string }[] | null>(null);
   const manifestRef = useRef<HTMLInputElement>(null);
+
+  // Bulk selection state
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [bulkActioning, setBulkActioning] = useState(false);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === items.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(items.map((i) => i.id)));
+    }
+  };
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const bulkSetActive = async (active: boolean) => {
+    if (selectedIds.size === 0) return;
+    setBulkActioning(true);
+    const ids = Array.from(selectedIds);
+    for (let i = 0; i < ids.length; i += 50) {
+      await supabase.from("content_library").update({ active }).in("id", ids.slice(i, i + 50));
+    }
+    toast({ title: `${ids.length} items ${active ? "activated" : "deactivated"} ✨` });
+    setBulkActioning(false);
+    exitSelectMode();
+    loadItems();
+  };
+
+  const bulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkActioning(true);
+    const ids = Array.from(selectedIds);
+    for (let i = 0; i < ids.length; i += 50) {
+      await supabase.from("content_library").delete().in("id", ids.slice(i, i + 50));
+    }
+    toast({ title: `${ids.length} items deleted` });
+    setBulkActioning(false);
+    setShowDeleteConfirm(false);
+    exitSelectMode();
+    loadItems();
+  };
   const uploadRef = useRef<HTMLInputElement>(null);
 
   const loadItems = async () => {
