@@ -200,12 +200,12 @@ const Index = () => {
             <main className="flex flex-col items-center justify-between px-6 pb-28 min-h-[calc(100vh-4rem)]">
               {/* Top section — greeting + stats */}
               <div className="max-w-md w-full text-center pt-10 space-y-3">
-                <h1 className="font-display text-5xl font-bold text-primary leading-tight mt-0">
+                <h1 className="font-display text-6xl font-bold text-primary leading-tight mt-0">
                   {greeting}
                 </h1>
 
                 {wordsSentMessage && (
-                  <p className="font-display text-xl text-primary/70 font-semibold mt-3">
+                  <p className="font-display text-2xl text-primary/70 font-semibold mt-3">
                     {wordsSentMessage}
                   </p>
                 )}
@@ -258,11 +258,11 @@ const Index = () => {
                     boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
                   }}
                 >
-                  <ThumbsUp className="h-10 w-10 mb-3" strokeWidth={2.5} />
-                  <span className="font-body font-bold text-[18px] leading-snug px-8 text-center">
+                  <ThumbsUp className="h-12 w-12 mb-3" strokeWidth={2.5} />
+                  <span className="font-body font-bold text-[22px] leading-snug px-8 text-center">
                     Send an encouraging word
                   </span>
-                  <span className="font-display italic text-[14px] mt-1 opacity-80">
+                  <span className="font-display italic text-[17px] mt-1">
                     Unum Accipere
                   </span>
                 </button>
