@@ -259,7 +259,7 @@ const Index = () => {
                   }}
                 >
                   <ThumbsUp className="h-12 w-12 mb-3" strokeWidth={2.5} />
-                  <span className="font-body font-bold text-[18px] leading-snug px-8 text-center">
+                  <span className="font-body font-bold text-[22px] leading-snug px-8 text-center">
                     Send an encouraging word
                   </span>
                   <span className="font-display italic text-[14px] mt-1 opacity-80">
