@@ -715,7 +715,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               style={{ flex: isTouchDevice ? "1 1 45%" : "1 1 100%", borderRadius: "999px" }}
             >
               <Mail className="h-5 w-5 shrink-0" />
-              <span className="truncate">{sending ? "Sending…" : "Send by email"}</span>
+              <span className="truncate">{sending ? "Sending…" : "Email"}</span>
             </Button>
             {isTouchDevice && (
               <Button
