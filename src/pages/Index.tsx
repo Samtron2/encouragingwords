@@ -101,6 +101,8 @@ const Index = () => {
     try { localStorage.setItem(TAB_KEY, activeTab); } catch {}
   }, [activeTab]);
   const reminders = useUpcomingDates(user?.id);
+  const greeting = useGreeting(user?.id);
+  const wordsSentMessage = useWordsSentCount(user?.id);
 
   if (loading) {
     return (
