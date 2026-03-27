@@ -205,7 +205,7 @@ const Index = () => {
                 </h1>
 
                 {wordsSentMessage && (
-                  <p className="font-display text-xl text-primary/70 font-semibold mt-3">
+                  <p className="font-display text-2xl text-primary/70 font-semibold mt-3">
                     {wordsSentMessage}
                   </p>
                 )}
