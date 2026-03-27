@@ -167,7 +167,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const selectSuggestion = (r: Recipient) => {
     setRecipientInput(r.name || r.email || r.phone || "");
     setRecipientName(r.name || "");
-    setRecipientEmail(r.email || "");
     setRecipientPhone(r.phone || "");
     setShowSuggestions(false);
     setSelectedRecipient(r);
@@ -175,6 +174,12 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setNudgeValue("");
     setNameConfirmed(true);
     setContactInput(r.email || r.phone || "");
+    // Explicitly set email so canSendEmail activates
+    if (r.email) {
+      setRecipientEmail(r.email);
+    } else {
+      setRecipientEmail("");
+    }
 
     // Determine if nudge is needed
     if (r.nudge_dismissed) {
@@ -706,32 +711,28 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
         {/* STEP 3 — HOW */}
         <section>
-          {isTouchDevice && (
-            <label className="text-lg font-medium text-muted-foreground mb-3 block">
-              How should we send it?
-            </label>
-          )}
+          <label className="text-lg font-medium text-muted-foreground mb-3 block">
+            How should we send it?
+          </label>
           <div className="flex gap-3 w-full">
             <Button
               onClick={() => handleSend("email")}
               disabled={!canSendEmail || !message.trim() || sending}
               className="gap-2 h-16 font-bold text-lg font-body bg-accent text-white shadow-glow hover:bg-accent/90 disabled:opacity-40 min-w-0"
-              style={{ flex: isTouchDevice ? "1 1 45%" : "1 1 100%", borderRadius: "999px" }}
+              style={{ flex: "1 1 45%", borderRadius: "999px" }}
             >
               <Mail className="h-5 w-5 shrink-0" />
               <span className="truncate">{sending ? "Sending…" : "Email"}</span>
             </Button>
-            {isTouchDevice && (
-              <Button
-                onClick={() => handleSend("sms")}
-                disabled={!canSendSms || !message.trim() || sending}
-                className="gap-2 h-16 font-bold text-lg font-body text-white hover:opacity-90 disabled:opacity-40 min-w-0"
-                style={{ flex: "1 1 45%", borderRadius: "999px", backgroundColor: "hsl(var(--primary))" }}
-              >
-                <MessageSquare className="h-5 w-5 shrink-0" />
-                <span className="truncate">{sending ? "Sending…" : "Text"}</span>
-              </Button>
-            )}
+            <Button
+              onClick={() => handleSend("sms")}
+              disabled={!canSendSms || !message.trim() || sending}
+              className="gap-2 h-16 font-bold text-lg font-body text-white hover:opacity-90 disabled:opacity-40 min-w-0"
+              style={{ flex: "1 1 45%", borderRadius: "999px", backgroundColor: "hsl(var(--primary))" }}
+            >
+              <MessageSquare className="h-5 w-5 shrink-0" />
+              <span className="truncate">{sending ? "Sending…" : "Text"}</span>
+            </Button>
           </div>
         </section>
       </div>
