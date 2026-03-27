@@ -219,10 +219,11 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setTimeout(() => inputRef.current?.focus(), 50);
   };
 
-  // Whether to show "Add [name]" chip — typed ≥2 chars, no suggestion selected, has no exact match
+  // Whether to show "Add [name]" chip — typed ≥2 chars, no suggestion selected, has no exact match, valid name
   const showAddChip = !nameConfirmed
     && recipientInput.trim().length >= 2
     && !selectedRecipient
+    && !nameInputInvalid
     && !suggestions.some((s) => s.name?.toLowerCase() === recipientInput.trim().toLowerCase());
 
   const handleNudgeSave = async () => {
