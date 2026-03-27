@@ -227,6 +227,15 @@ const Index = () => {
           <MessageComposer onBack={() => switchTab("home")} prefill={composerPrefill} />
         )}
 
+        {activeTab === "people" && (
+          <PeopleScreen
+            onSelectContact={(prefill) => {
+              setComposerPrefill(prefill);
+              setActiveTab("send");
+            }}
+          />
+        )}
+
         {activeTab === "settings" && <SettingsScreen />}
 
         {activeTab === "admin" && isAdmin && <AdminPanel />}
