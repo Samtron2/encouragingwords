@@ -510,7 +510,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
           {/* Step 2 — Contact detail (slides in after name confirmed, only for new contacts) */}
           {nameConfirmed && !selectedRecipient && (
-            <div className="mt-3 animate-fade-in" style={{ animation: "fade-in 0.3s ease-out, slide-up 0.3s ease-out" }}>
+            <div className="mt-3 animate-fade-in">
               <Input
                 ref={contactInputRef}
                 placeholder="Email or phone number"
