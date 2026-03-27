@@ -321,7 +321,12 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       const visual = selectedVisual !== null ? dailyVisuals[selectedVisual] : null;
       const isEmoji = visual?.image_url?.startsWith("emoji:");
       const emojiChar = isEmoji ? visual.image_url!.slice(6) : undefined;
-      const imageUrl = !isEmoji ? visual?.image_url || undefined : undefined;
+      let imageUrl = !isEmoji ? visual?.image_url || undefined : undefined;
+
+      // If selfie is selected, use it as the image for email, skip for SMS
+      if (selfieSelected && selfiePreview) {
+        imageUrl = selfiePreview;
+      }
 
       if (method === "email") {
         const idempotencyKey = `encouraging-${user.id}-${Date.now()}`;
