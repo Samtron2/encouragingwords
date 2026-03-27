@@ -609,51 +609,73 @@ export default function AdminContentTab() {
   }
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      <div className="flex flex-wrap gap-2 justify-end">
+    <div className="space-y-4 animate-fade-in pb-20">
+      <div className="flex flex-wrap gap-2 justify-end items-center">
+        {selectMode && (
+          <div className="flex items-center gap-2 mr-auto">
+            <Checkbox
+              checked={items.length > 0 && selectedIds.size === items.length}
+              onCheckedChange={toggleSelectAll}
+            />
+            <span className="text-sm font-medium text-muted-foreground">Select all</span>
+          </div>
+        )}
         <Button
           size="sm"
-          className="gap-1.5 rounded-full bg-accent text-accent-foreground font-bold hover:bg-accent/90"
-          onClick={() => setShowForm(true)}
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Add content
-        </Button>
-        <Button
-          size="sm"
-          variant={importPanel === "urls" ? "default" : "outline"}
+          variant={selectMode ? "default" : "outline"}
           className="gap-1.5 rounded-full font-bold"
-          onClick={() => setImportPanel(importPanel === "urls" ? null : "urls")}
+          onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}
         >
-          <Link className="h-3.5 w-3.5" />
-          Import from URLs
+          {selectMode ? <X className="h-3.5 w-3.5" /> : <CheckSquare className="h-3.5 w-3.5" />}
+          {selectMode ? "Cancel" : "Select"}
         </Button>
-        <Button
-          size="sm"
-          variant={importPanel === "manifest" ? "default" : "outline"}
-          className="gap-1.5 rounded-full font-bold"
-          onClick={() => {
-            if (importPanel === "manifest") {
-              setImportPanel(null);
-              setManifestItems(null);
-            } else {
-              setImportPanel("manifest");
-              manifestRef.current?.click();
-            }
-          }}
-        >
-          <FileJson className="h-3.5 w-3.5" />
-          Import from manifest
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="gap-1.5 rounded-full font-bold"
-          onClick={() => uploadRef.current?.click()}
-        >
-          <ImagePlus className="h-3.5 w-3.5" />
-          Upload images
-        </Button>
+        {!selectMode && (
+          <>
+            <Button
+              size="sm"
+              className="gap-1.5 rounded-full bg-accent text-accent-foreground font-bold hover:bg-accent/90"
+              onClick={() => setShowForm(true)}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add content
+            </Button>
+            <Button
+              size="sm"
+              variant={importPanel === "urls" ? "default" : "outline"}
+              className="gap-1.5 rounded-full font-bold"
+              onClick={() => setImportPanel(importPanel === "urls" ? null : "urls")}
+            >
+              <Link className="h-3.5 w-3.5" />
+              Import from URLs
+            </Button>
+            <Button
+              size="sm"
+              variant={importPanel === "manifest" ? "default" : "outline"}
+              className="gap-1.5 rounded-full font-bold"
+              onClick={() => {
+                if (importPanel === "manifest") {
+                  setImportPanel(null);
+                  setManifestItems(null);
+                } else {
+                  setImportPanel("manifest");
+                  manifestRef.current?.click();
+                }
+              }}
+            >
+              <FileJson className="h-3.5 w-3.5" />
+              Import from manifest
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 rounded-full font-bold"
+              onClick={() => uploadRef.current?.click()}
+            >
+              <ImagePlus className="h-3.5 w-3.5" />
+              Upload images
+            </Button>
+          </>
+        )}
         <input ref={manifestRef} type="file" accept=".json" className="hidden" onChange={handleManifestFile} />
         <input ref={uploadRef} type="file" accept="image/*" multiple className="hidden" onChange={handleUploadImages} />
       </div>
@@ -737,8 +759,18 @@ export default function AdminContentTab() {
               className={`rounded-2xl bg-card shadow-card overflow-hidden transition-opacity ${
                 !item.active ? "opacity-50" : ""
               }`}
+              onClick={selectMode ? () => toggleSelect(item.id) : undefined}
             >
               <div className="relative h-24 bg-secondary flex items-center justify-center">
+                {selectMode && (
+                  <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={selectedIds.has(item.id)}
+                      onCheckedChange={() => toggleSelect(item.id)}
+                      className="h-5 w-5 border-2 bg-background/80 backdrop-blur-sm"
+                    />
+                  </div>
+                )}
                 {item.image_url?.startsWith("emoji:") ? (
                   <span className="text-5xl">{item.image_url.replace("emoji:", "")}</span>
                 ) : item.image_url ? (
@@ -769,26 +801,86 @@ export default function AdminContentTab() {
                     </Badge>
                   )}
                 </div>
-                <div className="flex items-center gap-2 pt-1">
-                  <button
-                    onClick={() => openEdit(item)}
-                    className="text-sm text-accent hover:underline flex items-center gap-0.5"
-                  >
-                    <Pencil className="h-3 w-3" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => toggleActive(item)}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors ml-auto"
-                  >
-                    {item.active ? "Deactivate" : "Activate"}
-                  </button>
-                </div>
+                {!selectMode && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      onClick={() => openEdit(item)}
+                      className="text-sm text-accent hover:underline flex items-center gap-0.5"
+                    >
+                      <Pencil className="h-3 w-3" />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => toggleActive(item)}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors ml-auto"
+                    >
+                      {item.active ? "Deactivate" : "Activate"}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Bulk selection action bar */}
+      {selectMode && selectedIds.size > 0 && (
+        <div className="fixed bottom-16 left-0 right-0 z-50 flex items-center justify-center px-4">
+          <div className="flex items-center gap-3 rounded-full bg-card border border-border shadow-lg px-5 py-3">
+            <span className="text-sm font-bold text-foreground">{selectedIds.size} selected</span>
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-full font-bold"
+              disabled={bulkActioning}
+              onClick={() => bulkSetActive(true)}
+            >
+              Activate
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-full font-bold"
+              disabled={bulkActioning}
+              onClick={() => bulkSetActive(false)}
+            >
+              Deactivate
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="rounded-full font-bold"
+              disabled={bulkActioning}
+              onClick={() => setShowDeleteConfirm(true)}
+            >
+              Delete
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.size} items?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. These items will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkActioning}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={bulkActioning}
+              onClick={bulkDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {bulkActioning ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
