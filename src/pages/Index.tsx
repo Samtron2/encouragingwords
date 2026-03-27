@@ -84,7 +84,7 @@ const TAB_KEY = "ew-active-tab";
 function getRestoredTab(): Tab {
   try {
     const saved = localStorage.getItem(TAB_KEY) as Tab | null;
-    if (saved && ["home", "send", "settings", "admin"].includes(saved)) return saved;
+    if (saved && ["home", "send", "people", "settings", "admin"].includes(saved)) return saved;
   } catch {}
   return "home";
 }
