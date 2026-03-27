@@ -197,23 +197,24 @@ const Index = () => {
       <div className="relative z-10 flex min-h-screen flex-col">
         {activeTab === "home" && (
           <>
-            <main className="flex flex-1 flex-col items-center justify-start px-6 pb-28 pt-10">
-              <div className="max-w-md w-full text-center animate-fade-in space-y-8">
-                {/* Personal greeting */}
+            <main className="flex flex-col items-center justify-between px-6 pb-28 min-h-[calc(100vh-4rem)]">
+              {/* Top section — greeting + stats */}
+              <div className="max-w-md w-full text-center pt-10 space-y-3">
                 <h1 className="font-display text-5xl font-bold text-primary leading-tight mt-0">
                   {greeting}
                 </h1>
 
-                {/* Words sent count */}
                 {wordsSentMessage && (
                   <p className="font-display text-xl text-primary/70 font-semibold mt-3">
                     {wordsSentMessage}
                   </p>
                 )}
+              </div>
 
-                {/* Upcoming reminders */}
+              {/* Middle section — reminders */}
+              <div className="flex-1 flex items-center max-w-md w-full">
                 {reminders.length > 0 && (
-                  <div className="space-y-3 text-left">
+                  <div className="space-y-3 text-left w-full">
                     {reminders.map((r, i) => (
                       <div
                         key={i}
@@ -242,29 +243,29 @@ const Index = () => {
                     ))}
                   </div>
                 )}
+              </div>
 
-                {/* Big CTA button — unchanged */}
-                <div className="mt-8 flex justify-center">
-                  <button
-                    onClick={() => switchTab("send")}
-                    className="flex flex-col items-center justify-center rounded-full bg-accent text-white hover:bg-accent/90 transition-colors"
-                    style={{
-                      width: '52vw',
-                      height: '52vw',
-                      maxWidth: '210px',
-                      maxHeight: '210px',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-                    }}
-                  >
-                    <ThumbsUp className="h-10 w-10 mb-3" strokeWidth={2.5} />
-                    <span className="font-body font-bold text-[18px] leading-snug px-8 text-center">
-                      Send an encouraging word
-                    </span>
-                    <span className="font-display italic text-[14px] mt-1 opacity-80">
-                      Unum Accipere
-                    </span>
-                  </button>
-                </div>
+              {/* Bottom section — CTA button */}
+              <div className="pb-8 flex justify-center">
+                <button
+                  onClick={() => switchTab("send")}
+                  className="flex flex-col items-center justify-center rounded-full bg-accent text-white hover:bg-accent/90 transition-colors"
+                  style={{
+                    width: '52vw',
+                    height: '52vw',
+                    maxWidth: '210px',
+                    maxHeight: '210px',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                  }}
+                >
+                  <ThumbsUp className="h-10 w-10 mb-3" strokeWidth={2.5} />
+                  <span className="font-body font-bold text-[18px] leading-snug px-8 text-center">
+                    Send an encouraging word
+                  </span>
+                  <span className="font-display italic text-[14px] mt-1 opacity-80">
+                    Unum Accipere
+                  </span>
+                </button>
               </div>
             </main>
           </>
