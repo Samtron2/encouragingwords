@@ -244,7 +244,7 @@ const Index = () => {
                 )}
 
                 {/* Big CTA button — unchanged */}
-                <div className="mt-4 flex justify-center">
+                <div className="mt-8 flex justify-center">
                   <button
                     onClick={() => switchTab("send")}
                     className="flex flex-col items-center justify-center rounded-full bg-accent text-white hover:bg-accent/90 transition-colors"
