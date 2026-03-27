@@ -262,7 +262,7 @@ const Index = () => {
                   <span className="font-body font-bold text-[22px] leading-snug px-8 text-center">
                     Send an encouraging word
                   </span>
-                  <span className="font-display italic text-[14px] mt-1 opacity-80">
+                  <span className="font-display italic text-[17px] mt-1">
                     Unum Accipere
                   </span>
                 </button>
