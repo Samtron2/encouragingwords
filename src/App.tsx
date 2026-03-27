@@ -20,7 +20,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/home" element={<ErrorBoundary><Index /></ErrorBoundary>} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="*" element={<NotFound />} />
