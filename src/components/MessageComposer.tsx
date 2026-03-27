@@ -6,7 +6,7 @@ import { useComposerDraft } from "@/hooks/useComposerDraft";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
-import { Mail, MessageSquare, Check, User, AlertCircle, Pencil } from "lucide-react";
+import { Mail, MessageSquare, Check, User, AlertCircle, Pencil, Camera, X } from "lucide-react";
 import { toast } from "sonner";
 
 const PROMPT_SUGGESTIONS = [
