@@ -6,7 +6,7 @@ import { useComposerDraft } from "@/hooks/useComposerDraft";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
-import { Mail, MessageSquare, Check, User, AlertCircle, X } from "lucide-react";
+import { Mail, MessageSquare, Check, User, AlertCircle, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 const PROMPT_SUGGESTIONS = [
@@ -62,12 +62,30 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [sendError, setSendError] = useState(false);
   const [isTouchDevice] = useState(() => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const contactInputRef = useRef<HTMLInputElement>(null);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
   const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
   const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
   const [nudgeValue, setNudgeValue] = useState("");
 
-  // Mark draft as restored on mount
+  // Two-step flow state
+  const [nameConfirmed, setNameConfirmed] = useState(false);
+  const [contactInput, setContactInput] = useState("");
+
+  // If prefill has email/phone, start with name confirmed
+  useEffect(() => {
+    if (prefill?.name && (prefill?.email || prefill?.phone)) {
+      setNameConfirmed(true);
+    }
+  }, []);
+
+  // If draft had contact info, restore confirmed state
+  useEffect(() => {
+    if (initialDraft?.recipientName && (initialDraft?.recipientEmail || initialDraft?.recipientPhone)) {
+      setNameConfirmed(true);
+      setContactInput(initialDraft.recipientEmail || initialDraft.recipientPhone || "");
+    }
+  }, []);
 
   // Restore selectedVisual index from ID once visuals load
   useEffect(() => {
@@ -100,19 +118,25 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setSelectedVisual(null);
     setSelectedVisualId(null);
     setSendError(false);
+    setNameConfirmed(false);
+    setContactInput("");
+    setSelectedRecipient(null);
+    setNudgeField(null);
+    setNudgeInputVisible(false);
+    setNudgeValue("");
   };
 
-  const parseRecipientInput = (value: string) => {
+  // Parse the contact detail input (Step 2 only)
+  const parseContactInput = (value: string) => {
     const trimmed = value.trim();
     if (trimmed.includes("@")) {
       setRecipientEmail(trimmed);
       setRecipientPhone("");
-      setRecipientName("");
     } else if (/^\+?\d[\d\s\-()]{6,}$/.test(trimmed)) {
       setRecipientPhone(trimmed);
       setRecipientEmail("");
     } else {
-      setRecipientName(trimmed);
+      // Not yet valid — clear both
       setRecipientEmail("");
       setRecipientPhone("");
     }
@@ -149,6 +173,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setSelectedRecipient(r);
     setNudgeInputVisible(false);
     setNudgeValue("");
+    setNameConfirmed(true);
+    setContactInput(r.email || r.phone || "");
 
     // Determine if nudge is needed
     if (r.nudge_dismissed) {
@@ -161,6 +187,32 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       setNudgeField(null);
     }
   };
+
+  const confirmName = () => {
+    const trimmed = recipientInput.trim();
+    if (trimmed.length < 2) return;
+    setRecipientName(trimmed);
+    setNameConfirmed(true);
+    setShowSuggestions(false);
+    // Focus the contact input after transition
+    setTimeout(() => contactInputRef.current?.focus(), 300);
+  };
+
+  const editName = () => {
+    setNameConfirmed(false);
+    setContactInput("");
+    setRecipientEmail("");
+    setRecipientPhone("");
+    setSelectedRecipient(null);
+    setNudgeField(null);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  // Whether to show "Add [name]" chip — typed ≥2 chars, no suggestion selected, has no exact match
+  const showAddChip = !nameConfirmed
+    && recipientInput.trim().length >= 2
+    && !selectedRecipient
+    && !suggestions.some((s) => s.name?.toLowerCase() === recipientInput.trim().toLowerCase());
 
   const handleNudgeSave = async () => {
     if (!selectedRecipient || !nudgeValue.trim()) return;
@@ -378,48 +430,101 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           </div>
         )}
 
-        {/* STEP 1 — WHO */}
+        {/* STEP 1 — WHO (Name) */}
         <section className="mb-8">
           <label className="text-lg font-medium text-muted-foreground mb-2 block">
             Who is this for?
           </label>
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              ref={inputRef}
-              placeholder="Name, email, or phone number"
-              value={recipientInput}
-              onChange={(e) => {
-                setRecipientInput(e.target.value);
-                parseRecipientInput(e.target.value);
-                setShowSuggestions(true);
-              }}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className="pl-10 text-lg py-5"
-            />
-            {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute z-10 mt-1 w-full rounded-2xl border border-border bg-card shadow-card overflow-hidden">
-                {suggestions.map((s) => (
-                  <button
-                    key={s.id}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/60 transition-colors"
-                    onMouseDown={() => selectSuggestion(s)}
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground text-[15px] font-semibold">
-                      {(s.name || s.email || "?")[0].toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      {s.name && <p className="text-base font-medium truncate">{s.name}</p>}
-                      <p className="text-[15px] text-muted-foreground truncate">{s.email || s.phone}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* Contact nudge */}
+          {!nameConfirmed ? (
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                ref={inputRef}
+                placeholder="Who is this for?"
+                value={recipientInput}
+                onChange={(e) => {
+                  setRecipientInput(e.target.value);
+                  setRecipientName(e.target.value.trim());
+                  setShowSuggestions(true);
+                  setSelectedRecipient(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (suggestions.length > 0 && !showAddChip) {
+                      selectSuggestion(suggestions[0]);
+                    } else {
+                      confirmName();
+                    }
+                  }
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                className="pl-10 text-lg py-5"
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute z-10 mt-1 w-full rounded-2xl border border-border bg-card shadow-card overflow-hidden">
+                  {suggestions.map((s) => (
+                    <button
+                      key={s.id}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/60 transition-colors"
+                      onMouseDown={() => selectSuggestion(s)}
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground text-[15px] font-semibold">
+                        {(s.name || s.email || "?")[0].toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        {s.name && <p className="text-base font-medium truncate">{s.name}</p>}
+                        <p className="text-[15px] text-muted-foreground truncate">{s.email || s.phone}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* "Add [name]" chip */}
+              {showAddChip && (
+                <button
+                  onMouseDown={(e) => { e.preventDefault(); confirmName(); }}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+                >
+                  Add {recipientInput.trim()}
+                </button>
+              )}
+            </div>
+          ) : (
+            /* Name confirmed — read-only display */
+            <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3">
+              <User className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-lg font-medium text-foreground flex-1 text-left truncate">{recipientName}</span>
+              <button
+                onClick={editName}
+                className="p-1.5 rounded-full hover:bg-secondary/60 transition-colors text-muted-foreground hover:text-foreground"
+                aria-label="Edit name"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Step 2 — Contact detail (slides in after name confirmed, only for new contacts) */}
+          {nameConfirmed && !selectedRecipient && (
+            <div className="mt-3 animate-fade-in" style={{ animation: "fade-in 0.3s ease-out, slide-up 0.3s ease-out" }}>
+              <Input
+                ref={contactInputRef}
+                placeholder="Email or phone number"
+                value={contactInput}
+                onChange={(e) => {
+                  setContactInput(e.target.value);
+                  parseContactInput(e.target.value);
+                }}
+                className="text-lg py-5"
+              />
+            </div>
+          )}
+
+          {/* Contact nudge (for existing contacts with missing info) */}
           {nudgeField && selectedRecipient && (
             <div className="mt-2 text-left">
               {!nudgeInputVisible ? (
