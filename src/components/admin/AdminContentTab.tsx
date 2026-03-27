@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, X, Upload, Pencil, CalendarDays, Link, FileJson, ImagePlus, CheckSquare } from "lucide-react";
+import { Plus, X, Upload, Pencil, CalendarDays, Link, FileJson, ImagePlus, CheckSquare, Search } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
@@ -207,6 +207,14 @@ export default function AdminContentTab() {
   const [manifestItems, setManifestItems] = useState<{ name: string; url: string }[] | null>(null);
   const manifestRef = useRef<HTMLInputElement>(null);
 
+  // Search, filter, pagination state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const PAGE_SIZE = 50;
+
   // Bulk selection state
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -262,19 +270,41 @@ export default function AdminContentTab() {
   };
   const uploadRef = useRef<HTMLInputElement>(null);
 
-  const loadItems = async () => {
-    setLoading(true);
-    const { data } = await supabase
+  const loadItems = async (append = false) => {
+    if (append) setLoadingMore(true); else setLoading(true);
+    const offset = append ? items.length : 0;
+
+    let query = supabase
       .from("content_library")
-      .select("id, name, image_url, occasion_tags, mood_tags, active, featured, featured_date")
+      .select("id, name, image_url, occasion_tags, mood_tags, active, featured, featured_date", { count: "exact" })
       .order("created_at", { ascending: false });
-    setItems((data as ContentItem[]) || []);
+
+    if (searchQuery.trim()) {
+      query = query.ilike("name", `%${searchQuery.trim()}%`);
+    }
+    if (statusFilter === "active") query = query.eq("active", true);
+    if (statusFilter === "inactive") query = query.eq("active", false);
+
+    query = query.range(offset, offset + PAGE_SIZE - 1);
+
+    const { data, count } = await query;
+    const fetched = (data as ContentItem[]) || [];
+    const total = count ?? 0;
+
+    if (append) {
+      setItems((prev) => [...prev, ...fetched]);
+    } else {
+      setItems(fetched);
+    }
+    setTotalCount(total);
+    setHasMore(offset + fetched.length < total);
     setLoading(false);
+    setLoadingMore(false);
   };
 
   useEffect(() => {
     loadItems();
-  }, []);
+  }, [searchQuery, statusFilter]);
 
   const resetForm = () => {
     setName("");
@@ -745,6 +775,37 @@ export default function AdminContentTab() {
         </div>
       )}
 
+      {/* Search and filter bar */}
+      <div className="space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by name…"
+            className="pl-9 text-sm rounded-full"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          {(["all", "active", "inactive"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setStatusFilter(f)}
+              className={`rounded-full px-3 py-1 text-sm font-medium border transition-colors ${
+                statusFilter === f
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-muted-foreground border-border hover:border-primary/40"
+              }`}
+            >
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
+          <span className="text-sm text-muted-foreground ml-auto">
+            Showing {items.length} of {totalCount.toLocaleString()}
+          </span>
+        </div>
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-10">
           <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
@@ -752,76 +813,90 @@ export default function AdminContentTab() {
       ) : items.length === 0 ? (
         <p className="text-base text-muted-foreground text-center py-10">No content yet.</p>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className={`rounded-2xl bg-card shadow-card overflow-hidden transition-opacity ${
-                !item.active ? "opacity-50" : ""
-              }`}
-              onClick={selectMode ? () => toggleSelect(item.id) : undefined}
-            >
-              <div className="relative h-24 bg-secondary flex items-center justify-center">
-                {selectMode && (
-                  <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={selectedIds.has(item.id)}
-                      onCheckedChange={() => toggleSelect(item.id)}
-                      className="h-5 w-5 border-2 bg-background/80 backdrop-blur-sm"
-                    />
-                  </div>
-                )}
-                {item.image_url?.startsWith("emoji:") ? (
-                  <span className="text-5xl">{item.image_url.replace("emoji:", "")}</span>
-                ) : item.image_url ? (
-                  <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="h-full w-full" style={{ backgroundColor: "hsl(30, 60%, 85%)" }} />
-                )}
-                {item.featured_date && (
-                  <div className="absolute top-1.5 right-1.5 flex items-center gap-1 rounded-full bg-card/90 backdrop-blur-sm px-2 py-0.5 shadow-sm" title={item.featured_date}>
-                    <CalendarDays className="h-3 w-3 text-accent" />
-                    <span className="text-[11px] font-medium text-accent">
-                      {format(new Date(item.featured_date + "T00:00:00"), "MMM d")}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="p-3 space-y-2">
-                <p className="text-base font-medium truncate">{item.name}</p>
-                <div className="flex flex-wrap gap-1">
-                  {item.occasion_tags.slice(0, 2).map((t) => (
-                    <Badge key={t} variant="secondary" className="text-xs px-2 py-0.5">
-                      {t}
-                    </Badge>
-                  ))}
-                  {item.occasion_tags.length > 2 && (
-                    <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                      +{item.occasion_tags.length - 2}
-                    </Badge>
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className={`rounded-2xl bg-card shadow-card overflow-hidden transition-opacity ${
+                  !item.active ? "opacity-50" : ""
+                }`}
+                onClick={selectMode ? () => toggleSelect(item.id) : undefined}
+              >
+                <div className="relative h-24 bg-secondary flex items-center justify-center">
+                  {selectMode && (
+                    <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selectedIds.has(item.id)}
+                        onCheckedChange={() => toggleSelect(item.id)}
+                        className="h-5 w-5 border-2 bg-background/80 backdrop-blur-sm"
+                      />
+                    </div>
+                  )}
+                  {item.image_url?.startsWith("emoji:") ? (
+                    <span className="text-5xl">{item.image_url.replace("emoji:", "")}</span>
+                  ) : item.image_url ? (
+                    <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full" style={{ backgroundColor: "hsl(30, 60%, 85%)" }} />
+                  )}
+                  {item.featured_date && (
+                    <div className="absolute top-1.5 right-1.5 flex items-center gap-1 rounded-full bg-card/90 backdrop-blur-sm px-2 py-0.5 shadow-sm" title={item.featured_date}>
+                      <CalendarDays className="h-3 w-3 text-accent" />
+                      <span className="text-[11px] font-medium text-accent">
+                        {format(new Date(item.featured_date + "T00:00:00"), "MMM d")}
+                      </span>
+                    </div>
                   )}
                 </div>
-                {!selectMode && (
-                  <div className="flex items-center gap-2 pt-1">
-                    <button
-                      onClick={() => openEdit(item)}
-                      className="text-sm text-accent hover:underline flex items-center gap-0.5"
-                    >
-                      <Pencil className="h-3 w-3" />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => toggleActive(item)}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors ml-auto"
-                    >
-                      {item.active ? "Deactivate" : "Activate"}
-                    </button>
+                <div className="p-3 space-y-2">
+                  <p className="text-base font-medium truncate">{item.name}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {item.occasion_tags.slice(0, 2).map((t) => (
+                      <Badge key={t} variant="secondary" className="text-xs px-2 py-0.5">
+                        {t}
+                      </Badge>
+                    ))}
+                    {item.occasion_tags.length > 2 && (
+                      <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                        +{item.occasion_tags.length - 2}
+                      </Badge>
+                    )}
                   </div>
-                )}
+                  {!selectMode && (
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        onClick={() => openEdit(item)}
+                        className="text-sm text-accent hover:underline flex items-center gap-0.5"
+                      >
+                        <Pencil className="h-3 w-3" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => toggleActive(item)}
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors ml-auto"
+                      >
+                        {item.active ? "Deactivate" : "Activate"}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
+            ))}
+          </div>
+          {hasMore && (
+            <div className="flex justify-center pt-2">
+              <Button
+                variant="outline"
+                className="rounded-full font-bold"
+                disabled={loadingMore}
+                onClick={() => loadItems(true)}
+              >
+                {loadingMore ? "Loading…" : "Load more"}
+              </Button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {/* Bulk selection action bar */}
