@@ -308,6 +308,132 @@ export default function AdminContentTab() {
     loadItems();
   };
 
+  const batchInsert = async (
+    rows: { name: string; image_url: string }[],
+    labelPrefix: string
+  ) => {
+    // Get existing URLs to skip duplicates
+    const { data: existing } = await supabase
+      .from("content_library")
+      .select("image_url");
+    const existingUrls = new Set((existing || []).map((e) => e.image_url));
+    const unique = rows.filter((r) => !existingUrls.has(r.image_url));
+
+    if (unique.length === 0) {
+      toast({ title: "No new items to import — all URLs already exist" });
+      setImportProgress(null);
+      return;
+    }
+
+    let imported = 0;
+    for (let i = 0; i < unique.length; i += 50) {
+      const batch = unique.slice(i, i + 50).map((r) => ({
+        name: r.name,
+        image_url: r.image_url,
+        active: true,
+        featured: false,
+        occasion_tags: [] as string[],
+        mood_tags: [] as string[],
+      }));
+      setImportProgress(`${labelPrefix} ${Math.min(i + 50, unique.length)} of ${unique.length}`);
+      const { error } = await supabase.from("content_library").insert(batch);
+      if (error) {
+        toast({ title: "Import error", description: error.message, variant: "destructive" });
+        setImportProgress(null);
+        return;
+      }
+      imported += batch.length;
+    }
+
+    toast({ title: `${imported} items imported ✨` });
+    setImportProgress(null);
+    setImportPanel(null);
+    setUrlText("");
+    setUrlPrefix("");
+    setManifestItems(null);
+    loadItems();
+  };
+
+  const handleUrlImport = () => {
+    const lines = urlText.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (lines.length === 0) return;
+    const rows = lines.map((url, i) => {
+      const itemName = urlPrefix.trim()
+        ? `${urlPrefix.trim()} ${i + 1}`
+        : url.split("/").pop()?.split("?")[0] || `Item ${i + 1}`;
+      return { name: itemName, image_url: url };
+    });
+    batchInsert(rows, "Importing...");
+  };
+
+  const handleManifestFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target?.result as string);
+        if (!Array.isArray(data)) throw new Error("Expected array");
+        setManifestItems(data as { name: string; url: string }[]);
+      } catch {
+        toast({ title: "Invalid JSON format", variant: "destructive" });
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const handleManifestImport = () => {
+    if (!manifestItems) return;
+    const rows = manifestItems.map((m) => ({ name: m.name, image_url: m.url }));
+    batchInsert(rows, "Importing...");
+  };
+
+  const handleUploadImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    e.target.value = "";
+    setImportPanel("upload");
+
+    const rows: { name: string; image_url: string }[] = [];
+    for (let i = 0; i < files.length; i++) {
+      setImportProgress(`Uploading ${i + 1} of ${files.length}…`);
+      const file = files[i];
+      const ext = file.name.split(".").pop();
+      const baseName = file.name.replace(/\.[^/.]+$/, "");
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("content-images")
+        .upload(path, file, { upsert: true });
+      if (error) {
+        toast({ title: `Failed: ${file.name}`, description: error.message, variant: "destructive" });
+        continue;
+      }
+      const { data: urlData } = supabase.storage.from("content-images").getPublicUrl(path);
+      rows.push({ name: baseName, image_url: urlData.publicUrl });
+    }
+
+    if (rows.length > 0) {
+      // Insert all uploaded items
+      for (let i = 0; i < rows.length; i += 50) {
+        const batch = rows.slice(i, i + 50).map((r) => ({
+          name: r.name,
+          image_url: r.image_url,
+          active: true,
+          featured: false,
+          occasion_tags: [] as string[],
+          mood_tags: [] as string[],
+        }));
+        await supabase.from("content_library").insert(batch);
+      }
+      toast({ title: `${rows.length} images uploaded ✨` });
+      loadItems();
+    }
+
+    setImportProgress(null);
+    setImportPanel(null);
+  };
+
   const toggleActive = async (item: ContentItem) => {
     await supabase
       .from("content_library")
