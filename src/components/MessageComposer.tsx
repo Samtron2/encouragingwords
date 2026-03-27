@@ -63,6 +63,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [isTouchDevice] = useState(() => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
   const inputRef = useRef<HTMLInputElement>(null);
   const contactInputRef = useRef<HTMLInputElement>(null);
+  const selfieInputRef = useRef<HTMLInputElement>(null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [selfieSelected, setSelfieSelected] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
   const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
   const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
