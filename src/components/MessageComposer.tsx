@@ -188,9 +188,20 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     }
   };
 
+  const isNameInvalid = (value: string): boolean => {
+    const trimmed = value.trim();
+    if (!trimmed) return false;
+    if (/^\+?\d[\d\s\-()]{6,}$/.test(trimmed)) return true;
+    if (trimmed.includes("@")) return true;
+    if (!/[a-zA-Z]/.test(trimmed)) return true;
+    return false;
+  };
+
+  const nameInputInvalid = isNameInvalid(recipientInput);
+
   const confirmName = () => {
     const trimmed = recipientInput.trim();
-    if (trimmed.length < 2) return;
+    if (trimmed.length < 2 || isNameInvalid(trimmed)) return;
     setRecipientName(trimmed);
     setNameConfirmed(true);
     setShowSuggestions(false);
@@ -208,10 +219,11 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setTimeout(() => inputRef.current?.focus(), 50);
   };
 
-  // Whether to show "Add [name]" chip — typed ≥2 chars, no suggestion selected, has no exact match
+  // Whether to show "Add [name]" chip — typed ≥2 chars, no suggestion selected, has no exact match, valid name
   const showAddChip = !nameConfirmed
     && recipientInput.trim().length >= 2
     && !selectedRecipient
+    && !nameInputInvalid
     && !suggestions.some((s) => s.name?.toLowerCase() === recipientInput.trim().toLowerCase());
 
   const handleNudgeSave = async () => {
@@ -481,6 +493,11 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                     </button>
                   ))}
                 </div>
+              )}
+
+              {/* Inline validation message */}
+              {nameInputInvalid && recipientInput.trim().length >= 2 && (
+                <p className="mt-1.5 text-xs text-destructive">Please enter a name first.</p>
               )}
 
               {/* "Add [name]" chip */}
