@@ -545,7 +545,7 @@ export default function AdminContentTab() {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap gap-2 justify-end">
         <Button
           size="sm"
           className="gap-1.5 rounded-full bg-accent text-accent-foreground font-bold hover:bg-accent/90"
@@ -554,7 +554,109 @@ export default function AdminContentTab() {
           <Plus className="h-3.5 w-3.5" />
           Add content
         </Button>
+        <Button
+          size="sm"
+          variant={importPanel === "urls" ? "default" : "outline"}
+          className="gap-1.5 rounded-full font-bold"
+          onClick={() => setImportPanel(importPanel === "urls" ? null : "urls")}
+        >
+          <Link className="h-3.5 w-3.5" />
+          Import from URLs
+        </Button>
+        <Button
+          size="sm"
+          variant={importPanel === "manifest" ? "default" : "outline"}
+          className="gap-1.5 rounded-full font-bold"
+          onClick={() => {
+            if (importPanel === "manifest") {
+              setImportPanel(null);
+              setManifestItems(null);
+            } else {
+              setImportPanel("manifest");
+              manifestRef.current?.click();
+            }
+          }}
+        >
+          <FileJson className="h-3.5 w-3.5" />
+          Import from manifest
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1.5 rounded-full font-bold"
+          onClick={() => uploadRef.current?.click()}
+        >
+          <ImagePlus className="h-3.5 w-3.5" />
+          Upload images
+        </Button>
+        <input ref={manifestRef} type="file" accept=".json" className="hidden" onChange={handleManifestFile} />
+        <input ref={uploadRef} type="file" accept="image/*" multiple className="hidden" onChange={handleUploadImages} />
       </div>
+
+      {/* Import progress */}
+      {importProgress && (
+        <div className="rounded-2xl bg-card p-4 shadow-card text-center">
+          <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-2" />
+          <p className="text-sm font-medium text-muted-foreground">{importProgress}</p>
+        </div>
+      )}
+
+      {/* URL import panel */}
+      {importPanel === "urls" && !importProgress && (
+        <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
+          <Textarea
+            value={urlText}
+            onChange={(e) => setUrlText(e.target.value)}
+            placeholder="Paste one image URL per line…"
+            className="min-h-[120px] text-sm"
+          />
+          <Input
+            value={urlPrefix}
+            onChange={(e) => setUrlPrefix(e.target.value)}
+            placeholder="Name prefix (optional)"
+            className="text-sm"
+          />
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">
+              {urlText.split("\n").filter((l) => l.trim()).length} URLs
+            </span>
+            <Button
+              size="sm"
+              className="rounded-full bg-accent text-accent-foreground font-bold hover:bg-accent/90"
+              disabled={urlText.split("\n").filter((l) => l.trim()).length === 0}
+              onClick={handleUrlImport}
+            >
+              Import {urlText.split("\n").filter((l) => l.trim()).length} items
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Manifest preview panel */}
+      {importPanel === "manifest" && manifestItems && !importProgress && (
+        <div className="rounded-2xl bg-card p-4 shadow-card space-y-3 text-center">
+          <p className="text-base font-medium">
+            Found {manifestItems.length.toLocaleString()} items — Import all?
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-full"
+              onClick={() => { setImportPanel(null); setManifestItems(null); }}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className="rounded-full bg-accent text-accent-foreground font-bold hover:bg-accent/90"
+              onClick={handleManifestImport}
+            >
+              Import all
+            </Button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-10">
