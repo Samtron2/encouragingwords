@@ -449,7 +449,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           </label>
 
           {!nameConfirmed ? (
-            <div className={`relative ${showAddChip ? 'pb-10' : ''}`}>
+            <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 ref={inputRef}
@@ -499,19 +499,19 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               {nameInputInvalid && recipientInput.trim().length >= 2 && (
                 <p className="mt-1.5 text-xs text-destructive">Please enter a name first.</p>
               )}
-
-              {/* "Add [name]" chip — positioned absolutely to avoid pushing content down */}
-              {showAddChip && (
-                <div className="absolute left-0 right-0" style={{ top: '100%', marginTop: '8px', zIndex: 20 }}>
-                  <button
-                    onMouseDown={(e) => { e.preventDefault(); confirmName(); }}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
-                  >
-                    Add {recipientInput.trim()}
-                  </button>
-                </div>
-              )}
             </div>
+
+            {/* "Add [name]" chip — outside the relative container so it flows naturally */}
+            {showAddChip && (
+              <div className="flex justify-center mt-2">
+                <button
+                  onMouseDown={(e) => { e.preventDefault(); confirmName(); }}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+                >
+                  Add {recipientInput.trim()}
+                </button>
+              </div>
+            )
           ) : (
             /* Name confirmed — read-only display */
             <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3">
