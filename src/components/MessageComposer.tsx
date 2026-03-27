@@ -167,7 +167,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const selectSuggestion = (r: Recipient) => {
     setRecipientInput(r.name || r.email || r.phone || "");
     setRecipientName(r.name || "");
-    setRecipientEmail(r.email || "");
     setRecipientPhone(r.phone || "");
     setShowSuggestions(false);
     setSelectedRecipient(r);
@@ -175,6 +174,12 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setNudgeValue("");
     setNameConfirmed(true);
     setContactInput(r.email || r.phone || "");
+    // Explicitly set email so canSendEmail activates
+    if (r.email) {
+      setRecipientEmail(r.email);
+    } else {
+      setRecipientEmail("");
+    }
 
     // Determine if nudge is needed
     if (r.nudge_dismissed) {
