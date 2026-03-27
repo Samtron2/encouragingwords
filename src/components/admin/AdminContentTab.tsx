@@ -6,7 +6,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, X, Upload, Pencil, CalendarDays } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, X, Upload, Pencil, CalendarDays, Link, FileJson, ImagePlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
@@ -187,6 +188,15 @@ export default function AdminContentTab() {
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Import state
+  const [importPanel, setImportPanel] = useState<"urls" | "manifest" | "upload" | null>(null);
+  const [urlText, setUrlText] = useState("");
+  const [urlPrefix, setUrlPrefix] = useState("");
+  const [importProgress, setImportProgress] = useState<string | null>(null);
+  const [manifestItems, setManifestItems] = useState<{ name: string; url: string }[] | null>(null);
+  const manifestRef = useRef<HTMLInputElement>(null);
+  const uploadRef = useRef<HTMLInputElement>(null);
+
   const loadItems = async () => {
     setLoading(true);
     const { data } = await supabase
@@ -296,6 +306,132 @@ export default function AdminContentTab() {
     setSaving(false);
     resetForm();
     loadItems();
+  };
+
+  const batchInsert = async (
+    rows: { name: string; image_url: string }[],
+    labelPrefix: string
+  ) => {
+    // Get existing URLs to skip duplicates
+    const { data: existing } = await supabase
+      .from("content_library")
+      .select("image_url");
+    const existingUrls = new Set((existing || []).map((e) => e.image_url));
+    const unique = rows.filter((r) => !existingUrls.has(r.image_url));
+
+    if (unique.length === 0) {
+      toast({ title: "No new items to import — all URLs already exist" });
+      setImportProgress(null);
+      return;
+    }
+
+    let imported = 0;
+    for (let i = 0; i < unique.length; i += 50) {
+      const batch = unique.slice(i, i + 50).map((r) => ({
+        name: r.name,
+        image_url: r.image_url,
+        active: true,
+        featured: false,
+        occasion_tags: [] as string[],
+        mood_tags: [] as string[],
+      }));
+      setImportProgress(`${labelPrefix} ${Math.min(i + 50, unique.length)} of ${unique.length}`);
+      const { error } = await supabase.from("content_library").insert(batch);
+      if (error) {
+        toast({ title: "Import error", description: error.message, variant: "destructive" });
+        setImportProgress(null);
+        return;
+      }
+      imported += batch.length;
+    }
+
+    toast({ title: `${imported} items imported ✨` });
+    setImportProgress(null);
+    setImportPanel(null);
+    setUrlText("");
+    setUrlPrefix("");
+    setManifestItems(null);
+    loadItems();
+  };
+
+  const handleUrlImport = () => {
+    const lines = urlText.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (lines.length === 0) return;
+    const rows = lines.map((url, i) => {
+      const itemName = urlPrefix.trim()
+        ? `${urlPrefix.trim()} ${i + 1}`
+        : url.split("/").pop()?.split("?")[0] || `Item ${i + 1}`;
+      return { name: itemName, image_url: url };
+    });
+    batchInsert(rows, "Importing...");
+  };
+
+  const handleManifestFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target?.result as string);
+        if (!Array.isArray(data)) throw new Error("Expected array");
+        setManifestItems(data as { name: string; url: string }[]);
+      } catch {
+        toast({ title: "Invalid JSON format", variant: "destructive" });
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const handleManifestImport = () => {
+    if (!manifestItems) return;
+    const rows = manifestItems.map((m) => ({ name: m.name, image_url: m.url }));
+    batchInsert(rows, "Importing...");
+  };
+
+  const handleUploadImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    e.target.value = "";
+    setImportPanel("upload");
+
+    const rows: { name: string; image_url: string }[] = [];
+    for (let i = 0; i < files.length; i++) {
+      setImportProgress(`Uploading ${i + 1} of ${files.length}…`);
+      const file = files[i];
+      const ext = file.name.split(".").pop();
+      const baseName = file.name.replace(/\.[^/.]+$/, "");
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("content-images")
+        .upload(path, file, { upsert: true });
+      if (error) {
+        toast({ title: `Failed: ${file.name}`, description: error.message, variant: "destructive" });
+        continue;
+      }
+      const { data: urlData } = supabase.storage.from("content-images").getPublicUrl(path);
+      rows.push({ name: baseName, image_url: urlData.publicUrl });
+    }
+
+    if (rows.length > 0) {
+      // Insert all uploaded items
+      for (let i = 0; i < rows.length; i += 50) {
+        const batch = rows.slice(i, i + 50).map((r) => ({
+          name: r.name,
+          image_url: r.image_url,
+          active: true,
+          featured: false,
+          occasion_tags: [] as string[],
+          mood_tags: [] as string[],
+        }));
+        await supabase.from("content_library").insert(batch);
+      }
+      toast({ title: `${rows.length} images uploaded ✨` });
+      loadItems();
+    }
+
+    setImportProgress(null);
+    setImportPanel(null);
   };
 
   const toggleActive = async (item: ContentItem) => {
@@ -409,7 +545,7 @@ export default function AdminContentTab() {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap gap-2 justify-end">
         <Button
           size="sm"
           className="gap-1.5 rounded-full bg-accent text-accent-foreground font-bold hover:bg-accent/90"
@@ -418,7 +554,109 @@ export default function AdminContentTab() {
           <Plus className="h-3.5 w-3.5" />
           Add content
         </Button>
+        <Button
+          size="sm"
+          variant={importPanel === "urls" ? "default" : "outline"}
+          className="gap-1.5 rounded-full font-bold"
+          onClick={() => setImportPanel(importPanel === "urls" ? null : "urls")}
+        >
+          <Link className="h-3.5 w-3.5" />
+          Import from URLs
+        </Button>
+        <Button
+          size="sm"
+          variant={importPanel === "manifest" ? "default" : "outline"}
+          className="gap-1.5 rounded-full font-bold"
+          onClick={() => {
+            if (importPanel === "manifest") {
+              setImportPanel(null);
+              setManifestItems(null);
+            } else {
+              setImportPanel("manifest");
+              manifestRef.current?.click();
+            }
+          }}
+        >
+          <FileJson className="h-3.5 w-3.5" />
+          Import from manifest
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1.5 rounded-full font-bold"
+          onClick={() => uploadRef.current?.click()}
+        >
+          <ImagePlus className="h-3.5 w-3.5" />
+          Upload images
+        </Button>
+        <input ref={manifestRef} type="file" accept=".json" className="hidden" onChange={handleManifestFile} />
+        <input ref={uploadRef} type="file" accept="image/*" multiple className="hidden" onChange={handleUploadImages} />
       </div>
+
+      {/* Import progress */}
+      {importProgress && (
+        <div className="rounded-2xl bg-card p-4 shadow-card text-center">
+          <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-2" />
+          <p className="text-sm font-medium text-muted-foreground">{importProgress}</p>
+        </div>
+      )}
+
+      {/* URL import panel */}
+      {importPanel === "urls" && !importProgress && (
+        <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
+          <Textarea
+            value={urlText}
+            onChange={(e) => setUrlText(e.target.value)}
+            placeholder="Paste one image URL per line…"
+            className="min-h-[120px] text-sm"
+          />
+          <Input
+            value={urlPrefix}
+            onChange={(e) => setUrlPrefix(e.target.value)}
+            placeholder="Name prefix (optional)"
+            className="text-sm"
+          />
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">
+              {urlText.split("\n").filter((l) => l.trim()).length} URLs
+            </span>
+            <Button
+              size="sm"
+              className="rounded-full bg-accent text-accent-foreground font-bold hover:bg-accent/90"
+              disabled={urlText.split("\n").filter((l) => l.trim()).length === 0}
+              onClick={handleUrlImport}
+            >
+              Import {urlText.split("\n").filter((l) => l.trim()).length} items
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Manifest preview panel */}
+      {importPanel === "manifest" && manifestItems && !importProgress && (
+        <div className="rounded-2xl bg-card p-4 shadow-card space-y-3 text-center">
+          <p className="text-base font-medium">
+            Found {manifestItems.length.toLocaleString()} items — Import all?
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-full"
+              onClick={() => { setImportPanel(null); setManifestItems(null); }}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className="rounded-full bg-accent text-accent-foreground font-bold hover:bg-accent/90"
+              onClick={handleManifestImport}
+            >
+              Import all
+            </Button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-10">
