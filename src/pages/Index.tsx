@@ -256,7 +256,7 @@ const Index = () => {
                       boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
                     }}
                   >
-                    <ThumbsUp className="h-14 w-14 mb-3" strokeWidth={2.5} />
+                    <ThumbsUp className="h-10 w-10 mb-3" strokeWidth={2.5} />
                     <span className="font-body font-bold text-[18px] leading-snug px-8 text-center">
                       Send an encouraging word
                     </span>
