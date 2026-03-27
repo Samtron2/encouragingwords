@@ -110,7 +110,7 @@ const Index = () => {
   }
 
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   const handleSendNow = async (reminder: UpcomingReminder) => {
