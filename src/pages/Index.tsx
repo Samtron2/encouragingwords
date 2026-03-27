@@ -200,7 +200,7 @@ const Index = () => {
             <main className="flex flex-col items-center justify-between px-6 pb-28 min-h-[calc(100vh-4rem)]">
               {/* Top section — greeting + stats */}
               <div className="max-w-md w-full text-center pt-10 space-y-3">
-                <h1 className="font-display text-5xl font-bold text-primary leading-tight mt-0">
+                <h1 className="font-display text-6xl font-bold text-primary leading-tight mt-0">
                   {greeting}
                 </h1>
 
