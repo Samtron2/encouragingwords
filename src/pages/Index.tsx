@@ -12,6 +12,48 @@ import AdminPanel from "@/components/admin/AdminPanel";
 import PeopleScreen from "@/components/PeopleScreen";
 import { supabase } from "@/integrations/supabase/client";
 
+function useGreeting(userId: string | undefined) {
+  const [displayName, setDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("user_id", userId)
+      .single()
+      .then(({ data }) => {
+        if (data?.display_name) setDisplayName(data.display_name);
+      });
+  }, [userId]);
+
+  const hour = new Date().getHours();
+  const timeOfDay = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  return displayName ? `${timeOfDay}, ${displayName}` : timeOfDay;
+}
+
+function useWordsSentCount(userId: string | undefined) {
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    supabase
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("status", "sent")
+      .then(({ count: c }) => {
+        setCount(c ?? 0);
+      });
+  }, [userId]);
+
+  if (count === null) return null;
+  if (count === 0) return "Send your first encouraging word today.";
+  if (count === 1) return "You've sent 1 encouraging word. Keep it up.";
+  if (count <= 10) return `You've sent ${count} encouraging words. That matters.`;
+  return `You've sent ${count} encouraging words. You're making a difference.`;
+}
+
 interface UpcomingReminder {
   name: string;
   occasion_type: string;
