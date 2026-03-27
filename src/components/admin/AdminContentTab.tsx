@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, X, Upload, Pencil, CalendarDays, Link, FileJson, ImagePlus, CheckSquare } from "lucide-react";
+import { Plus, X, Upload, Pencil, CalendarDays, Link, FileJson, ImagePlus, CheckSquare, Search } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
