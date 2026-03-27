@@ -7,7 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, X, Upload, Pencil, CalendarDays, Link, FileJson, ImagePlus } from "lucide-react";
+import { Plus, X, Upload, Pencil, CalendarDays, Link, FileJson, ImagePlus, CheckSquare } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
