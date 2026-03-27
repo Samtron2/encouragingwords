@@ -111,7 +111,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     } else if (/^\+?\d[\d\s\-()]{6,}$/.test(trimmed)) {
       setRecipientPhone(trimmed);
       setRecipientEmail("");
-      setRecipientName(trimmed);
     } else {
       setRecipientName(trimmed);
       setRecipientEmail("");
@@ -369,19 +368,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   return (
     <div className="flex flex-1 flex-col items-center px-6 pb-24 pt-6 animate-fade-in overflow-x-hidden max-w-full">
       <div className="w-full max-w-[480px] mx-auto text-center">
-        <div className="flex items-center justify-center gap-3 mb-2">
-          <h1 className="font-display text-4xl font-bold text-primary">Send a word</h1>
-          {(recipientInput || message || selectedVisual !== null) && (
-            <button
-              onClick={handleClearDraft}
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Clear draft"
-            >
-              <X className="h-4 w-4" />
-              <span>Clear</span>
-            </button>
-          )}
-        </div>
+        <h1 className="font-display text-4xl font-bold text-primary mb-2">Send a word</h1>
         <div className="mb-8" />
 
         {sendError && (
