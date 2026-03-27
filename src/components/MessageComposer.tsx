@@ -495,6 +495,11 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 </div>
               )}
 
+              {/* Inline validation message */}
+              {nameInputInvalid && recipientInput.trim().length >= 2 && (
+                <p className="mt-1.5 text-xs text-destructive">Please enter a name first.</p>
+              )}
+
               {/* "Add [name]" chip */}
               {showAddChip && (
                 <button
