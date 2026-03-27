@@ -188,6 +188,15 @@ export default function AdminContentTab() {
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Import state
+  const [importPanel, setImportPanel] = useState<"urls" | "manifest" | "upload" | null>(null);
+  const [urlText, setUrlText] = useState("");
+  const [urlPrefix, setUrlPrefix] = useState("");
+  const [importProgress, setImportProgress] = useState<string | null>(null);
+  const [manifestItems, setManifestItems] = useState<{ name: string; url: string }[] | null>(null);
+  const manifestRef = useRef<HTMLInputElement>(null);
+  const uploadRef = useRef<HTMLInputElement>(null);
+
   const loadItems = async () => {
     setLoading(true);
     const { data } = await supabase
