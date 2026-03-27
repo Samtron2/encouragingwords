@@ -1,7 +1,7 @@
-import { Home, Send, Settings, Shield } from "lucide-react";
+import { Home, Users, Settings, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type Tab = "home" | "send" | "settings" | "admin";
+export type Tab = "home" | "send" | "people" | "settings" | "admin";
 
 interface BottomNavProps {
   active: Tab;
@@ -12,7 +12,7 @@ interface BottomNavProps {
 export default function BottomNav({ active, onChange, isAdmin }: BottomNavProps) {
   const items: { tab: Tab; icon: typeof Home; label: string }[] = [
     { tab: "home", icon: Home, label: "Home" },
-    { tab: "send", icon: Send, label: "Send" },
+    { tab: "people", icon: Users, label: "People" },
     { tab: "settings", icon: Settings, label: "Settings" },
   ];
 
@@ -24,7 +24,7 @@ export default function BottomNav({ active, onChange, isAdmin }: BottomNavProps)
     <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="flex items-end justify-around px-4 pb-[env(safe-area-inset-bottom)] h-16">
         {items.map(({ tab, icon: Icon, label }) => {
-          const isCenter = tab === "send";
+          const isCenter = tab === "people";
           const isActive = active === tab;
 
           if (isCenter) {
@@ -32,7 +32,7 @@ export default function BottomNav({ active, onChange, isAdmin }: BottomNavProps)
               <button
                 key={tab}
                 onClick={() => onChange(tab)}
-                className="hidden flex flex-col items-center gap-0.5 -mt-4 transition-all"
+                className="flex flex-col items-center gap-0.5 -mt-4 transition-all"
               >
                 <div
                   className={cn(
