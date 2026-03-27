@@ -206,7 +206,7 @@ const Index = () => {
 
                 {/* Words sent count */}
                 {wordsSentMessage && (
-                  <p className="font-display italic text-lg text-muted-foreground">
+                  <p className="font-display text-xl text-primary/70 font-semibold mt-3">
                     {wordsSentMessage}
                   </p>
                 )}
