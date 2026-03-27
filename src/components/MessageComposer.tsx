@@ -424,6 +424,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   const toggleVisualSelection = () => {
     setSelectedVisual(selectedVisual === visualIndex ? null : visualIndex);
+    if (selectedVisual !== visualIndex) {
+      setSelfieSelected(false);
+    }
   };
 
   if (sent) {
