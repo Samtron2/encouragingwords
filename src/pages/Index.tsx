@@ -197,7 +197,7 @@ const Index = () => {
       <div className="relative z-10 flex min-h-screen flex-col">
         {activeTab === "home" && (
           <>
-            <main className="flex flex-1 flex-col items-center justify-center px-6 pb-28 pt-12">
+            <main className="flex flex-1 flex-col items-center justify-start px-6 pb-28 pt-10">
               <div className="max-w-md w-full text-center animate-fade-in space-y-8">
                 {/* Personal greeting */}
                 <h1 className="font-display text-4xl font-bold text-primary leading-tight mt-12">
