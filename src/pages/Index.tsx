@@ -9,6 +9,7 @@ import MessageComposer, { type PrefilledRecipient } from "@/components/MessageCo
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import SettingsScreen from "@/components/SettingsScreen";
 import AdminPanel from "@/components/admin/AdminPanel";
+import PeopleScreen from "@/components/PeopleScreen";
 import { supabase } from "@/integrations/supabase/client";
 
 interface UpcomingReminder {
