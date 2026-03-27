@@ -363,7 +363,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         }
       } else {
         let smsText = message.trim();
-        if (emojiChar) {
+        if (selfieSelected) {
+          // Skip image for SMS when selfie is selected — just send text
+        } else if (emojiChar) {
           smsText = `${emojiChar} ${smsText}`;
         } else if (imageUrl) {
           smsText = `${smsText}\n${imageUrl}`;
