@@ -449,69 +449,71 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           </label>
 
           {!nameConfirmed ? (
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                ref={inputRef}
-                placeholder="Who is this for?"
-                value={recipientInput}
-                onChange={(e) => {
-                  setRecipientInput(e.target.value);
-                  setRecipientName(e.target.value.trim());
-                  setShowSuggestions(true);
-                  setSelectedRecipient(null);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    if (suggestions.length > 0 && !showAddChip) {
-                      selectSuggestion(suggestions[0]);
-                    } else {
-                      confirmName();
+            <>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  ref={inputRef}
+                  placeholder="Who is this for?"
+                  value={recipientInput}
+                  onChange={(e) => {
+                    setRecipientInput(e.target.value);
+                    setRecipientName(e.target.value.trim());
+                    setShowSuggestions(true);
+                    setSelectedRecipient(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (suggestions.length > 0 && !showAddChip) {
+                        selectSuggestion(suggestions[0]);
+                      } else {
+                        confirmName();
+                      }
                     }
-                  }
-                }}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                className="pl-10 text-lg py-5"
-              />
-              {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute z-10 mt-1 w-full rounded-2xl border border-border bg-card shadow-card overflow-hidden">
-                  {suggestions.map((s) => (
-                    <button
-                      key={s.id}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/60 transition-colors"
-                      onMouseDown={() => selectSuggestion(s)}
-                    >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground text-[15px] font-semibold">
-                        {(s.name || s.email || "?")[0].toUpperCase()}
-                      </div>
-                      <div className="min-w-0">
-                        {s.name && <p className="text-base font-medium truncate">{s.name}</p>}
-                        <p className="text-[15px] text-muted-foreground truncate">{s.email || s.phone}</p>
-                      </div>
-                    </button>
-                  ))}
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  className="pl-10 text-lg py-5"
+                />
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full rounded-2xl border border-border bg-card shadow-card overflow-hidden">
+                    {suggestions.map((s) => (
+                      <button
+                        key={s.id}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/60 transition-colors"
+                        onMouseDown={() => selectSuggestion(s)}
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground text-[15px] font-semibold">
+                          {(s.name || s.email || "?")[0].toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          {s.name && <p className="text-base font-medium truncate">{s.name}</p>}
+                          <p className="text-[15px] text-muted-foreground truncate">{s.email || s.phone}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Inline validation message */}
+                {nameInputInvalid && recipientInput.trim().length >= 2 && (
+                  <p className="mt-1.5 text-xs text-destructive">Please enter a name first.</p>
+                )}
+              </div>
+
+              {/* "Add [name]" chip */}
+              {showAddChip && (
+                <div className="flex justify-center mt-2">
+                  <button
+                    onMouseDown={(e) => { e.preventDefault(); confirmName(); }}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+                  >
+                    Add {recipientInput.trim()}
+                  </button>
                 </div>
               )}
-
-              {/* Inline validation message */}
-              {nameInputInvalid && recipientInput.trim().length >= 2 && (
-                <p className="mt-1.5 text-xs text-destructive">Please enter a name first.</p>
-              )}
-            </div>
-
-            {/* "Add [name]" chip — outside the relative container so it flows naturally */}
-            {showAddChip && (
-              <div className="flex justify-center mt-2">
-                <button
-                  onMouseDown={(e) => { e.preventDefault(); confirmName(); }}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
-                >
-                  Add {recipientInput.trim()}
-                </button>
-              </div>
-            )
+            </>
           ) : (
             /* Name confirmed — read-only display */
             <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3">
