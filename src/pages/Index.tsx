@@ -9,6 +9,7 @@ import MessageComposer, { type PrefilledRecipient } from "@/components/MessageCo
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import SettingsScreen from "@/components/SettingsScreen";
 import AdminPanel from "@/components/admin/AdminPanel";
+import PeopleScreen from "@/components/PeopleScreen";
 import { supabase } from "@/integrations/supabase/client";
 
 interface UpcomingReminder {
@@ -83,7 +84,7 @@ const TAB_KEY = "ew-active-tab";
 function getRestoredTab(): Tab {
   try {
     const saved = localStorage.getItem(TAB_KEY) as Tab | null;
-    if (saved && ["home", "send", "settings", "admin"].includes(saved)) return saved;
+    if (saved && ["home", "send", "people", "settings", "admin"].includes(saved)) return saved;
   } catch {}
   return "home";
 }
@@ -224,6 +225,15 @@ const Index = () => {
 
         {activeTab === "send" && (
           <MessageComposer onBack={() => switchTab("home")} prefill={composerPrefill} />
+        )}
+
+        {activeTab === "people" && (
+          <PeopleScreen
+            onSelectContact={(prefill) => {
+              setComposerPrefill(prefill);
+              setActiveTab("send");
+            }}
+          />
         )}
 
         {activeTab === "settings" && <SettingsScreen />}
