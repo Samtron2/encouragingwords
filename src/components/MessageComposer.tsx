@@ -750,7 +750,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                       return (
                         <CarouselItem key={visual.id} className="basis-[55%] min-w-0 flex flex-col items-center pl-3">
                           <button
-                            onClick={() => setSelectedVisual(isSelected ? null : idx)}
+                            onClick={() => { setSelectedVisual(isSelected ? null : idx); if (!isSelected) setSelfieSelected(false); }}
                             className="flex flex-col items-center gap-2 transition-all"
                           >
                             {visual.image_url?.startsWith("emoji:") ? (
