@@ -32,7 +32,7 @@ export default function BottomNav({ active, onChange, isAdmin }: BottomNavProps)
               <button
                 key={tab}
                 onClick={() => onChange(tab)}
-                className="flex flex-col items-center gap-0.5 -mt-4 transition-all"
+                className="hidden flex flex-col items-center gap-0.5 -mt-4 transition-all"
               >
                 <div
                   className={cn(
