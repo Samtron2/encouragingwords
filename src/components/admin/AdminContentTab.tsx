@@ -6,7 +6,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, X, Upload, Pencil, CalendarDays } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, X, Upload, Pencil, CalendarDays, Link, FileJson, ImagePlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
