@@ -197,10 +197,10 @@ const Index = () => {
       <div className="relative z-10 flex min-h-screen flex-col">
         {activeTab === "home" && (
           <>
-            <main className="flex flex-1 flex-col items-center justify-center px-6 pb-28 pt-12">
+            <main className="flex flex-1 flex-col items-center justify-start px-6 pb-28 pt-10">
               <div className="max-w-md w-full text-center animate-fade-in space-y-8">
                 {/* Personal greeting */}
-                <h1 className="font-display text-4xl font-bold text-primary leading-tight mt-12">
+                <h1 className="font-display text-5xl font-bold text-primary leading-tight mt-0">
                   {greeting}
                 </h1>
 
@@ -244,7 +244,7 @@ const Index = () => {
                 )}
 
                 {/* Big CTA button — unchanged */}
-                <div className="mt-4 flex justify-center">
+                <div className="mt-8 flex justify-center">
                   <button
                     onClick={() => switchTab("send")}
                     className="flex flex-col items-center justify-center rounded-full bg-accent text-white hover:bg-accent/90 transition-colors"
