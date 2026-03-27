@@ -207,6 +207,14 @@ export default function AdminContentTab() {
   const [manifestItems, setManifestItems] = useState<{ name: string; url: string }[] | null>(null);
   const manifestRef = useRef<HTMLInputElement>(null);
 
+  // Search, filter, pagination state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const PAGE_SIZE = 50;
+
   // Bulk selection state
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
