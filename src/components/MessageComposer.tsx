@@ -500,14 +500,16 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 <p className="mt-1.5 text-xs text-destructive">Please enter a name first.</p>
               )}
 
-              {/* "Add [name]" chip */}
+              {/* "Add [name]" chip — positioned absolutely to avoid pushing content down */}
               {showAddChip && (
-                <button
-                  onMouseDown={(e) => { e.preventDefault(); confirmName(); }}
-                  className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
-                >
-                  Add {recipientInput.trim()}
-                </button>
+                <div className="absolute left-0 right-0" style={{ top: '100%', marginTop: '8px', zIndex: 20 }}>
+                  <button
+                    onMouseDown={(e) => { e.preventDefault(); confirmName(); }}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+                  >
+                    Add {recipientInput.trim()}
+                  </button>
+                </div>
               )}
             </div>
           ) : (
