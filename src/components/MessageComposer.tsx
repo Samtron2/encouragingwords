@@ -6,7 +6,7 @@ import { useComposerDraft } from "@/hooks/useComposerDraft";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
-import { Mail, MessageSquare, Check, User, AlertCircle, Pencil } from "lucide-react";
+import { Mail, MessageSquare, Check, User, AlertCircle, Pencil, Camera, X } from "lucide-react";
 import { toast } from "sonner";
 
 const PROMPT_SUGGESTIONS = [
@@ -63,6 +63,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [isTouchDevice] = useState(() => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
   const inputRef = useRef<HTMLInputElement>(null);
   const contactInputRef = useRef<HTMLInputElement>(null);
+  const selfieInputRef = useRef<HTMLInputElement>(null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [selfieSelected, setSelfieSelected] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
   const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
   const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
@@ -120,6 +123,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setSendError(false);
     setNameConfirmed(false);
     setContactInput("");
+    setSelfiePreview(null);
+    setSelfieSelected(false);
     setSelectedRecipient(null);
     setNudgeField(null);
     setNudgeInputVisible(false);
@@ -316,7 +321,12 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       const visual = selectedVisual !== null ? dailyVisuals[selectedVisual] : null;
       const isEmoji = visual?.image_url?.startsWith("emoji:");
       const emojiChar = isEmoji ? visual.image_url!.slice(6) : undefined;
-      const imageUrl = !isEmoji ? visual?.image_url || undefined : undefined;
+      let imageUrl = !isEmoji ? visual?.image_url || undefined : undefined;
+
+      // If selfie is selected, use it as the image for email, skip for SMS
+      if (selfieSelected && selfiePreview) {
+        imageUrl = selfiePreview;
+      }
 
       if (method === "email") {
         const idempotencyKey = `encouraging-${user.id}-${Date.now()}`;
@@ -328,8 +338,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             templateData: {
               recipientName: recipientName || undefined,
               message: message.trim(),
-              visualImageUrl: imageUrl,
-              visualEmoji: emojiChar,
+              visualImageUrl: selfieSelected && selfiePreview ? selfiePreview : imageUrl,
+              visualEmoji: selfieSelected ? undefined : emojiChar,
             },
           },
         });
@@ -353,7 +363,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         }
       } else {
         let smsText = message.trim();
-        if (emojiChar) {
+        if (selfieSelected) {
+          // Skip image for SMS when selfie is selected — just send text
+        } else if (emojiChar) {
           smsText = `${emojiChar} ${smsText}`;
         } else if (imageUrl) {
           smsText = `${smsText}\n${imageUrl}`;
@@ -412,6 +424,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   const toggleVisualSelection = () => {
     setSelectedVisual(selectedVisual === visualIndex ? null : visualIndex);
+    if (selectedVisual !== visualIndex) {
+      setSelfieSelected(false);
+    }
   };
 
   if (sent) {
@@ -436,6 +451,22 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   return (
     <div className="flex flex-1 flex-col items-center px-6 pb-24 pt-6 animate-fade-in overflow-x-hidden max-w-full">
+      <input
+        ref={selfieInputRef}
+        type="file"
+        accept="image/*"
+        capture="user"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            const url = URL.createObjectURL(file);
+            setSelfiePreview(url);
+            setSelfieSelected(true);
+            setSelectedVisual(null);
+          }
+        }}
+      />
       <div className="w-full max-w-[480px] mx-auto text-center">
         <h1 className="font-display text-4xl font-bold text-primary mb-2">Send a word</h1>
         <div className="mb-8" />
@@ -666,6 +697,51 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                   className="w-full"
                 >
                   <CarouselContent>
+                    {/* Selfie / photo slot */}
+                    <CarouselItem className="basis-[55%] min-w-0 flex flex-col items-center pl-3">
+                      {!selfiePreview ? (
+                        <button
+                          onClick={() => selfieInputRef.current?.click()}
+                          className="flex flex-col items-center gap-2"
+                        >
+                          <div className="h-[240px] w-[240px] rounded-[16px] border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-2 transition-all hover:border-muted-foreground/50">
+                            <Camera className="h-10 w-10 text-muted-foreground/50" />
+                            <span className="text-sm text-muted-foreground/60">Add a photo</span>
+                          </div>
+                        </button>
+                      ) : (
+                        <div className="relative">
+                          <button
+                            onClick={() => {
+                              setSelfieSelected(!selfieSelected);
+                              if (!selfieSelected) setSelectedVisual(null);
+                            }}
+                            className="flex flex-col items-center gap-2 transition-all"
+                          >
+                            <img
+                              src={selfiePreview}
+                              alt="Your photo"
+                              className={`h-[240px] w-[240px] rounded-[16px] object-cover transition-all ${
+                                selfieSelected
+                                  ? "ring-[3px] ring-accent ring-offset-2 ring-offset-background scale-[1.03]"
+                                  : ""
+                              }`}
+                            />
+                            <span className="text-[15px] text-muted-foreground">Your photo</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelfiePreview(null);
+                              setSelfieSelected(false);
+                            }}
+                            className="absolute top-2 right-2 h-7 w-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-background transition-colors"
+                            aria-label="Remove photo"
+                          >
+                            <X className="h-4 w-4 text-foreground" />
+                          </button>
+                        </div>
+                      )}
+                    </CarouselItem>
                     {dailyVisuals.map((visual, idx) => {
                       const isSelected = selectedVisual === idx;
                       const selectedClass = isSelected
@@ -674,7 +750,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                       return (
                         <CarouselItem key={visual.id} className="basis-[55%] min-w-0 flex flex-col items-center pl-3">
                           <button
-                            onClick={() => setSelectedVisual(isSelected ? null : idx)}
+                            onClick={() => { setSelectedVisual(isSelected ? null : idx); if (!isSelected) setSelfieSelected(false); }}
                             className="flex flex-col items-center gap-2 transition-all"
                           >
                             {visual.image_url?.startsWith("emoji:") ? (
