@@ -697,6 +697,51 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                   className="w-full"
                 >
                   <CarouselContent>
+                    {/* Selfie / photo slot */}
+                    <CarouselItem className="basis-[55%] min-w-0 flex flex-col items-center pl-3">
+                      {!selfiePreview ? (
+                        <button
+                          onClick={() => selfieInputRef.current?.click()}
+                          className="flex flex-col items-center gap-2"
+                        >
+                          <div className="h-[240px] w-[240px] rounded-[16px] border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-2 transition-all hover:border-muted-foreground/50">
+                            <Camera className="h-10 w-10 text-muted-foreground/50" />
+                            <span className="text-sm text-muted-foreground/60">Add a photo</span>
+                          </div>
+                        </button>
+                      ) : (
+                        <div className="relative">
+                          <button
+                            onClick={() => {
+                              setSelfieSelected(!selfieSelected);
+                              if (!selfieSelected) setSelectedVisual(null);
+                            }}
+                            className="flex flex-col items-center gap-2 transition-all"
+                          >
+                            <img
+                              src={selfiePreview}
+                              alt="Your photo"
+                              className={`h-[240px] w-[240px] rounded-[16px] object-cover transition-all ${
+                                selfieSelected
+                                  ? "ring-[3px] ring-accent ring-offset-2 ring-offset-background scale-[1.03]"
+                                  : ""
+                              }`}
+                            />
+                            <span className="text-[15px] text-muted-foreground">Your photo</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelfiePreview(null);
+                              setSelfieSelected(false);
+                            }}
+                            className="absolute top-2 right-2 h-7 w-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-background transition-colors"
+                            aria-label="Remove photo"
+                          >
+                            <X className="h-4 w-4 text-foreground" />
+                          </button>
+                        </div>
+                      )}
+                    </CarouselItem>
                     {dailyVisuals.map((visual, idx) => {
                       const isSelected = selectedVisual === idx;
                       const selectedClass = isSelected
