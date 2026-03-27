@@ -111,7 +111,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     } else if (/^\+?\d[\d\s\-()]{6,}$/.test(trimmed)) {
       setRecipientPhone(trimmed);
       setRecipientEmail("");
-      setRecipientName(trimmed);
     } else {
       setRecipientName(trimmed);
       setRecipientEmail("");
