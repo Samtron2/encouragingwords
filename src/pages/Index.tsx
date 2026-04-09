@@ -134,7 +134,7 @@ function getRestoredTab(): Tab {
 const Index = () => {
   const { user, loading } = useAuth();
   const { isAdmin } = useAdmin();
-  useTheme(); // Load & apply profile theme immediately on auth
+  const { theme } = useTheme(); // Load & apply profile theme immediately on auth
   const [activeTab, setActiveTab] = useState<Tab>(getRestoredTab);
   const [composerPrefill, setComposerPrefill] = useState<PrefilledRecipient | undefined>();
 
