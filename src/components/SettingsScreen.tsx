@@ -198,7 +198,7 @@ export default function SettingsScreen() {
               <p className="text-base font-medium">Theme</p>
             </div>
             <div className="flex gap-1.5">
-              {(["light", "dark"] as const).map((t) => (
+              {(["light", "dark", "royal"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setTheme(t)}
@@ -208,7 +208,7 @@ export default function SettingsScreen() {
                       : "border border-border text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {t === "light" ? "Light" : "Classic"}
+                  {t === "royal" ? "Royal" : t === "light" ? "Light" : "Classic"}
                 </button>
               ))}
             </div>

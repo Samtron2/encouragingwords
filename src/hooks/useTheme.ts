@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-type Theme = "light" | "dark";
+type Theme = "light" | "dark" | "royal";
 
 const STORAGE_KEY = "ew-theme";
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
-  root.classList.remove("theme-light", "theme-dark");
+  root.classList.remove("theme-light", "theme-dark", "theme-royal");
   root.classList.add(`theme-${theme}`);
 }
 
@@ -16,7 +16,7 @@ export function useTheme() {
   const { user } = useAuth();
   const [theme, setThemeState] = useState<Theme>(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    return stored === "dark" ? "dark" : "light";
+    return stored === "dark" ? "dark" : stored === "royal" ? "royal" : "light";
   });
 
   // Apply on mount & change
@@ -33,7 +33,7 @@ export function useTheme() {
         .select("theme")
         .eq("user_id", user.id)
         .single();
-      if (data?.theme && (data.theme === "light" || data.theme === "dark")) {
+      if (data?.theme && (data.theme === "light" || data.theme === "dark" || data.theme === "royal")) {
         setThemeState(data.theme as Theme);
         localStorage.setItem(STORAGE_KEY, data.theme);
       }
