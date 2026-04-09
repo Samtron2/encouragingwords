@@ -33,7 +33,7 @@ export function useTheme() {
         .select("theme")
         .eq("user_id", user.id)
         .single();
-      if (data?.theme && (data.theme === "light" || data.theme === "dark")) {
+      if (data?.theme && (data.theme === "light" || data.theme === "dark" || data.theme === "royal")) {
         setThemeState(data.theme as Theme);
         localStorage.setItem(STORAGE_KEY, data.theme);
       }

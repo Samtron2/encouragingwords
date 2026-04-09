@@ -258,7 +258,16 @@ const Index = () => {
                     boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
                   }}
                 >
-                  <ThumbsUp className="h-12 w-12 mb-3" strokeWidth={2.5} />
+                  {theme === "royal" ? (
+                    <img
+                      src={supabase.storage.from("button").getPublicUrl("ew.vector.svg").data.publicUrl}
+                      alt="Encouraging Words"
+                      className="mb-3"
+                      style={{ width: '55%', height: '55%', objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <ThumbsUp className="h-12 w-12 mb-3" strokeWidth={2.5} />
+                  )}
                   <span className="font-body font-bold text-[22px] leading-snug px-8 text-center">
                     Send an encouraging word
                   </span>
