@@ -249,7 +249,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       await supabase.from("recipients").update({ phone: val }).eq("id", selectedRecipient.id);
       setSelectedRecipient({ ...selectedRecipient, phone: val } as Recipient);
     }
-    setSelectedRecipient({ ...selectedRecipient, ...update } as Recipient);
     setNudgeField(null);
     setNudgeInputVisible(false);
     setNudgeValue("");
