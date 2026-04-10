@@ -238,15 +238,17 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   const handleNudgeSave = async () => {
     if (!selectedRecipient || !nudgeValue.trim()) return;
-    const update: Record<string, string> = {};
     if (nudgeField === "email") {
-      update.email = nudgeValue.trim();
-      setRecipientEmail(nudgeValue.trim());
+      const val = nudgeValue.trim();
+      setRecipientEmail(val);
+      await supabase.from("recipients").update({ email: val }).eq("id", selectedRecipient.id);
+      setSelectedRecipient({ ...selectedRecipient, email: val } as Recipient);
     } else {
-      update.phone = nudgeValue.trim();
-      setRecipientPhone(nudgeValue.trim());
+      const val = nudgeValue.trim();
+      setRecipientPhone(val);
+      await supabase.from("recipients").update({ phone: val }).eq("id", selectedRecipient.id);
+      setSelectedRecipient({ ...selectedRecipient, phone: val } as Recipient);
     }
-    await supabase.from("recipients").update(update).eq("id", selectedRecipient.id);
     setSelectedRecipient({ ...selectedRecipient, ...update } as Recipient);
     setNudgeField(null);
     setNudgeInputVisible(false);
@@ -256,7 +258,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   const handleNudgeDismiss = async () => {
     if (!selectedRecipient) return;
-    await supabase.from("recipients").update({ nudge_dismissed: true } as any).eq("id", selectedRecipient.id);
+    await supabase.from("recipients").update({ nudge_dismissed: true }).eq("id", selectedRecipient.id);
     setNudgeField(null);
     setNudgeInputVisible(false);
   };
@@ -267,13 +269,13 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setSendError(false);
 
     try {
-      const recipientData: Record<string, unknown> = {
+      const recipientData = {
         user_id: user.id,
         last_contacted_at: new Date().toISOString(),
+        ...(recipientName ? { name: recipientName } : {}),
+        ...(recipientEmail ? { email: recipientEmail } : {}),
+        ...(recipientPhone ? { phone: recipientPhone } : {}),
       };
-      if (recipientName) recipientData.name = recipientName;
-      if (recipientEmail) recipientData.email = recipientEmail;
-      if (recipientPhone) recipientData.phone = recipientPhone;
 
       // Deduplicate recipients: match on user_id + email, or user_id + phone if no email
       let recipientRow: { id: string } | null = null;
@@ -287,10 +289,11 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           .maybeSingle();
 
         if (existing) {
-          const updateData: Record<string, unknown> = { last_contacted_at: new Date().toISOString() };
-          if (recipientName) updateData.name = recipientName;
-          if (recipientPhone) updateData.phone = recipientPhone;
-          await supabase.from("recipients").update(updateData).eq("id", existing.id);
+          await supabase.from("recipients").update({
+            last_contacted_at: new Date().toISOString(),
+            ...(recipientName ? { name: recipientName } : {}),
+            ...(recipientPhone ? { phone: recipientPhone } : {}),
+          }).eq("id", existing.id);
           recipientRow = existing;
         }
       } else if (recipientPhone) {
@@ -302,9 +305,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           .maybeSingle();
 
         if (existing) {
-          const updateData: Record<string, unknown> = { last_contacted_at: new Date().toISOString() };
-          if (recipientName) updateData.name = recipientName;
-          await supabase.from("recipients").update(updateData).eq("id", existing.id);
+          await supabase.from("recipients").update({
+            last_contacted_at: new Date().toISOString(),
+            ...(recipientName ? { name: recipientName } : {}),
+          }).eq("id", existing.id);
           recipientRow = existing;
         }
       }
