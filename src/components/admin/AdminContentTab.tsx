@@ -365,7 +365,7 @@ export default function AdminContentTab() {
       imageUrl = urlData.publicUrl;
     }
 
-    const payload: Record<string, unknown> = {
+    const payload = {
       name: name.trim(),
       image_url: imageUrl,
       occasion_tags: occasionTags,
