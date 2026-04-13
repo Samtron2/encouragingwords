@@ -97,11 +97,11 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   // Restore selectedVisual index from ID once visuals load
   useEffect(() => {
-    if (selectedVisualId && dailyVisuals.length > 0 && selectedVisual === null) {
-      const idx = dailyVisuals.findIndex((v) => v.id === selectedVisualId);
+    if (selectedVisualId && activeVisuals.length > 0 && selectedVisual === null) {
+      const idx = activeVisuals.findIndex((v) => v.id === selectedVisualId);
       if (idx >= 0) setSelectedVisual(idx);
     }
-  }, [dailyVisuals, selectedVisualId]);
+  }, [activeVisuals, selectedVisualId]);
 
   // Persist draft on changes
   useEffect(() => {
@@ -111,10 +111,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       recipientEmail,
       recipientPhone,
       message,
-      selectedVisualId: selectedVisual !== null ? dailyVisuals[selectedVisual]?.id || null : null,
+      selectedVisualId: selectedVisual !== null ? activeVisuals[selectedVisual]?.id || null : null,
       selectedPrompt: PROMPT_SUGGESTIONS.includes(message) ? message : null,
     });
-  }, [recipientInput, recipientName, recipientEmail, recipientPhone, message, selectedVisual, dailyVisuals]);
+  }, [recipientInput, recipientName, recipientEmail, recipientPhone, message, selectedVisual, activeVisuals]);
 
   const handleClearDraft = () => {
     clearDraft();
@@ -326,7 +326,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         recipientRow = inserted;
       }
 
-      const visual = selectedVisual !== null ? dailyVisuals[selectedVisual] : null;
+      const visual = selectedVisual !== null ? activeVisuals[selectedVisual] : null;
       const isEmoji = visual?.image_url?.startsWith("emoji:");
       const emojiChar = isEmoji ? visual.image_url!.slice(6) : undefined;
       let imageUrl = !isEmoji ? visual?.image_url || undefined : undefined;
