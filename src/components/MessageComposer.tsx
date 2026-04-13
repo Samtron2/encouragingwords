@@ -458,7 +458,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         ref={selfieInputRef}
         type="file"
         accept="image/*"
-        capture="user"
+        
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
