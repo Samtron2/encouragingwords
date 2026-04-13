@@ -72,6 +72,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
   const [nudgeValue, setNudgeValue] = useState("");
   const [selectedOccasion, setSelectedOccasion] = useState<SpecialOccasion | null>(null);
+  const { visuals: occasionVisuals, loading: occasionLoading } = useOccasionVisuals(selectedOccasion);
+  const activeVisuals = selectedOccasion ? occasionVisuals : dailyVisuals;
+  const activeVisualsLoading = selectedOccasion ? occasionLoading : visualsLoading;
 
   // Two-step flow state
   const [nameConfirmed, setNameConfirmed] = useState(false);
