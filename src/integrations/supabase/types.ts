@@ -178,6 +178,42 @@ export type Database = {
           },
         ]
       }
+      message_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          message_text: string
+          opened_at: string | null
+          recipient_name: string | null
+          sender_name: string | null
+          token: string
+          visual_emoji: string | null
+          visual_image_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_text: string
+          opened_at?: string | null
+          recipient_name?: string | null
+          sender_name?: string | null
+          token?: string
+          visual_emoji?: string | null
+          visual_image_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_text?: string
+          opened_at?: string | null
+          recipient_name?: string | null
+          sender_name?: string | null
+          token?: string
+          visual_emoji?: string | null
+          visual_image_url?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           created_at: string

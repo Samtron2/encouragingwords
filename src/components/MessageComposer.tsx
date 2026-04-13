@@ -338,6 +338,31 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
       if (method === "email") {
         const idempotencyKey = `encouraging-${user.id}-${Date.now()}`;
+
+        const senderProfile = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("user_id", user.id)
+          .single();
+
+        const senderName = senderProfile.data?.display_name || null;
+
+        const { data: tokenRow } = await supabase
+          .from("message_tokens")
+          .insert({
+            sender_name: senderName,
+            recipient_name: recipientName || null,
+            message_text: message.trim(),
+            visual_emoji: selfieSelected ? null : emojiChar || null,
+            visual_image_url: selfieSelected && selfiePreview ? selfiePreview : imageUrl || null,
+          })
+          .select("token")
+          .single();
+
+        const messageUrl = tokenRow?.token
+          ? `https://sendencouragingwords.com/m/${tokenRow.token}`
+          : null;
+
         const sendResult = await supabase.functions.invoke("send-transactional-email", {
           body: {
             templateName: "encouraging-message",
@@ -345,9 +370,11 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             idempotencyKey,
             templateData: {
               recipientName: recipientName || undefined,
+              senderName: senderName || undefined,
               message: message.trim(),
               visualImageUrl: selfieSelected && selfiePreview ? selfiePreview : imageUrl,
               visualEmoji: selfieSelected ? undefined : emojiChar,
+              messageUrl: messageUrl || undefined,
             },
           },
         });

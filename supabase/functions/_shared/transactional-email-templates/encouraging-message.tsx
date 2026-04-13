@@ -1,46 +1,57 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
 import {
-  Body, Container, Head, Heading, Html, Preview, Text, Img,
+  Body, Container, Head, Html, Preview, Text, Img, Button, Hr,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
+const MEDALLION_URL = "https://sxchcugllltcpxmahvkn.supabase.co/storage/v1/object/public/button/ew.vector.svg"
 const SITE_NAME = 'Encouraging Words'
 
 interface EncouragingMessageProps {
   recipientName?: string
+  senderName?: string
   message?: string
   visualImageUrl?: string
   visualEmoji?: string
+  messageUrl?: string
 }
 
 const EncouragingMessageEmail = ({
   recipientName,
-  message,
-  visualImageUrl,
-  visualEmoji,
+  senderName,
+  messageUrl,
 }: EncouragingMessageProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>{message || 'Someone is thinking of you'}</Preview>
+    <Preview>You have received an Encouraging Word{senderName ? ` from ${senderName}` : ''}</Preview>
     <Body style={main}>
       <Container style={container}>
-        {visualEmoji && (
-          <Text style={emojiBlock}>{visualEmoji}</Text>
+        <Img
+          src={MEDALLION_URL}
+          alt="Encouraging Words"
+          width="80"
+          height="80"
+          style={medallionStyle}
+        />
+        <Text style={heading}>
+          You've received{"\n"}an Encouraging Word
+        </Text>
+        {recipientName && (
+          <Text style={subheading}>For {recipientName}</Text>
         )}
-        {visualImageUrl && !visualEmoji && (
-          <Img
-            src={visualImageUrl}
-            alt="Visual"
-            width="400"
-            style={imageStyle}
-          />
+        <Text style={bodyText}>
+          {senderName ? `${senderName} has` : 'Someone has'} sent you something thoughtful. Open your letter to read it.
+        </Text>
+        {messageUrl && (
+          <Button href={messageUrl} style={buttonStyle}>
+            Open your letter
+          </Button>
         )}
-        {recipientName ? (
-          <Heading style={h1}>Dear {recipientName},</Heading>
-        ) : null}
-        <Text style={messageText}>{message || ''}</Text>
-        <Text style={footer}>Sent with {SITE_NAME}</Text>
+        <Hr style={divider} />
+        <Text style={footer}>
+          Sent with {SITE_NAME} · This letter was sent just for you.
+        </Text>
       </Container>
     </Body>
   </Html>
@@ -48,59 +59,75 @@ const EncouragingMessageEmail = ({
 
 export const template = {
   component: EncouragingMessageEmail,
-  subject: 'Someone is thinking of you',
+  subject: (data: Record<string, any>) =>
+    data.senderName
+      ? `${data.senderName} sent you an Encouraging Word`
+      : 'You have received an Encouraging Word',
   displayName: 'Encouraging message',
   previewData: {
     recipientName: 'Jane',
-    message: 'You are enough. Keep shining ✨',
-    visualEmoji: '🌸',
+    senderName: 'Sarah',
+    messageUrl: 'https://sendencouragingwords.com/m/preview',
   },
 } satisfies TemplateEntry
 
 const main = {
-  backgroundColor: '#ffffff',
-  fontFamily: "'Lato', 'Georgia', Arial, sans-serif",
+  backgroundColor: '#0a0a0a',
+  fontFamily: "'Georgia', serif",
 }
 const container = {
-  padding: '32px 24px',
+  padding: '40px 32px',
   maxWidth: '480px',
   margin: '0 auto',
-  backgroundColor: '#fffaf5',
+  backgroundColor: '#111111',
   borderRadius: '16px',
-}
-const emojiBlock = {
-  fontSize: '96px',
-  lineHeight: '1',
+  border: '1px solid #c9a84c44',
   textAlign: 'center' as const,
-  marginBottom: '24px',
 }
-const imageStyle = {
-  width: '100%',
-  maxWidth: '400px',
-  borderRadius: '12px',
-  marginBottom: '24px',
-  display: 'block' as const,
-  marginLeft: 'auto',
-  marginRight: 'auto',
+const medallionStyle = {
+  display: 'block',
+  margin: '0 auto 24px',
+  width: '80px',
+  height: '80px',
+  objectFit: 'contain' as const,
 }
-const h1 = {
-  fontSize: '18px',
-  fontWeight: '500' as const,
-  color: '#1c1c1c',
+const heading = {
+  fontSize: '28px',
+  fontWeight: '700',
+  color: '#c9a84c',
+  fontFamily: "'Georgia', serif",
+  lineHeight: '1.3',
   margin: '0 0 8px',
-  fontFamily: "'Cormorant Garamond', Georgia, serif",
+  whiteSpace: 'pre-line' as const,
 }
-const messageText = {
-  fontSize: '18px',
+const subheading = {
+  fontSize: '16px',
+  color: '#888888',
+  margin: '0 0 20px',
+}
+const bodyText = {
+  fontSize: '16px',
   lineHeight: '1.6',
-  color: '#333333',
-  whiteSpace: 'pre-wrap' as const,
-  margin: '0 0 32px',
+  color: '#f5f0e8',
+  margin: '0 0 28px',
+}
+const buttonStyle = {
+  display: 'inline-block',
+  background: '#c9a84c',
+  color: '#0a0a0a',
+  borderRadius: '999px',
+  padding: '14px 36px',
+  fontSize: '17px',
+  fontWeight: 'bold',
+  textDecoration: 'none',
+  marginBottom: '32px',
+}
+const divider = {
+  borderColor: '#c9a84c33',
+  margin: '0 0 20px',
 }
 const footer = {
   fontSize: '12px',
-  color: '#999999',
+  color: '#555555',
   margin: '0',
-  borderTop: '1px solid #eeeeee',
-  paddingTop: '16px',
 }
