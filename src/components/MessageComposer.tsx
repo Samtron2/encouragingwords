@@ -347,17 +347,27 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
         const senderName = senderProfile.data?.display_name || null;
 
-        const { data: tokenRow } = await supabase
+        const { data: tokenRow, error: tokenError } = await supabase
           .from("message_tokens")
           .insert({
             sender_name: senderName,
             recipient_name: recipientName || null,
             message_text: message.trim(),
             visual_emoji: selfieSelected ? null : emojiChar || null,
-            visual_image_url: selfieSelected && selfiePreview ? selfiePreview : imageUrl || null,
+            visual_image_url: (selfieSelected || !imageUrl || imageUrl.startsWith("blob:"))
+              ? null
+              : imageUrl || null,
           })
           .select("token")
           .single();
+
+        if (tokenError) {
+          console.error("Token insert failed:", tokenError);
+        }
+
+        console.log("Message URL:", tokenRow?.token
+          ? `https://sendencouragingwords.com/m/${tokenRow.token}`
+          : "NO TOKEN GENERATED");
 
         const messageUrl = tokenRow?.token
           ? `https://sendencouragingwords.com/m/${tokenRow.token}`
