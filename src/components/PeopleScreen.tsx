@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Heart, Search, MoreVertical, Pencil, Trash2, UserPlus, Upload } from "lucide-react";
+import { Heart, Search, MoreVertical, Pencil, Trash2, UserPlus, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Tab } from "@/components/BottomNav";
 import type { PrefilledRecipient } from "@/components/MessageComposer";
@@ -13,6 +13,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+const GOOGLE_CLIENT_ID = "878390311268-gr1hjedful6oi20tntbvp1euv3fuku2n.apps.googleusercontent.com";
 
 interface Recipient {
   id: string;
