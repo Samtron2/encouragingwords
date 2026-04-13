@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useDailyVisuals } from "@/hooks/useDailyVisuals";
 import { useComposerDraft } from "@/hooks/useComposerDraft";
+import { useOccasionVisuals, SPECIAL_OCCASIONS, type SpecialOccasion } from "@/hooks/useOccasionVisuals";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
@@ -70,6 +71,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
   const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
   const [nudgeValue, setNudgeValue] = useState("");
+  const [selectedOccasion, setSelectedOccasion] = useState<SpecialOccasion | null>(null);
+  const { visuals: occasionVisuals, loading: occasionLoading } = useOccasionVisuals(selectedOccasion);
+  const activeVisuals = selectedOccasion ? occasionVisuals : dailyVisuals;
+  const activeVisualsLoading = selectedOccasion ? occasionLoading : visualsLoading;
 
   // Two-step flow state
   const [nameConfirmed, setNameConfirmed] = useState(false);
@@ -92,11 +97,11 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   // Restore selectedVisual index from ID once visuals load
   useEffect(() => {
-    if (selectedVisualId && dailyVisuals.length > 0 && selectedVisual === null) {
-      const idx = dailyVisuals.findIndex((v) => v.id === selectedVisualId);
+    if (selectedVisualId && activeVisuals.length > 0 && selectedVisual === null) {
+      const idx = activeVisuals.findIndex((v) => v.id === selectedVisualId);
       if (idx >= 0) setSelectedVisual(idx);
     }
-  }, [dailyVisuals, selectedVisualId]);
+  }, [activeVisuals, selectedVisualId]);
 
   // Persist draft on changes
   useEffect(() => {
@@ -106,10 +111,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       recipientEmail,
       recipientPhone,
       message,
-      selectedVisualId: selectedVisual !== null ? dailyVisuals[selectedVisual]?.id || null : null,
+      selectedVisualId: selectedVisual !== null ? activeVisuals[selectedVisual]?.id || null : null,
       selectedPrompt: PROMPT_SUGGESTIONS.includes(message) ? message : null,
     });
-  }, [recipientInput, recipientName, recipientEmail, recipientPhone, message, selectedVisual, dailyVisuals]);
+  }, [recipientInput, recipientName, recipientEmail, recipientPhone, message, selectedVisual, activeVisuals]);
 
   const handleClearDraft = () => {
     clearDraft();
@@ -321,7 +326,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         recipientRow = inserted;
       }
 
-      const visual = selectedVisual !== null ? dailyVisuals[selectedVisual] : null;
+      const visual = selectedVisual !== null ? activeVisuals[selectedVisual] : null;
       const isEmoji = visual?.image_url?.startsWith("emoji:");
       const emojiChar = isEmoji ? visual.image_url!.slice(6) : undefined;
       let imageUrl = !isEmoji ? visual?.image_url || undefined : undefined;
@@ -635,6 +640,32 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           )}
         </section>
 
+        {/* OCCASION SELECTOR */}
+        <section className="mb-8">
+          <label className="text-lg font-medium text-muted-foreground mb-2 block">
+            Any special occasion?
+          </label>
+          <div className="relative">
+            <select
+              value={selectedOccasion || ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedOccasion(val ? val as SpecialOccasion : null);
+                setSelectedVisual(null);
+              }}
+              className="w-full rounded-2xl border border-input bg-card px-5 py-4 text-lg text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring appearance-none cursor-pointer"
+            >
+              <option value="">No special occasion</option>
+              {SPECIAL_OCCASIONS.map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+              ▾
+            </span>
+          </div>
+        </section>
+
         {/* STEP 2 — WHAT */}
         <section className="mb-8">
           <label className="text-lg font-medium text-muted-foreground mb-2 block">
@@ -685,24 +716,26 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
           {/* Visual carousel */}
           <div className="mt-6">
-            <p className="text-lg text-muted-foreground mb-3">Choose a visual (optional)</p>
-            {visualsLoading ? (
+            <p className="text-lg text-muted-foreground mb-3">
+              {selectedOccasion ? `Visuals for ${selectedOccasion}` : "Choose a visual (optional)"}
+            </p>
+            {activeVisualsLoading ? (
               <div className="flex justify-center py-8">
                 <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
               </div>
-            ) : dailyVisuals.length === 0 ? (
+            ) : activeVisuals.length === 0 ? (
               <p className="text-base text-muted-foreground text-center py-6">No visuals available today.</p>
             ) : (
               <div className="relative">
                 <Carousel
-                  opts={{ align: "center", loop: false, startIndex: Math.floor(dailyVisuals.length / 2) }}
+                  opts={{ align: "center", loop: false, startIndex: Math.floor(activeVisuals.length / 2) }}
                   setApi={setCarouselApi}
                   className="w-full"
                 >
                   <CarouselContent>
                     {(() => {
-                      const midIndex = Math.floor(dailyVisuals.length / 2);
-                      const renderVisual = (visual: typeof dailyVisuals[number], idx: number) => {
+                      const midIndex = Math.floor(activeVisuals.length / 2);
+                      const renderVisual = (visual: typeof activeVisuals[number], idx: number) => {
                         const isSelected = selectedVisual === idx;
                         const selectedClass = isSelected
                           ? "ring-[3px] ring-accent ring-offset-2 ring-offset-background scale-[1.03]"
@@ -737,7 +770,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                       };
                       return (
                         <>
-                          {dailyVisuals.slice(0, midIndex).map((v, i) => renderVisual(v, i))}
+                          {activeVisuals.slice(0, midIndex).map((v, i) => renderVisual(v, i))}
                           {/* Selfie / photo slot */}
                           <CarouselItem className="basis-[55%] min-w-0 flex flex-col items-center pl-3">
                             {!selfiePreview ? (
@@ -783,7 +816,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                               </div>
                             )}
                           </CarouselItem>
-                          {dailyVisuals.slice(midIndex).map((v, i) => renderVisual(v, midIndex + i))}
+                          {activeVisuals.slice(midIndex).map((v, i) => renderVisual(v, midIndex + i))}
                         </>
                       );
                     })()}
@@ -792,7 +825,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               </div>
             )}
             <p className="font-display italic text-sm text-muted-foreground text-center mt-3">
-              Today's visuals · refreshes at midnight
+              {selectedOccasion ? `Showing visuals for ${selectedOccasion}` : "Today's visuals · refreshes at midnight"}
             </p>
           </div>
         </section>
