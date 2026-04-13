@@ -71,6 +71,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
   const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
   const [nudgeValue, setNudgeValue] = useState("");
+  const [selectedOccasion, setSelectedOccasion] = useState<SpecialOccasion | null>(null);
 
   // Two-step flow state
   const [nameConfirmed, setNameConfirmed] = useState(false);
