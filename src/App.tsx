@@ -9,6 +9,7 @@ import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
+import Landing from "./pages/Landing.tsx";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -19,6 +20,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/landing" element={<Landing />} />
           <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
