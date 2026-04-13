@@ -640,6 +640,32 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           )}
         </section>
 
+        {/* OCCASION SELECTOR */}
+        <section className="mb-8">
+          <label className="text-lg font-medium text-muted-foreground mb-2 block">
+            Any special occasion?
+          </label>
+          <div className="relative">
+            <select
+              value={selectedOccasion || ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedOccasion(val ? val as SpecialOccasion : null);
+                setSelectedVisual(null);
+              }}
+              className="w-full rounded-2xl border border-input bg-card px-5 py-4 text-lg text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring appearance-none cursor-pointer"
+            >
+              <option value="">No special occasion</option>
+              {SPECIAL_OCCASIONS.map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+              ▾
+            </span>
+          </div>
+        </section>
+
         {/* STEP 2 — WHAT */}
         <section className="mb-8">
           <label className="text-lg font-medium text-muted-foreground mb-2 block">
