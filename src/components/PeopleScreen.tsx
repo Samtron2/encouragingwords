@@ -256,6 +256,46 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
         </div>
       </header>
 
+      {showAddForm && (
+        <div className="mx-4 mt-2 mb-3 rounded-2xl bg-card p-4 shadow-card space-y-3 animate-fade-in">
+          <p className="text-base font-semibold text-foreground">New contact</p>
+          <Input
+            placeholder="Name (required)"
+            value={addForm.name}
+            onChange={(e) => setAddForm((f) => ({ ...f, name: e.target.value }))}
+          />
+          <Input
+            placeholder="Email"
+            type="email"
+            value={addForm.email}
+            onChange={(e) => setAddForm((f) => ({ ...f, email: e.target.value }))}
+          />
+          <Input
+            placeholder="Phone number"
+            type="tel"
+            value={addForm.phone}
+            onChange={(e) => setAddForm((f) => ({ ...f, phone: e.target.value }))}
+          />
+          <div className="flex gap-2 pt-1">
+            <Button
+              size="sm"
+              onClick={handleAddContact}
+              disabled={addingContact}
+              className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              {addingContact ? "Saving…" : "Save contact"}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => { setShowAddForm(false); setAddForm({ name: "", email: "", phone: "" }); }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
       {filtered.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pt-32 text-center">
           <Heart className="h-12 w-12 text-muted-foreground/40 mb-4" />
