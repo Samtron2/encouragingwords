@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Heart, Search, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Heart, Search, MoreVertical, Pencil, Trash2, UserPlus, Upload } from "lucide-react";
 import { toast } from "sonner";
 import type { Tab } from "@/components/BottomNav";
 import type { PrefilledRecipient } from "@/components/MessageComposer";
@@ -68,6 +68,14 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ name: "", email: "", phone: "" });
   const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addForm, setAddForm] = useState({ name: "", email: "", phone: "" });
+  const [addingContact, setAddingContact] = useState(false);
+  const [contactPickerSupported] = useState(() =>
+    typeof navigator !== "undefined" &&
+    "contacts" in navigator &&
+    "ContactsManager" in window
+  );
 
   const fetchContacts = useCallback(async () => {
     if (!user) return;
@@ -140,6 +148,71 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
     }
   };
 
+  const handleAddContact = async () => {
+    if (!user) return;
+    const name = addForm.name.trim();
+    const email = addForm.email.trim();
+    const phone = addForm.phone.trim();
+    if (!name) { toast.error("Name is required."); return; }
+    if (!email && !phone) { toast.error("Please add an email or phone number."); return; }
+    setAddingContact(true);
+    let existingId: string | null = null;
+    if (email) {
+      const { data } = await supabase.from("recipients").select("id").eq("user_id", user.id).eq("email", email).maybeSingle();
+      if (data) existingId = data.id;
+    }
+    if (!existingId && phone) {
+      const { data } = await supabase.from("recipients").select("id").eq("user_id", user.id).eq("phone", phone).maybeSingle();
+      if (data) existingId = data.id;
+    }
+    if (existingId) {
+      await supabase.from("recipients").update({ name: name || null, email: email || null, phone: phone || null }).eq("id", existingId);
+      toast.success("Contact updated.");
+    } else {
+      await supabase.from("recipients").insert({ user_id: user.id, name: name || null, email: email || null, phone: phone || null });
+      toast.success(`${name} added.`);
+    }
+    setAddForm({ name: "", email: "", phone: "" });
+    setShowAddForm(false);
+    setAddingContact(false);
+    fetchContacts();
+  };
+
+  const handlePhonePicker = async () => {
+    try {
+      const contacts = await (navigator as any).contacts.select(["name", "email", "tel"], { multiple: true });
+      if (!contacts || contacts.length === 0) return;
+      let added = 0;
+      let updated = 0;
+      for (const c of contacts) {
+        const name = c.name?.[0]?.trim() || null;
+        const email = c.email?.[0]?.trim() || null;
+        const phone = c.tel?.[0]?.trim() || null;
+        if (!email && !phone) continue;
+        let existingId: string | null = null;
+        if (email) {
+          const { data } = await supabase.from("recipients").select("id").eq("user_id", user!.id).eq("email", email).maybeSingle();
+          if (data) existingId = data.id;
+        }
+        if (!existingId && phone) {
+          const { data } = await supabase.from("recipients").select("id").eq("user_id", user!.id).eq("phone", phone).maybeSingle();
+          if (data) existingId = data.id;
+        }
+        if (existingId) {
+          await supabase.from("recipients").update({ name: name || undefined, email: email || undefined, phone: phone || undefined }).eq("id", existingId);
+          updated++;
+        } else {
+          await supabase.from("recipients").insert({ user_id: user!.id, name, email, phone });
+          added++;
+        }
+      }
+      toast.success(`${added} added, ${updated} updated.`);
+      fetchContacts();
+    } catch (err) {
+      toast.error("Could not access contacts.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center pt-20">
@@ -151,7 +224,27 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
   return (
     <div className="flex flex-col pb-24">
       <header className="sticky top-0 z-20 bg-background/95 backdrop-blur px-5 pt-5 pb-3">
-        <h1 className="font-display text-2xl font-bold text-primary mb-3">People</h1>
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="font-display text-2xl font-bold text-primary">People</h1>
+          <div className="flex gap-2">
+            {contactPickerSupported && (
+              <button
+                onClick={handlePhonePicker}
+                className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Upload className="h-3.5 w-3.5" />
+                Import
+              </button>
+            )}
+            <button
+              onClick={() => setShowAddForm((v) => !v)}
+              className="flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              Add
+            </button>
+          </div>
+        </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
