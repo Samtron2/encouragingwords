@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useDailyVisuals } from "@/hooks/useDailyVisuals";
 import { useComposerDraft } from "@/hooks/useComposerDraft";
+import { useOccasionVisuals, SPECIAL_OCCASIONS, type SpecialOccasion } from "@/hooks/useOccasionVisuals";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
