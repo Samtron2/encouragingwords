@@ -44,9 +44,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const { user } = useAuth();
   const { visuals: dailyVisuals, loading: visualsLoading } = useDailyVisuals();
   const { initialDraft, saveDraft, clearDraft } = useComposerDraft();
-  const { visuals: occasionVisuals, loading: occasionLoading } = useOccasionVisuals(selectedOccasion);
-  const activeVisuals = selectedOccasion ? occasionVisuals : dailyVisuals;
-  const activeVisualsLoading = selectedOccasion ? occasionLoading : visualsLoading;
 
   const [recipientInput, setRecipientInput] = useState(prefill?.name || initialDraft?.recipientInput || "");
   const [recipientName, setRecipientName] = useState(prefill?.name || initialDraft?.recipientName || "");
