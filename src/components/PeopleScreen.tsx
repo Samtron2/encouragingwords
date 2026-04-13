@@ -451,6 +451,7 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
         </div>
       )}
 
+      {filtered.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pt-32 text-center">
           <Heart className="h-12 w-12 text-muted-foreground/40 mb-4" />
           <p className="text-lg font-medium text-muted-foreground">
