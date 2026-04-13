@@ -391,7 +391,66 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
         </div>
       )}
 
-      {filtered.length === 0 ? (
+      {showGooglePreview && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-lg bg-card rounded-t-3xl p-5 shadow-elevated max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display text-xl font-bold text-foreground">
+                Import from Google
+              </h2>
+              <button
+                onClick={() => { setShowGooglePreview(false); setGoogleContacts([]); }}
+                className="p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground mb-3">
+              {googleContacts.filter(c => c.selected).length} of {googleContacts.length} contacts selected. Tap to deselect.
+            </p>
+            <div className="overflow-y-auto flex-1 space-y-2 mb-4">
+              {googleContacts.map((c, i) => (
+                <button
+                  key={i}
+                  onClick={() => setGoogleContacts(prev => prev.map((x, j) => j === i ? { ...x, selected: !x.selected } : x))}
+                  className={`w-full flex items-center gap-3 rounded-xl p-3 text-left transition-colors ${
+                    c.selected ? "bg-primary/10 border border-primary/30" : "bg-muted/40 border border-transparent opacity-50"
+                  }`}
+                >
+                  <div
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white font-bold text-sm"
+                    style={{ backgroundColor: c.selected ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))" }}
+                  >
+                    {c.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{c.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{c.email || c.phone}</p>
+                  </div>
+                  <div className={`h-4 w-4 rounded-full border-2 shrink-0 ${c.selected ? "bg-primary border-primary" : "border-muted-foreground"}`} />
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={confirmGoogleImport}
+                disabled={importingGoogle || googleContacts.filter(c => c.selected).length === 0}
+                className="flex-1 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-bold"
+              >
+                {importingGoogle ? "Importing…" : `Import ${googleContacts.filter(c => c.selected).length} contacts`}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => { setShowGooglePreview(false); setGoogleContacts([]); }}
+                className="rounded-full"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
         <div className="flex flex-1 flex-col items-center justify-center px-6 pt-32 text-center">
           <Heart className="h-12 w-12 text-muted-foreground/40 mb-4" />
           <p className="text-lg font-medium text-muted-foreground">
