@@ -78,6 +78,9 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
     "contacts" in navigator &&
     "ContactsManager" in window
   );
+  const [importingGoogle, setImportingGoogle] = useState(false);
+  const [googleContacts, setGoogleContacts] = useState<Array<{ name: string; email: string; phone: string; selected: boolean }>>([]);
+  const [showGooglePreview, setShowGooglePreview] = useState(false);
 
   const fetchContacts = useCallback(async () => {
     if (!user) return;
@@ -215,6 +218,83 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
     }
   };
 
+  const handleGoogleImport = () => {
+    if (!(window as any).google) {
+      toast.error("Google sign-in not available. Please refresh and try again.");
+      return;
+    }
+    const client = (window as any).google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: "https://www.googleapis.com/auth/contacts.readonly",
+      callback: async (response: any) => {
+        if (response.error) {
+          toast.error("Google sign-in failed.");
+          return;
+        }
+        setImportingGoogle(true);
+        try {
+          const res = await fetch(
+            "https://people.googleapis.com/v1/people/me/connections?personFields=names,emailAddresses,phoneNumbers&pageSize=500",
+            { headers: { Authorization: `Bearer ${response.access_token}` } }
+          );
+          const data = await res.json();
+          const connections = data.connections || [];
+          const parsed = connections
+            .map((p: any) => ({
+              name: p.names?.[0]?.displayName?.trim() || "",
+              email: p.emailAddresses?.[0]?.value?.trim() || "",
+              phone: p.phoneNumbers?.[0]?.value?.trim() || "",
+              selected: true,
+            }))
+            .filter((c: any) => c.name && (c.email || c.phone));
+          if (parsed.length === 0) {
+            toast.error("No contacts with email or phone found in your Google account.");
+            setImportingGoogle(false);
+            return;
+          }
+          setGoogleContacts(parsed);
+          setShowGooglePreview(true);
+        } catch (err) {
+          toast.error("Failed to fetch Google contacts.");
+        }
+        setImportingGoogle(false);
+      },
+    });
+    client.requestAccessToken();
+  };
+
+  const confirmGoogleImport = async () => {
+    if (!user) return;
+    const toImport = googleContacts.filter((c) => c.selected);
+    if (toImport.length === 0) { toast.error("No contacts selected."); return; }
+    setImportingGoogle(true);
+    let added = 0;
+    let updated = 0;
+    for (const c of toImport) {
+      let existingId: string | null = null;
+      if (c.email) {
+        const { data } = await supabase.from("recipients").select("id").eq("user_id", user.id).eq("email", c.email).maybeSingle();
+        if (data) existingId = data.id;
+      }
+      if (!existingId && c.phone) {
+        const { data } = await supabase.from("recipients").select("id").eq("user_id", user.id).eq("phone", c.phone).maybeSingle();
+        if (data) existingId = data.id;
+      }
+      if (existingId) {
+        await supabase.from("recipients").update({ name: c.name || null, email: c.email || null, phone: c.phone || null }).eq("id", existingId);
+        updated++;
+      } else {
+        await supabase.from("recipients").insert({ user_id: user.id, name: c.name || null, email: c.email || null, phone: c.phone || null });
+        added++;
+      }
+    }
+    toast.success(`${added} added, ${updated} updated.`);
+    setShowGooglePreview(false);
+    setGoogleContacts([]);
+    setImportingGoogle(false);
+    fetchContacts();
+  };
+
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center pt-20">
@@ -229,6 +309,19 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
         <div className="flex items-center justify-between mb-3">
           <h1 className="font-display text-2xl font-bold text-primary">People</h1>
           <div className="flex gap-2">
+              <button
+                onClick={handleGoogleImport}
+                disabled={importingGoogle}
+                className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+              >
+                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                {importingGoogle ? "Importing…" : "Google"}
+              </button>
             {contactPickerSupported && (
               <button
                 onClick={handlePhonePicker}
