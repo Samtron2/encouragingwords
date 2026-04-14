@@ -1,11 +1,10 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
 import {
-  Body, Container, Head, Html, Preview, Text, Img, Hr,
+  Body, Container, Head, Html, Preview, Text, Img, Hr, Section, Row, Column,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const MEDALLION_URL = "https://sxchcugllltcpxmahvkn.supabase.co/storage/v1/object/public/button/ew.vector.svg"
 const SITE_NAME = 'Encouraging Words'
 
 interface EncouragingMessageProps {
@@ -24,49 +23,88 @@ const EncouragingMessageEmail = ({
   visualEmoji,
 }: EncouragingMessageProps) => (
   <Html lang="en" dir="ltr">
-    <Head />
-    <Preview>{message || 'Someone is thinking of you today.'}</Preview>
+    <Head>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
+      `}</style>
+    </Head>
+    <Preview>{message ? `"${message}"` : 'Someone is thinking of you today.'}</Preview>
     <Body style={main}>
-      {/* Outer wrapper — dark page background */}
-      <Container style={outer}>
-        {/* Postcard */}
+      <Container style={wrapper}>
+
+        {/* Postcard outer border — gold frame */}
         <Container style={postcard}>
-          {/* Top band — medallion + tagline */}
-          <Container style={topBand}>
-            <Img src={MEDALLION_URL} alt="Encouraging Words" width="56" height="56" style={medallionStyle} />
-            <Text style={tagline}>Unum Accipere</Text>
-          </Container>
 
-          {/* Gold divider */}
-          <Hr style={dividerTop} />
+          {/* TOP BAND */}
+          <Section style={topBand}>
+            <Row>
+              <Column style={{ padding: '28px 36px 20px', textAlign: 'center' as const }}>
+                {/* Inline SVG medallion as fallback since img may not load */}
+                <Text style={medallionEmoji}>🏅</Text>
+                <Text style={appName}>Encouraging Words</Text>
+                <Text style={tagline}>✦ Unum Accipere ✦</Text>
+              </Column>
+            </Row>
+          </Section>
 
-          {/* Visual — emoji or image */}
-          {visualEmoji && (
-            <Text style={emojiBlock}>{visualEmoji}</Text>
+          {/* Gold rule */}
+          <Section style={goldRuleSection}>
+            <Hr style={goldRule} />
+          </Section>
+
+          {/* VISUAL */}
+          {(visualEmoji || visualImageUrl) && (
+            <Section style={visualSection}>
+              <Row>
+                <Column style={{ textAlign: 'center' as const }}>
+                  {visualEmoji ? (
+                    <Text style={emojiBlock}>{visualEmoji}</Text>
+                  ) : visualImageUrl ? (
+                    <Img src={visualImageUrl} alt="" width="300" style={imageStyle} />
+                  ) : null}
+                </Column>
+              </Row>
+            </Section>
           )}
-          {visualImageUrl && !visualEmoji && (
-            <Img src={visualImageUrl} alt="" width="320" style={imageStyle} />
-          )}
 
-          {/* Greeting */}
-          {recipientName && (
-            <Text style={greeting}>Dear {recipientName},</Text>
-          )}
+          {/* MESSAGE BODY */}
+          <Section style={bodySection}>
+            <Row>
+              <Column style={{ padding: '0 36px' }}>
+                {recipientName && (
+                  <Text style={greeting}>Dear {recipientName},</Text>
+                )}
+                <Text style={messageText}>{message || ''}</Text>
+              </Column>
+            </Row>
+          </Section>
 
-          {/* Message */}
-          <Text style={messageText}>{message || ''}</Text>
+          {/* Decorative divider */}
+          <Section style={{ padding: '0 36px' }}>
+            <Hr style={thinDivider} />
+          </Section>
 
-          {/* Gold divider */}
-          <Hr style={dividerBottom} />
+          {/* SIGNATURE */}
+          <Section style={signatureSection}>
+            <Row>
+              <Column style={{ padding: '0 36px 28px' }}>
+                <Text style={withEncouragement}>With encouragement,</Text>
+                <Text style={senderName_style}>{senderName || 'A friend'}</Text>
+              </Column>
+            </Row>
+          </Section>
 
-          {/* Signature */}
-          <Text style={withEncouragement}>With encouragement,</Text>
-          <Text style={senderStyle}>{senderName || 'A friend'}</Text>
+          {/* FOOTER BAND */}
+          <Section style={footerBand}>
+            <Row>
+              <Column style={{ padding: '14px 36px' }}>
+                <Text style={footerText}>
+                  Sent with {SITE_NAME} · sendencouragingwords.com
+                </Text>
+              </Column>
+            </Row>
+          </Section>
 
-          {/* Footer */}
-          <Text style={footer}>
-            Sent with {SITE_NAME} · sendencouragingwords.com
-          </Text>
         </Container>
       </Container>
     </Body>
@@ -89,98 +127,131 @@ export const template = {
 } satisfies TemplateEntry
 
 const main = {
-  backgroundColor: '#0a0a0a',
-  fontFamily: "'Georgia', 'Times New Roman', serif",
-  padding: '32px 0',
+  backgroundColor: '#0d0d0d',
+  fontFamily: "'Cormorant Garamond', 'Georgia', 'Times New Roman', serif",
+  padding: '40px 0',
 }
-const outer = {
+const wrapper = {
   maxWidth: '520px',
   margin: '0 auto',
   padding: '0 16px',
 }
 const postcard = {
-  backgroundColor: '#111111',
-  border: '1.5px solid #c9a84c',
-  borderRadius: '16px',
-  overflow: 'hidden' as const,
-  padding: '0',
   maxWidth: '520px',
   margin: '0 auto',
+  backgroundColor: '#0f0f0f',
+  borderRadius: '12px',
+  border: '2px solid #c9a84c',
+  overflow: 'hidden' as const,
+  boxShadow: '0 0 40px rgba(201,168,76,0.15), 0 0 80px rgba(201,168,76,0.05)',
 }
 const topBand = {
-  backgroundColor: '#1a1400',
-  padding: '24px 32px 16px',
-  textAlign: 'center' as const,
-  borderBottom: '1px solid #c9a84c44',
+  backgroundColor: '#140f00',
+  borderBottom: '1px solid #c9a84c55',
 }
-const medallionStyle = {
-  display: 'block',
-  margin: '0 auto 8px',
+const medallionEmoji = {
+  fontSize: '48px',
+  lineHeight: '1',
+  textAlign: 'center' as const,
+  margin: '0 0 8px',
+}
+const appName = {
+  fontFamily: "'Cormorant Garamond', Georgia, serif",
+  fontSize: '26px',
+  fontWeight: '700' as const,
+  color: '#c9a84c',
+  textAlign: 'center' as const,
+  margin: '0 0 4px',
+  letterSpacing: '0.04em',
 }
 const tagline = {
-  fontFamily: "'Georgia', serif",
-  fontSize: '13px',
-  letterSpacing: '0.18em',
-  color: '#c9a84c',
+  fontFamily: "'Cormorant Garamond', Georgia, serif",
+  fontSize: '12px',
+  color: '#9a7a32',
+  textAlign: 'center' as const,
+  letterSpacing: '0.2em',
   textTransform: 'uppercase' as const,
   margin: '0',
   fontStyle: 'italic' as const,
 }
-const dividerTop = {
-  borderColor: '#c9a84c33',
+const goldRuleSection = {
+  padding: '0',
+}
+const goldRule = {
+  borderTop: '1px solid #c9a84c33',
   margin: '0',
 }
-const dividerBottom = {
-  borderColor: '#c9a84c33',
-  margin: '0 32px 20px',
+const visualSection = {
+  padding: '32px 36px 8px',
 }
 const emojiBlock = {
-  fontSize: '80px',
+  fontSize: '96px',
   lineHeight: '1',
   textAlign: 'center' as const,
-  margin: '28px 0 8px',
+  margin: '0',
 }
 const imageStyle = {
   display: 'block',
-  margin: '28px auto 8px',
+  margin: '0 auto',
   borderRadius: '10px',
-  maxWidth: '320px',
+  maxWidth: '300px',
   width: '100%',
 }
+const bodySection = {
+  padding: '28px 0 8px',
+}
 const greeting = {
-  fontFamily: "'Georgia', serif",
-  fontSize: '18px',
-  color: '#c9a84c',
-  margin: '20px 32px 8px',
+  fontFamily: "'Cormorant Garamond', Georgia, serif",
+  fontSize: '19px',
   fontStyle: 'italic' as const,
+  color: '#c9a84c',
+  margin: '0 0 12px',
+  lineHeight: '1.4',
 }
 const messageText = {
-  fontFamily: "'Georgia', 'Times New Roman', serif",
-  fontSize: '22px',
-  lineHeight: '1.7',
-  color: '#f5f0e8',
-  margin: '0 32px 28px',
+  fontFamily: "'Cormorant Garamond', 'Georgia', serif",
+  fontSize: '24px',
+  fontWeight: '400' as const,
+  lineHeight: '1.75',
+  color: '#f0ead8',
+  margin: '0',
   whiteSpace: 'pre-wrap' as const,
 }
-const withEncouragement = {
-  fontFamily: "'Georgia', serif",
-  fontSize: '13px',
-  color: '#888888',
-  margin: '0 32px 2px',
+const thinDivider = {
+  borderTop: '1px solid #c9a84c22',
+  margin: '24px 0 0',
 }
-const senderStyle = {
-  fontFamily: "'Georgia', serif",
-  fontSize: '18px',
+const signatureSection = {
+  padding: '20px 0 0',
+}
+const withEncouragement = {
+  fontFamily: "'Cormorant Garamond', Georgia, serif",
+  fontSize: '13px',
+  color: '#666',
+  margin: '0 0 4px',
+  fontStyle: 'italic' as const,
+}
+const senderName_style = {
+  fontFamily: "'Cormorant Garamond', Georgia, serif",
+  fontSize: '20px',
+  fontWeight: '600' as const,
   color: '#c9a84c',
   fontStyle: 'italic' as const,
-  margin: '0 32px 24px',
-}
-const footer = {
-  fontFamily: "'Georgia', serif",
-  fontSize: '11px',
-  color: '#444444',
-  textAlign: 'center' as const,
   margin: '0',
-  padding: '12px 32px 20px',
+}
+const footerBand = {
+  backgroundColor: '#0a0a0a',
   borderTop: '1px solid #c9a84c22',
+  marginTop: '0',
+}
+const footerText = {
+  fontFamily: 'Georgia, serif',
+  fontSize: '11px',
+  color: '#444',
+  margin: '0',
+  textAlign: 'center' as const,
+}
+const footerLink = {
+  color: '#7a6030',
+  textDecoration: 'none',
 }
