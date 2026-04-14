@@ -40,8 +40,13 @@ const EncouragingMessageEmail = ({
           <Section style={topBand}>
             <Row>
               <Column style={{ padding: '28px 36px 20px', textAlign: 'center' as const }}>
-                {/* Inline SVG medallion as fallback since img may not load */}
-                <Text style={medallionEmoji}>🏅</Text>
+                <Img
+                  src={MEDALLION_JPG}
+                  alt="Encouraging Words"
+                  width="120"
+                  height="120"
+                  style={{ display: 'block', margin: '0 auto 12px', width: '120px', height: '120px', borderRadius: '50%' }}
+                />
                 <Text style={appName}>Encouraging Words</Text>
                 <Text style={tagline}>✦ Unum Accipere ✦</Text>
               </Column>
