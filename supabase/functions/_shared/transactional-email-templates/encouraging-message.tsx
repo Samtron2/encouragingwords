@@ -189,11 +189,15 @@ const goldRule = {
 const visualSection = {
   padding: '32px 36px 8px',
 }
-const emojiBlock = {
-  fontSize: '96px',
-  lineHeight: '1',
+const emojiSection = {
+  padding: '24px 0 0',
+}
+const emojiText = {
+  fontSize: '64px',
+  lineHeight: '1.2',
   textAlign: 'center' as const,
   margin: '0',
+  fontFamily: "'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif",
 }
 const imageStyle = {
   display: 'block',
