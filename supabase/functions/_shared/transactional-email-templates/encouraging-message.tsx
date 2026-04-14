@@ -155,12 +155,6 @@ const topBand = {
   backgroundColor: '#140f00',
   borderBottom: '1px solid #c9a84c55',
 }
-const medallionEmoji = {
-  fontSize: '48px',
-  lineHeight: '1',
-  textAlign: 'center' as const,
-  margin: '0 0 8px',
-}
 const appName = {
   fontFamily: "'Cormorant Garamond', Georgia, serif",
   fontSize: '26px',
