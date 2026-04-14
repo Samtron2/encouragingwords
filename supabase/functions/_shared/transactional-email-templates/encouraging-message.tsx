@@ -59,15 +59,20 @@ const EncouragingMessageEmail = ({
           </Section>
 
           {/* VISUAL */}
-          {(visualEmoji || visualImageUrl) && (
+          {visualEmoji && (
+            <Section style={emojiSection}>
+              <Row>
+                <Column style={{ textAlign: 'center' as const, padding: '0' }}>
+                  <Text style={emojiText}>{visualEmoji}</Text>
+                </Column>
+              </Row>
+            </Section>
+          )}
+          {visualImageUrl && !visualEmoji && (
             <Section style={visualSection}>
               <Row>
                 <Column style={{ textAlign: 'center' as const }}>
-                  {visualEmoji ? (
-                    <Text style={emojiBlock}>{visualEmoji}</Text>
-                  ) : visualImageUrl ? (
-                    <Img src={visualImageUrl} alt="" width="300" style={imageStyle} />
-                  ) : null}
+                  <Img src={visualImageUrl} alt="" width="300" style={imageStyle} />
                 </Column>
               </Row>
             </Section>
@@ -184,11 +189,15 @@ const goldRule = {
 const visualSection = {
   padding: '32px 36px 8px',
 }
-const emojiBlock = {
-  fontSize: '96px',
-  lineHeight: '1',
+const emojiSection = {
+  padding: '24px 0 0',
+}
+const emojiText = {
+  fontSize: '64px',
+  lineHeight: '1.2',
   textAlign: 'center' as const,
   margin: '0',
+  fontFamily: "'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif",
 }
 const imageStyle = {
   display: 'block',
