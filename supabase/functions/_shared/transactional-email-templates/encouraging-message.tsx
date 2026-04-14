@@ -59,15 +59,20 @@ const EncouragingMessageEmail = ({
           </Section>
 
           {/* VISUAL */}
-          {(visualEmoji || visualImageUrl) && (
+          {visualEmoji && (
+            <Section style={emojiSection}>
+              <Row>
+                <Column style={{ textAlign: 'center' as const, padding: '0' }}>
+                  <Text style={emojiText}>{visualEmoji}</Text>
+                </Column>
+              </Row>
+            </Section>
+          )}
+          {visualImageUrl && !visualEmoji && (
             <Section style={visualSection}>
               <Row>
                 <Column style={{ textAlign: 'center' as const }}>
-                  {visualEmoji ? (
-                    <Text style={emojiBlock}>{visualEmoji}</Text>
-                  ) : visualImageUrl ? (
-                    <Img src={visualImageUrl} alt="" width="300" style={imageStyle} />
-                  ) : null}
+                  <Img src={visualImageUrl} alt="" width="300" style={imageStyle} />
                 </Column>
               </Row>
             </Section>
