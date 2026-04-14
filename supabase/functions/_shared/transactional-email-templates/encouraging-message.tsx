@@ -5,6 +5,7 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
+const MEDALLION_JPG = "https://sxchcugllltcpxmahvkn.supabase.co/storage/v1/object/public/button/medallion.jpg"
 const SITE_NAME = 'Encouraging Words'
 
 interface EncouragingMessageProps {
@@ -39,8 +40,13 @@ const EncouragingMessageEmail = ({
           <Section style={topBand}>
             <Row>
               <Column style={{ padding: '28px 36px 20px', textAlign: 'center' as const }}>
-                {/* Inline SVG medallion as fallback since img may not load */}
-                <Text style={medallionEmoji}>🏅</Text>
+                <Img
+                  src={MEDALLION_JPG}
+                  alt="Encouraging Words"
+                  width="120"
+                  height="120"
+                  style={{ display: 'block', margin: '0 auto 12px', width: '120px', height: '120px', borderRadius: '50%' }}
+                />
                 <Text style={appName}>Encouraging Words</Text>
                 <Text style={tagline}>✦ Unum Accipere ✦</Text>
               </Column>
@@ -148,12 +154,6 @@ const postcard = {
 const topBand = {
   backgroundColor: '#140f00',
   borderBottom: '1px solid #c9a84c55',
-}
-const medallionEmoji = {
-  fontSize: '48px',
-  lineHeight: '1',
-  textAlign: 'center' as const,
-  margin: '0 0 8px',
 }
 const appName = {
   fontFamily: "'Cormorant Garamond', Georgia, serif",
