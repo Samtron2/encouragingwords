@@ -5,6 +5,7 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
+const MEDALLION_JPG = "https://sxchcugllltcpxmahvkn.supabase.co/storage/v1/object/public/button/medallion.jpg"
 const SITE_NAME = 'Encouraging Words'
 
 interface EncouragingMessageProps {
