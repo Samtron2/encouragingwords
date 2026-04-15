@@ -615,6 +615,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     }
   };
 
+  const activePrompts = selectedOccasion && PROMPT_SUGGESTIONS[selectedOccasion]
+    ? PROMPT_SUGGESTIONS[selectedOccasion]
+    : PROMPT_SUGGESTIONS.default;
+
   if (sent) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6 animate-fade-in">
@@ -866,12 +870,12 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
           <div className="mt-3">
             <Carousel
-              opts={{ align: "center", loop: false, startIndex: Math.floor(PROMPT_SUGGESTIONS.length / 2) }}
+              opts={{ align: "center", loop: false, startIndex: Math.floor(activePrompts.length / 2) }}
               setApi={setChipApi}
               className="w-full"
             >
               <CarouselContent>
-                {PROMPT_SUGGESTIONS.map((prompt) => {
+                {activePrompts.map((prompt) => {
                   const isSelected = message === prompt;
                   return (
                     <CarouselItem key={prompt} className="basis-auto max-w-[55%] flex justify-center pl-2">
