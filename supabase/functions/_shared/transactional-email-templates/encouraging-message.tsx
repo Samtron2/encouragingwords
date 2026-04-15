@@ -59,15 +59,23 @@ const EncouragingMessageEmail = ({
           </Section>
 
           {/* VISUAL */}
-          {visualEmoji && (
-            <Section style={emojiSection}>
-              <Row>
-                <Column style={{ textAlign: 'center' as const, padding: '0' }}>
-                  <Text style={emojiText}>{visualEmoji}</Text>
-                </Column>
-              </Row>
-            </Section>
-          )}
+          {visualEmoji && (() => {
+            const codepoints = [...visualEmoji]
+              .map(c => c.codePointAt(0)!)
+              .filter(cp => cp !== 0xfe0f)
+              .map(cp => cp.toString(16))
+              .join('-')
+            const twemojiUrl = `https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/${codepoints}.png`
+            return (
+              <Section style={emojiSection}>
+                <Row>
+                  <Column style={{ textAlign: 'center' as const }}>
+                    <Img src={twemojiUrl} alt={visualEmoji} width="72" height="72" style={{ display: 'block', margin: '0 auto' }} />
+                  </Column>
+                </Row>
+              </Section>
+            )
+          })()}
           {visualImageUrl && !visualEmoji && (
             <Section style={visualSection}>
               <Row>
@@ -191,13 +199,6 @@ const visualSection = {
 }
 const emojiSection = {
   padding: '24px 0 0',
-}
-const emojiText = {
-  fontSize: '96px',
-  lineHeight: '1.2',
-  textAlign: 'center' as const,
-  margin: '0',
-  fontFamily: "'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif",
 }
 const imageStyle = {
   display: 'block',
