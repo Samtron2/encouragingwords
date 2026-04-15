@@ -5,7 +5,7 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const MEDALLION_JPG = "https://sxchcugllltcpxmahvkn.supabase.co/storage/v1/object/public/button/medallion.jpg"
+const MEDALLION_JPG = "https://zwivxqoxbsacyvccrmel.supabase.co/storage/v1/object/public/button/medallion.jpg"
 const SITE_NAME = 'Encouraging Words'
 
 interface EncouragingMessageProps {
@@ -193,7 +193,7 @@ const emojiSection = {
   padding: '24px 0 0',
 }
 const emojiText = {
-  fontSize: '64px',
+  fontSize: '96px',
   lineHeight: '1.2',
   textAlign: 'center' as const,
   margin: '0',
