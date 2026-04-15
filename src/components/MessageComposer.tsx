@@ -10,16 +10,184 @@ import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/com
 import { Mail, MessageSquare, Check, User, AlertCircle, Pencil, Camera, X } from "lucide-react";
 import { toast } from "sonner";
 
-const PROMPT_SUGGESTIONS = [
-  "Thinking of you",
-  "You've got this",
-  "So proud of you",
-  "You made my day",
-  "Just because.",
-  "You are enough",
-  "Keep shining ✨",
-  "I believe in you",
-];
+const PROMPT_SUGGESTIONS: Record<string, string[]> = {
+  default: [
+    "Thinking of you",
+    "You've got this",
+    "So proud of you",
+    "You made my day",
+    "Just because.",
+    "You are enough",
+    "Keep shining ✨",
+    "I believe in you",
+    "You are stronger than you know.",
+    "The world is better with you in it.",
+    "You showed up. That matters.",
+    "I see how hard you work. It's paying off.",
+  ],
+  "Birthday": [
+    "Happy Birthday! 🎂",
+    "Wishing you the best day.",
+    "Hope today feels as special as you are.",
+    "Another year of being wonderful.",
+    "Celebrate yourself today — you deserve it.",
+    "So glad you were born.",
+    "Here's to you today and every day.",
+    "May this birthday bring you everything you hoped for.",
+  ],
+  "Anniversary": [
+    "Happy Anniversary ❤️",
+    "Celebrating you both today.",
+    "Love looks good on you.",
+    "What a beautiful thing you've built together.",
+    "Still rooting for you both, always.",
+    "Here's to many more years of the good stuff.",
+  ],
+  "Quinceañera": [
+    "Happy Quinceañera! 👑",
+    "Today you shine.",
+    "This is just the beginning of something beautiful.",
+    "So proud of the young woman you're becoming.",
+    "Celebrating you today and always.",
+    "What a joy it is to watch you grow.",
+  ],
+  "Graduation": [
+    "Congratulations, graduate! 🎓",
+    "You did it. You really did it.",
+    "All that hard work paid off.",
+    "So incredibly proud of you.",
+    "This is just the beginning.",
+    "The world is ready for you — go get it.",
+    "Every late night was worth it.",
+  ],
+  "Wedding": [
+    "Wishing you a lifetime of joy.",
+    "Congratulations on your wedding day! 💍",
+    "Love wins. Always.",
+    "So happy for you both today.",
+    "Here's to your beautiful beginning.",
+    "May every day feel like this one.",
+  ],
+  "New Baby": [
+    "Welcome to the world, little one 👶",
+    "Congratulations on your new arrival!",
+    "Your family just got a little more wonderful.",
+    "So much love for your growing family.",
+    "What a blessing. Wishing you rest and joy.",
+    "The best adventure is just beginning.",
+  ],
+  "Sympathy": [
+    "I'm so sorry for your loss.",
+    "Thinking of you during this hard time.",
+    "You don't have to go through this alone.",
+    "Sending you love and peace today.",
+    "Grief is love with nowhere to go. I'm here.",
+    "There are no words. Just know I care.",
+    "I'm holding you in my heart.",
+  ],
+  "Get Well": [
+    "Wishing you a speedy recovery 💚",
+    "Rest up. We need you at full strength.",
+    "Thinking of you — feel better soon.",
+    "Sending healing thoughts your way.",
+    "Take it one day at a time. You've got this.",
+    "I'm rooting for you to feel like yourself again.",
+  ],
+  "Retirement": [
+    "Happy Retirement! 🏖️",
+    "You've earned every bit of this.",
+    "Time to do exactly what you want.",
+    "What a career. What a person.",
+    "The next chapter is going to be great.",
+    "So grateful for everything you gave.",
+  ],
+  "Mother's Day": [
+    "Happy Mother's Day 🌹",
+    "Thank you for everything you do.",
+    "You are loved more than words can say.",
+    "The world is better because of you.",
+    "Grateful for you every single day.",
+    "You make it look easy, even when it isn't.",
+  ],
+  "Father's Day": [
+    "Happy Father's Day ⭐",
+    "Thank you for always showing up.",
+    "You set the bar. And it's high.",
+    "Grateful for everything you've given.",
+    "The strongest person I know.",
+    "Love you more than I say.",
+  ],
+  "Valentine's Day": [
+    "Happy Valentine's Day ❤️",
+    "Grateful for you today and always.",
+    "You make ordinary days extraordinary.",
+    "I choose you. Every single day.",
+    "Thinking of you today.",
+    "You are my favorite.",
+  ],
+  "Thanksgiving": [
+    "Grateful for you this Thanksgiving 🧡",
+    "You are one of the things I'm most thankful for.",
+    "Wishing you a warm and wonderful day.",
+    "Thinking of you and counting my blessings.",
+    "So thankful our lives crossed paths.",
+  ],
+  "Christmas": [
+    "Merry Christmas! 🎄",
+    "Wishing you warmth, joy, and rest.",
+    "Grateful for you this holiday season.",
+    "Hope your Christmas is everything you hoped for.",
+    "Thinking of you during this special time of year.",
+    "Sending you love and light this Christmas.",
+  ],
+  "Hanukkah": [
+    "Happy Hanukkah! 🕎",
+    "Wishing you light and warmth this season.",
+    "Thinking of you and your family.",
+    "Eight nights of joy — you deserve every one.",
+    "Sending love during this beautiful season.",
+  ],
+  "Easter": [
+    "Happy Easter! 🐣",
+    "Wishing you a joyful and peaceful Easter.",
+    "Hope your day is filled with warmth.",
+    "Thinking of you this Easter season.",
+    "Sending love and light your way.",
+  ],
+  "Just Because": [
+    "Just thinking of you.",
+    "No reason. Just because you matter.",
+    "Wanted you to know I'm thinking of you.",
+    "You crossed my mind and I smiled.",
+    "You deserve to hear something good today.",
+    "I'm glad you're in my life.",
+  ],
+  "Congratulations": [
+    "Congratulations! 🎉",
+    "You earned this.",
+    "So proud of what you've accomplished.",
+    "This is a big deal. Celebrate it.",
+    "I knew you could do it.",
+    "Amazing things happen to amazing people.",
+  ],
+  "Thank You": [
+    "Thank you from the bottom of my heart.",
+    "I don't say it enough — thank you.",
+    "What you did meant more than you know.",
+    "I am so grateful for you.",
+    "You showed up when it mattered. Thank you.",
+    "Your kindness didn't go unnoticed.",
+  ],
+  "Encouragement": [
+    "You've got this.",
+    "Keep going. You're closer than you think.",
+    "Hard days don't last. You do.",
+    "I believe in you more than you believe in yourself right now.",
+    "One step at a time. You're doing it.",
+    "The fact that you're still trying says everything.",
+    "You are stronger than you know.",
+  ],
+};
 
 interface Recipient {
   id: string;
@@ -112,7 +280,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       recipientPhone,
       message,
       selectedVisualId: selectedVisual !== null ? activeVisuals[selectedVisual]?.id || null : null,
-      selectedPrompt: PROMPT_SUGGESTIONS.includes(message) ? message : null,
+      selectedPrompt: null,
     });
   }, [recipientInput, recipientName, recipientEmail, recipientPhone, message, selectedVisual, activeVisuals]);
 
@@ -447,6 +615,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     }
   };
 
+  const activePrompts = selectedOccasion && PROMPT_SUGGESTIONS[selectedOccasion]
+    ? PROMPT_SUGGESTIONS[selectedOccasion]
+    : PROMPT_SUGGESTIONS.default;
+
   if (sent) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6 animate-fade-in">
@@ -698,12 +870,12 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
           <div className="mt-3">
             <Carousel
-              opts={{ align: "center", loop: false, startIndex: Math.floor(PROMPT_SUGGESTIONS.length / 2) }}
+              opts={{ align: "center", loop: false, startIndex: Math.floor(activePrompts.length / 2) }}
               setApi={setChipApi}
               className="w-full"
             >
               <CarouselContent>
-                {PROMPT_SUGGESTIONS.map((prompt) => {
+                {activePrompts.map((prompt) => {
                   const isSelected = message === prompt;
                   return (
                     <CarouselItem key={prompt} className="basis-auto max-w-[55%] flex justify-center pl-2">
