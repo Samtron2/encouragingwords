@@ -878,10 +878,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 {activePrompts.map((prompt) => {
                   const isSelected = message === prompt;
                   return (
-                    <CarouselItem key={prompt} className="basis-auto max-w-[55%] flex justify-center pl-2">
+                    <CarouselItem key={prompt} className="basis-[70%] flex justify-center pl-2">
                       <button
                         onClick={() => setMessage(prompt)}
-                        className={`rounded-full border px-5 py-3 text-lg font-medium transition-colors whitespace-nowrap ${
+                        className={`rounded-full border px-5 py-3 text-lg font-medium transition-colors text-center leading-snug ${
                           isSelected
                             ? "bg-primary text-primary-foreground border-primary"
                             : "bg-background text-primary border-primary/30 hover:bg-primary/5"
