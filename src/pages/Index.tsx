@@ -246,27 +246,28 @@ const Index = () => {
                 )}
               </div>
 
-              {/* Bottom section — CTA button */}
-              <div className="pb-8 flex justify-center">
+              {/* Bottom section — CTA logo + tagline */}
+              <div className="pb-8 flex flex-col items-center justify-center">
                 <button
                   onClick={() => switchTab("send")}
-                  className="flex flex-col items-center justify-center rounded-full bg-accent text-white hover:bg-accent/90 transition-colors"
+                  aria-label="Send an encouraging word"
+                  className="rounded-full transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   style={{
                     width: '52vw',
                     height: '52vw',
                     maxWidth: '210px',
                     maxHeight: '210px',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
                   }}
                 >
-                  <ThumbsUp className="h-12 w-12 mb-3" strokeWidth={2.5} />
-                  <span className="font-body font-bold text-[22px] leading-snug px-8 text-center">
-                    Send an encouraging word
-                  </span>
-                  <span className="font-display italic text-[17px] mt-1">
-                    Unum Accipere
-                  </span>
+                  <img
+                    src={logo}
+                    alt="Encouraging Words"
+                    className="w-full h-full object-contain"
+                  />
                 </button>
+                <span className="font-display italic text-[18px] mt-4 text-center text-foreground">
+                  Click here to brighten someone's day.
+                </span>
               </div>
             </main>
           </>
