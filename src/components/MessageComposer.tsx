@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useDailyVisuals } from "@/hooks/useDailyVisuals";
 import { useComposerDraft } from "@/hooks/useComposerDraft";
-import { useOccasionVisuals, SPECIAL_OCCASIONS, type SpecialOccasion } from "@/hooks/useOccasionVisuals";
+import { useOccasionVisuals, SPECIAL_OCCASIONS } from "@/hooks/useOccasionVisuals";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
@@ -239,9 +239,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
   const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
   const [nudgeValue, setNudgeValue] = useState("");
-  const [selectedOccasion, setSelectedOccasion] = useState<SpecialOccasion | null>(null);
+  const [selectedOccasion, setSelectedOccasion] = useState<string | null>(null);
+  const [customMode, setCustomMode] = useState(false);
   const { visuals: occasionVisuals, loading: occasionLoading } = useOccasionVisuals(selectedOccasion);
-  const activeVisuals = selectedOccasion ? occasionVisuals : dailyVisuals;
+  const activeVisuals = selectedOccasion && occasionVisuals.length > 0 ? occasionVisuals : dailyVisuals;
   const activeVisualsLoading = selectedOccasion ? occasionLoading : visualsLoading;
 
   // Two-step flow state
@@ -829,10 +830,16 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           </label>
           <div className="relative">
             <select
-              value={selectedOccasion || ""}
+              value={customMode ? "__other__" : selectedOccasion || ""}
               onChange={(e) => {
                 const val = e.target.value;
-                setSelectedOccasion(val ? val as SpecialOccasion : null);
+                if (val === "__other__") {
+                  setCustomMode(true);
+                  setSelectedOccasion(null);
+                } else {
+                  setCustomMode(false);
+                  setSelectedOccasion(val || null);
+                }
                 setSelectedVisual(null);
               }}
               className="w-full rounded-2xl border border-input bg-card px-5 py-4 text-lg text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring appearance-none cursor-pointer"
@@ -841,11 +848,23 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               {SPECIAL_OCCASIONS.map((o) => (
                 <option key={o} value={o}>{o}</option>
               ))}
+              <option value="__other__">Other…</option>
             </select>
             <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
               ▾
             </span>
           </div>
+          {customMode && (
+            <input
+              type="text"
+              value={selectedOccasion || ""}
+              onChange={(e) => setSelectedOccasion(e.target.value || null)}
+              maxLength={40}
+              placeholder="Type the occasion (e.g., Halloween)"
+              autoFocus
+              className="mt-3 w-full rounded-2xl border border-input bg-card px-5 py-4 text-lg text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          )}
         </section>
 
         {/* STEP 2 — WHAT */}
@@ -899,7 +918,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           {/* Visual carousel */}
           <div className="mt-6">
             <p className="text-lg text-muted-foreground mb-3">
-              {selectedOccasion ? `Visuals for ${selectedOccasion}` : "Choose a visual (optional)"}
+              {selectedOccasion && occasionVisuals.length > 0 ? `Visuals for ${selectedOccasion}` : "Choose a visual (optional)"}
             </p>
             {activeVisualsLoading ? (
               <div className="flex justify-center py-8">
@@ -1007,7 +1026,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               </div>
             )}
             <p className="font-display italic text-sm text-muted-foreground text-center mt-3">
-              {selectedOccasion ? `Showing visuals for ${selectedOccasion}` : "Today's visuals · refreshes at midnight"}
+              {selectedOccasion && occasionVisuals.length > 0 ? `Showing visuals for ${selectedOccasion}` : "Today's visuals · refreshes at midnight"}
             </p>
           </div>
         </section>
