@@ -52,19 +52,20 @@ export function useDailyVisuals() {
         .eq("featured_date", today);
 
       const featured = (featuredData as Visual[]) || [];
+      const featuredIds = new Set(featured.map((v) => v.id));
 
       const remaining = MAX_DAILY - featured.length;
       let fillers: Visual[] = [];
 
       if (remaining > 0) {
-        // Fetch all active items without a featured_date
+        // Fill from the entire active library (not only date-less items),
+        // excluding anything already featured today so there are no duplicates.
         const { data: poolData } = await supabase
           .from("content_library")
           .select("id, name, image_url, occasion_tags, mood_tags")
-          .eq("active", true)
-          .is("featured_date", null);
+          .eq("active", true);
 
-        const pool = (poolData as Visual[]) || [];
+        const pool = ((poolData as Visual[]) || []).filter((v) => !featuredIds.has(v.id));
         const shuffled = seededShuffle(pool, todaySeed());
         fillers = shuffled.slice(0, remaining);
       }
