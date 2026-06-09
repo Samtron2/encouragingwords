@@ -16,7 +16,7 @@ export function useTheme() {
   const { user } = useAuth();
   const [theme, setThemeState] = useState<Theme>(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    return stored === "dark" ? "dark" : stored === "royal" ? "royal" : "light";
+    return stored === "dark" ? "dark" : stored === "royal" ? "royal" : stored === "light" ? "light" : "royal";
   });
 
   // Apply on mount & change
