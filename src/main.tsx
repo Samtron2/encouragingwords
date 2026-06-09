@@ -4,9 +4,12 @@ import "./index.css";
 
 // Apply saved theme immediately to prevent flash
 const savedTheme = localStorage.getItem("ew-theme");
-document.documentElement.classList.add(
-  savedTheme === "dark" ? "theme-dark" : savedTheme === "royal" ? "theme-royal" : "theme-light"
-);
+const themeClass =
+  savedTheme === "dark"  ? "theme-dark"  :
+  savedTheme === "light" ? "theme-light" :
+  savedTheme === "royal" ? "theme-royal" :
+  "theme-royal"; // default when nothing is saved yet
+document.documentElement.classList.add(themeClass);
 
 // Guard: unregister SW in preview/iframe contexts
 const isInIframe = (() => { try { return window.self !== window.top; } catch { return true; } })();
