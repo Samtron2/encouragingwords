@@ -34,7 +34,7 @@ export const SPECIAL_OCCASIONS = [
 
 export type SpecialOccasion = typeof SPECIAL_OCCASIONS[number];
 
-export function useOccasionVisuals(occasion: SpecialOccasion | null) {
+export function useOccasionVisuals(occasion: string | null) {
   const [visuals, setVisuals] = useState<Visual[]>([]);
   const [loading, setLoading] = useState(false);
 
