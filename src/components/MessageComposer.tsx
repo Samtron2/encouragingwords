@@ -224,8 +224,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [selectedVisualId, setSelectedVisualId] = useState<string | null>(initialDraft?.selectedVisualId || null);
   const [visualIndex, setVisualIndex] = useState(0);
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
-  const [chipApi, setChipApi] = useState<CarouselApi>();
-  const [chipIndex, setChipIndex] = useState(0);
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
@@ -597,17 +595,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     return () => { carouselApi.off("select", onCarouselSelect); };
   }, [carouselApi, onCarouselSelect]);
 
-  const onChipSelect = useCallback(() => {
-    if (!chipApi) return;
-    setChipIndex(chipApi.selectedScrollSnap());
-  }, [chipApi]);
-
-  useEffect(() => {
-    if (!chipApi) return;
-    onChipSelect();
-    chipApi.on("select", onChipSelect);
-    return () => { chipApi.off("select", onChipSelect); };
-  }, [chipApi, onChipSelect]);
 
   const toggleVisualSelection = () => {
     setSelectedVisual(selectedVisual === visualIndex ? null : visualIndex);
@@ -888,31 +875,25 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           </div>
 
           <div className="mt-3">
-            <Carousel
-              opts={{ align: "center", loop: false, startIndex: Math.floor(activePrompts.length / 2) }}
-              setApi={setChipApi}
-              className="w-full"
-            >
-              <CarouselContent>
-                {activePrompts.map((prompt) => {
-                  const isSelected = message === prompt;
-                  return (
-                    <CarouselItem key={prompt} className="basis-[70%] flex justify-center pl-2">
-                      <button
-                        onClick={() => setMessage(prompt)}
-                        className={`rounded-full border px-5 py-3 text-lg font-medium transition-colors text-center leading-snug ${
-                          isSelected
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-background text-primary border-primary/30 hover:bg-primary/5"
-                        }`}
-                      >
-                        {prompt}
-                      </button>
-                    </CarouselItem>
-                  );
-                })}
-              </CarouselContent>
-            </Carousel>
+            <p className="text-sm text-muted-foreground mb-2">Or tap a starter:</p>
+            <div className="flex flex-wrap gap-2">
+              {activePrompts.map((prompt) => {
+                const isSelected = message === prompt;
+                return (
+                  <button
+                    key={prompt}
+                    onClick={() => setMessage(prompt)}
+                    className={`rounded-full border px-4 py-2 text-base font-medium transition-colors text-center leading-snug ${
+                      isSelected
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-primary border-primary/30 hover:bg-primary/5"
+                    }`}
+                  >
+                    {prompt}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Visual carousel */}
