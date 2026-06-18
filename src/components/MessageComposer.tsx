@@ -633,8 +633,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         ref={selfieInputRef}
         type="file"
         accept="image/*"
-        
-        className="hidden"
+        style={{ position: "absolute", width: 1, height: 1, opacity: 0, overflow: "hidden", pointerEvents: "none" }}
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) {
