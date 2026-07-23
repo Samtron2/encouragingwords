@@ -4,9 +4,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Camera, Check, Bell, BellOff, Users, ChevronRight } from "lucide-react";
+import { Camera, Check, Bell, BellOff, Users, ChevronRight, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import ImportantDates from "@/components/ImportantDates";
+import { useAdmin } from "@/hooks/useAdmin";
+import { useWordsThisMonth, FREE_WORDS_PER_MONTH } from "@/hooks/useWordsThisMonth";
 
 const VAPID_PUBLIC_KEY =
   "BLJP8ASgicNq8Rx3uf7sIVlP2U0k0e5qvJrwAEazeAODMCrZUHG7mtbfajpZ6At2pFq6SNYYZuQW4ZVI0Q49F7M";
