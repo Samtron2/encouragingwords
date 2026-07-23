@@ -8,6 +8,14 @@ import type { TemplateEntry } from './registry.ts'
 const MEDALLION_JPG = "https://zwivxqoxbsacyvccrmel.supabase.co/storage/v1/object/public/button/medallion.jpg"
 const SITE_NAME = 'Encouraging Words'
 
+const titleCase = (value?: string) =>
+  value
+    ? value
+        .split(' ')
+        .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : ''))
+        .join(' ')
+    : undefined
+
 interface EncouragingMessageProps {
   recipientName?: string
   senderName?: string
