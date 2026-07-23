@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Heart, Search, MoreVertical, Pencil, Trash2, UserPlus, Upload, X } from "lucide-react";
+import { Heart, Search, MoreVertical, Pencil, Trash2, UserPlus, Upload, X, BookUser } from "lucide-react";
 import { toast } from "sonner";
+import { isContactPickerSupported, pickContact } from "@/lib/contactPicker";
 import type { Tab } from "@/components/BottomNav";
 import type { PrefilledRecipient } from "@/components/MessageComposer";
 import {
