@@ -10,6 +10,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext
 import { Mail, MessageSquare, Check, User, AlertCircle, Pencil, Camera, X, Mic, Loader2, BookUser } from "lucide-react";
 import { toast } from "sonner";
 import { isContactPickerSupported, pickContact } from "@/lib/contactPicker";
+import ContactDetailsChooser from "@/components/ContactDetailsChooser";
 import { getSmsCapability, type SmsCapability } from "@/lib/deviceCapabilities";
 
 const PROMPT_SUGGESTIONS: Record<string, string[]> = {
