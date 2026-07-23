@@ -440,21 +440,32 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   const [contactPickerSupported] = useState(() => isContactPickerSupported());
 
+  const [pickerChoice, setPickerChoice] = useState<{ name?: string; emails: string[]; phones: string[] } | null>(null);
+
+  const applyPickedContact = (name: string | undefined, email: string, phone: string) => {
+    const cleanName = name?.trim() || "";
+    if (cleanName) {
+      setRecipientInput(cleanName);
+      setRecipientName(cleanName);
+      setNameConfirmed(true);
+    }
+    if (email) setRecipientEmail(email);
+    if (phone) setRecipientPhone(phone);
+    setContactInput(email || phone || "");
+    setSelectedRecipient(null);
+    setShowSuggestions(false);
+  };
+
   const handlePickContact = async () => {
     try {
       const picked = await pickContact();
       if (!picked) return;
-      const name = picked.name?.trim() || "";
-      if (name) {
-        setRecipientInput(name);
-        setRecipientName(name);
-        setNameConfirmed(true);
+      const needsChooser = picked.emails.length > 1 || picked.phones.length > 1;
+      if (!needsChooser) {
+        applyPickedContact(picked.name, picked.emails[0] || "", picked.phones[0] || "");
+        return;
       }
-      if (picked.email) setRecipientEmail(picked.email);
-      if (picked.phone) setRecipientPhone(picked.phone);
-      setContactInput(picked.email || picked.phone || "");
-      setSelectedRecipient(null);
-      setShowSuggestions(false);
+      setPickerChoice({ name: picked.name, emails: picked.emails, phones: picked.phones });
     } catch {
       toast.error("Couldn't open your contacts. You can type the name instead.");
     }
