@@ -10,6 +10,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext
 import { Mail, MessageSquare, Check, User, AlertCircle, Pencil, Camera, X, Mic, Loader2, BookUser } from "lucide-react";
 import { toast } from "sonner";
 import { isContactPickerSupported, pickContact } from "@/lib/contactPicker";
+import ContactDetailsChooser from "@/components/ContactDetailsChooser";
 import { getSmsCapability, type SmsCapability } from "@/lib/deviceCapabilities";
 
 const PROMPT_SUGGESTIONS: Record<string, string[]> = {
@@ -440,21 +441,32 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   const [contactPickerSupported] = useState(() => isContactPickerSupported());
 
+  const [pickerChoice, setPickerChoice] = useState<{ name?: string; emails: string[]; phones: string[] } | null>(null);
+
+  const applyPickedContact = (name: string | undefined, email: string, phone: string) => {
+    const cleanName = name?.trim() || "";
+    if (cleanName) {
+      setRecipientInput(cleanName);
+      setRecipientName(cleanName);
+      setNameConfirmed(true);
+    }
+    if (email) setRecipientEmail(email);
+    if (phone) setRecipientPhone(phone);
+    setContactInput(email || phone || "");
+    setSelectedRecipient(null);
+    setShowSuggestions(false);
+  };
+
   const handlePickContact = async () => {
     try {
       const picked = await pickContact();
       if (!picked) return;
-      const name = picked.name?.trim() || "";
-      if (name) {
-        setRecipientInput(name);
-        setRecipientName(name);
-        setNameConfirmed(true);
+      const needsChooser = picked.emails.length > 1 || picked.phones.length > 1;
+      if (!needsChooser) {
+        applyPickedContact(picked.name, picked.emails[0] || "", picked.phones[0] || "");
+        return;
       }
-      if (picked.email) setRecipientEmail(picked.email);
-      if (picked.phone) setRecipientPhone(picked.phone);
-      setContactInput(picked.email || picked.phone || "");
-      setSelectedRecipient(null);
-      setShowSuggestions(false);
+      setPickerChoice({ name: picked.name, emails: picked.emails, phones: picked.phones });
     } catch {
       toast.error("Couldn't open your contacts. You can type the name instead.");
     }
@@ -1129,6 +1141,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   ref={inputRef}
+                  autoComplete="off"
+                  name="recipient-contact-name"
                   placeholder="Who is this for?"
                   value={recipientInput}
                   onChange={(e) => {
@@ -1222,6 +1236,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             <div className="mt-3 animate-fade-in">
               <Input
                 ref={contactInputRef}
+                autoComplete="off"
+                name="recipient-contact-detail"
                 placeholder="Email or phone number"
                 value={contactInput}
                 onChange={(e) => {
@@ -1265,6 +1281,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 >
                   <Input
                     autoFocus
+                    autoComplete="off"
+                    name="recipient-contact-detail"
                     placeholder={nudgeField === "email" ? "Email address" : "Phone number"}
                     value={nudgeValue}
                     onChange={(e) => setNudgeValue(e.target.value)}
@@ -1646,6 +1664,18 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           )}
         </section>
       </div>
+
+      <ContactDetailsChooser
+        open={!!pickerChoice}
+        name={pickerChoice?.name}
+        emails={pickerChoice?.emails ?? []}
+        phones={pickerChoice?.phones ?? []}
+        onCancel={() => setPickerChoice(null)}
+        onConfirm={(choice) => {
+          applyPickedContact(pickerChoice?.name, choice.email, choice.phone);
+          setPickerChoice(null);
+        }}
+      />
     </div>
   );
 }
