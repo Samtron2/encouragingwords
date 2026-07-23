@@ -714,7 +714,8 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
