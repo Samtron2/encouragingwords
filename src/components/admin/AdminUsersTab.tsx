@@ -130,6 +130,11 @@ export default function AdminUsersTab() {
 
   return (
     <div className="space-y-4 animate-fade-in">
+      {interestCount !== null && (
+        <p className="text-sm text-muted-foreground">
+          Upgrade interest: {interestCount} {interestCount === 1 ? "person" : "people"}
+        </p>
+      )}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
