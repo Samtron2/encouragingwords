@@ -122,6 +122,81 @@ function useUpcomingDates(userId: string | undefined) {
   return reminders;
 }
 
+interface RecentWord {
+  id: string;
+  recipientName: string;
+  method: "email" | "sms_native" | string;
+  createdAt: string;
+  opened: boolean;
+}
+
+function useRecentWords(userId: string | undefined) {
+  const [items, setItems] = useState<RecentWord[]>([]);
+
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      const { data: msgs } = await supabase
+        .from("messages")
+        .select("id, recipient_id, delivery_method, status, created_at, reveal_token")
+        .eq("user_id", userId)
+        .neq("status", "failed")
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      if (!msgs || msgs.length === 0) {
+        setItems([]);
+        return;
+      }
+
+      const recipientIds = Array.from(
+        new Set(msgs.map((m) => m.recipient_id).filter(Boolean) as string[])
+      );
+      const tokens = Array.from(
+        new Set(msgs.map((m) => m.reveal_token).filter(Boolean) as string[])
+      );
+
+      const [recipRes, tokenRes] = await Promise.all([
+        recipientIds.length
+          ? supabase.from("recipients").select("id, name").in("id", recipientIds)
+          : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+        tokens.length
+          ? supabase
+              .from("message_tokens")
+              .select("token, recipient_name, opened_at")
+              .in("token", tokens)
+          : Promise.resolve({
+              data: [] as { token: string; recipient_name: string | null; opened_at: string | null }[],
+            }),
+      ]);
+
+      const recipMap = new Map((recipRes.data ?? []).map((r) => [r.id, r.name]));
+      const tokenMap = new Map(
+        (tokenRes.data ?? []).map((t) => [t.token, t])
+      );
+
+      setItems(
+        msgs.map((m) => {
+          const tokenRow = m.reveal_token ? tokenMap.get(m.reveal_token) : undefined;
+          const name =
+            (m.recipient_id && recipMap.get(m.recipient_id)) ||
+            tokenRow?.recipient_name ||
+            "A friend";
+          return {
+            id: m.id,
+            recipientName: name,
+            method: m.delivery_method,
+            createdAt: m.created_at,
+            opened: !!tokenRow?.opened_at,
+          };
+        })
+      );
+    })();
+  }, [userId]);
+
+  return items;
+}
+
 const TAB_KEY = "ew-active-tab";
 
 function getRestoredTab(): Tab {
