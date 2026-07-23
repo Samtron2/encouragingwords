@@ -672,9 +672,17 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         // Create a reveal token so the SMS recipient gets the full experience.
         let revealToken: string | null = null;
         try {
-          const bytes = new Uint8Array(32);
-          crypto.getRandomValues(bytes);
-          const candidate = Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+          // 12-char base62 token (~71 bits) via rejection sampling for uniform distribution.
+          const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+          const TOKEN_LEN = 12;
+          const chars: string[] = [];
+          const buf = new Uint8Array(1);
+          while (chars.length < TOKEN_LEN) {
+            crypto.getRandomValues(buf);
+            // 62 * 4 = 248; reject bytes >= 248 to keep uniform mod 62
+            if (buf[0] < 248) chars.push(ALPHABET[buf[0] % 62]);
+          }
+          const candidate = chars.join("");
 
           const senderProfile = await supabase
             .from("profiles")
