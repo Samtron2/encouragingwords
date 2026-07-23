@@ -221,6 +221,11 @@ const Index = () => {
   const reminders = useUpcomingDates(user?.id);
   const greeting = useGreeting(user?.id);
   const wordsSentMessage = useWordsSentCount(user?.id);
+  const recentWords = useRecentWords(user?.id);
+
+  const methodLabel = (m: string) => (m === "sms_native" ? "Text" : m === "email" ? "Email" : "Sent");
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
   if (loading) {
     return (
