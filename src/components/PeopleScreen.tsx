@@ -76,15 +76,26 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
   const [addingContact, setAddingContact] = useState(false);
   const [contactPickerSupported] = useState(() => isContactPickerSupported());
 
+  const [pickerChoice, setPickerChoice] = useState<{ name?: string; emails: string[]; phones: string[] } | null>(null);
+
+  const applyPickedToAddForm = (name: string | undefined, email: string, phone: string) => {
+    setAddForm({
+      name: name || "",
+      email,
+      phone,
+    });
+  };
+
   const handleAddPickContact = async () => {
     try {
       const picked = await pickContact();
       if (!picked) return;
-      setAddForm({
-        name: picked.name || "",
-        email: picked.email || "",
-        phone: picked.phone || "",
-      });
+      const needsChooser = picked.emails.length > 1 || picked.phones.length > 1;
+      if (!needsChooser) {
+        applyPickedToAddForm(picked.name, picked.emails[0] || "", picked.phones[0] || "");
+        return;
+      }
+      setPickerChoice({ name: picked.name, emails: picked.emails, phones: picked.phones });
     } catch {
       toast.error("Couldn't open your contacts. You can type the name instead.");
     }
