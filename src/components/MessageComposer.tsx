@@ -1193,18 +1193,86 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           </label>
           <div className="relative">
             <textarea
+              ref={messageTextareaRef}
               value={message}
               onChange={(e) => {
                 if (e.target.value.length <= 160) setMessage(e.target.value);
               }}
               placeholder="Write something kind…"
               rows={4}
-              className="flex w-full rounded-2xl border border-input bg-card px-5 py-5 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-body shadow-card leading-relaxed"
+              disabled={isRecording || transcribing}
+              className="flex w-full rounded-2xl border border-input bg-card px-5 py-5 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-body shadow-card leading-relaxed disabled:opacity-70"
             />
             <span className="absolute bottom-3 right-4 text-[15px] text-muted-foreground">
               {message.length}/160
             </span>
           </div>
+
+          {/* Voice-to-text controls */}
+          <div className="mt-3">
+            {!isRecording && !transcribing && (
+              <button
+                type="button"
+                onClick={startRecording}
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-2 text-base font-medium text-primary hover:bg-primary/10 transition-colors"
+              >
+                <Mic className="h-4 w-4" />
+                Speak it
+              </button>
+            )}
+            {isRecording && (
+              <div className="flex items-center gap-3 rounded-full border border-destructive/30 bg-destructive/5 px-4 py-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-destructive opacity-60 animate-ping" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-destructive" />
+                </span>
+                <span className="text-base font-medium text-destructive tabular-nums">
+                  Recording… {recordingSeconds}s
+                </span>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={stopRecording}
+                  className="ml-auto rounded-full h-8 px-4 text-sm bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  Done
+                </Button>
+              </div>
+            )}
+            {transcribing && (
+              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-4 py-2 text-base text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Polishing your words…
+              </div>
+            )}
+          </div>
+
+          {/* Replace-confirmation prompt when textarea already has content */}
+          {pendingTranscript && (
+            <div className="mt-3 rounded-2xl border border-border bg-card p-4 text-left">
+              <p className="text-sm text-muted-foreground mb-2">Replace your current message with this?</p>
+              <p className="text-base text-foreground italic mb-3">"{pendingTranscript}"</p>
+              <div className="flex gap-2 justify-end">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setPendingTranscript(null)}
+                  className="rounded-full h-8 px-4 text-sm"
+                >
+                  Keep original
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => insertTranscript(pendingTranscript)}
+                  className="rounded-full h-8 px-4 text-sm bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  Replace
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className="mt-3">
             <p className="text-sm text-muted-foreground mb-2">Or tap a starter:</p>
