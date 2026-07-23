@@ -12,6 +12,11 @@ import { toast } from "sonner";
 import { isContactPickerSupported, pickContact } from "@/lib/contactPicker";
 import ContactDetailsChooser from "@/components/ContactDetailsChooser";
 import { getSmsCapability, type SmsCapability } from "@/lib/deviceCapabilities";
+import { useWordsThisMonth, FREE_WORDS_PER_MONTH } from "@/hooks/useWordsThisMonth";
+import { useAdmin } from "@/hooks/useAdmin";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+
+let pitchShownThisSession = false;
 
 const PROMPT_SUGGESTIONS: Record<string, string[]> = {
   default: [
