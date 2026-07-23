@@ -225,6 +225,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [visualIndex, setVisualIndex] = useState(0);
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [sent, setSent] = useState(false);
+  const [sentMethod, setSentMethod] = useState<"email" | "sms" | null>(null);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
   const [isTouchDevice] = useState(() => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
