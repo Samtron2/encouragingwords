@@ -16,3 +16,6 @@ verify_jwt = false
 verify_jwt = false
 [functions.send-push]
 verify_jwt = true
+
+[functions.send-date-reminders]
+verify_jwt = false
