@@ -245,6 +245,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const photoUploadPromiseRef = useRef<Promise<string | null> | null>(null);
   const photoFileRef = useRef<File | null>(null);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
+  const [editingDetails, setEditingDetails] = useState(false);
   const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
   const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
   const [nudgeValue, setNudgeValue] = useState("");
@@ -339,6 +340,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setNudgeField(null);
     setNudgeInputVisible(false);
     setNudgeValue("");
+    setEditingDetails(false);
   };
 
   // Parse the contact detail input (Step 2 only)
@@ -436,6 +438,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setRecipientPhone("");
     setSelectedRecipient(null);
     setNudgeField(null);
+    setEditingDetails(false);
     setTimeout(() => inputRef.current?.focus(), 50);
   };
 
@@ -453,8 +456,18 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     if (email) setRecipientEmail(email);
     if (phone) setRecipientPhone(phone);
     setContactInput(email || phone || "");
-    setSelectedRecipient(null);
+    setSelectedRecipient({
+      id: "__imported__",
+      name: cleanName || null,
+      email: email || null,
+      phone: phone || null,
+      nudge_dismissed: true,
+    });
     setShowSuggestions(false);
+    setNudgeField(null);
+    setNudgeInputVisible(false);
+    setNudgeValue("");
+    setEditingDetails(false);
   };
 
   const handlePickContact = async () => {
@@ -482,15 +495,20 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   const handleNudgeSave = async () => {
     if (!selectedRecipient || !nudgeValue.trim()) return;
+    const isImported = selectedRecipient.id.startsWith("__imported__");
     if (nudgeField === "email") {
       const val = nudgeValue.trim();
       setRecipientEmail(val);
-      await supabase.from("recipients").update({ email: val }).eq("id", selectedRecipient.id);
+      if (!isImported) {
+        await supabase.from("recipients").update({ email: val }).eq("id", selectedRecipient.id);
+      }
       setSelectedRecipient({ ...selectedRecipient, email: val } as Recipient);
     } else {
       const val = nudgeValue.trim();
       setRecipientPhone(val);
-      await supabase.from("recipients").update({ phone: val }).eq("id", selectedRecipient.id);
+      if (!isImported) {
+        await supabase.from("recipients").update({ phone: val }).eq("id", selectedRecipient.id);
+      }
       setSelectedRecipient({ ...selectedRecipient, phone: val } as Recipient);
     }
     setNudgeField(null);
@@ -501,7 +519,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   const handleNudgeDismiss = async () => {
     if (!selectedRecipient) return;
-    await supabase.from("recipients").update({ nudge_dismissed: true }).eq("id", selectedRecipient.id);
+    if (!selectedRecipient.id.startsWith("__imported__")) {
+      await supabase.from("recipients").update({ nudge_dismissed: true }).eq("id", selectedRecipient.id);
+    }
     setNudgeField(null);
     setNudgeInputVisible(false);
   };
@@ -1216,8 +1236,63 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 </div>
               )}
             </>
+          ) : selectedRecipient ? (
+            /* Selected saved/imported recipient — clean summary card */
+            <div className="rounded-2xl border border-border bg-card px-4 py-3 text-left">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground text-[15px] font-semibold">
+                  {(recipientName || "?")[0].toUpperCase()}
+                </div>
+                <span className="text-lg font-medium text-foreground flex-1 truncate">{recipientName}</span>
+                <button
+                  onClick={editName}
+                  className="p-1.5 rounded-full hover:bg-secondary/60 transition-colors text-muted-foreground hover:text-foreground"
+                  aria-label="Edit name"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {recipientEmail && recipientPhone
+                  ? "Email and phone on file"
+                  : recipientEmail
+                  ? "Email on file"
+                  : recipientPhone
+                  ? "Phone on file"
+                  : ""}
+              </p>
+              <button
+                type="button"
+                onClick={() => setEditingDetails((v) => !v)}
+                className="mt-2 text-sm font-medium text-accent hover:text-accent/80 transition-colors"
+              >
+                {editingDetails ? "Done" : "Edit details"}
+              </button>
+              {editingDetails && (
+                <div className="mt-3 animate-fade-in space-y-2">
+                  <Input
+                    type="email"
+                    autoComplete="off"
+                    name="recipient-email-edit"
+                    placeholder="Email address"
+                    value={recipientEmail}
+                    onChange={(e) => setRecipientEmail(e.target.value)}
+                    className="text-base py-3"
+                  />
+                  <Input
+                    type="tel"
+                    autoComplete="off"
+                    name="recipient-phone-edit"
+                    placeholder="Phone number"
+                    value={recipientPhone}
+                    onChange={(e) => setRecipientPhone(e.target.value)}
+                    className="text-base py-3"
+                  />
+                </div>
+              )}
+            </div>
           ) : (
-            /* Name confirmed — read-only display */
+            /* Name confirmed — read-only display for new typed recipients */
             <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3">
               <User className="h-4 w-4 text-muted-foreground shrink-0" />
               <span className="text-lg font-medium text-foreground flex-1 text-left truncate">{recipientName}</span>
