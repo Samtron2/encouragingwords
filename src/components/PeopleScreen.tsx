@@ -475,13 +475,23 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
       {filtered.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pt-32 text-center">
           <Heart className="h-12 w-12 text-muted-foreground/40 mb-4" />
-          <p className="text-lg font-medium text-muted-foreground">
+          <p className="text-lg font-medium text-muted-foreground max-w-xs leading-snug">
             {search
               ? "No contacts match your search."
-              : "The people you encourage will appear here."}
+              : "No one here yet. Add the people you want to encourage and they'll be one tap away."}
           </p>
+          {!search && (
+            <Button
+              onClick={() => setShowAddForm(true)}
+              className="mt-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold px-6 h-12"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Add someone
+            </Button>
+          )}
         </div>
       ) : (
+
         <div className="px-4 space-y-2 mt-2">
           {filtered.map((c) => (
             <div key={c.id}>
