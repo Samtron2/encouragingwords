@@ -44,7 +44,7 @@ function isStandalonePWA() {
   );
 }
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ onNavigate }: { onNavigate?: (tab: "people") => void } = {}) {
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
