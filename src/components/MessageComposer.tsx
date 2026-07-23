@@ -559,7 +559,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         const smsBody = encodeURIComponent(smsText);
         const smsUrl = `sms:${recipientPhone}?body=${smsBody}`;
 
-        await supabase.from("messages").insert({
+        const { error: smsLogError } = await supabase.from("messages").insert({
           user_id: user.id,
           recipient_id: recipientRow?.id || null,
           message_text: message.trim(),
@@ -567,6 +567,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           delivery_method: "sms_native",
           status: "initiated",
         });
+        if (smsLogError) console.error("Failed to log SMS message:", smsLogError);
 
         window.open(smsUrl, "_self");
       }
