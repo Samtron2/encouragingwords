@@ -305,9 +305,34 @@ const Index = () => {
                 )}
               </div>
 
+              {/* Welcome card */}
+              {!welcomeDismissed && (
+                <div className="max-w-md w-full mt-6 mb-4 rounded-2xl bg-card p-5 shadow-card text-center animate-fade-in">
+                  <div className="flex items-start justify-between">
+                    <h2 className="font-display text-2xl font-bold text-primary">Welcome</h2>
+                    <button
+                      onClick={dismissWelcome}
+                      className="p-1 rounded-full hover:bg-muted transition-colors text-muted-foreground"
+                      aria-label="Dismiss welcome"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <p className="mt-2 text-base text-muted-foreground leading-relaxed text-left">
+                    Pick a person, write a few kind words, and send them by email or text. One small note can make someone's whole day.
+                  </p>
+                  <Button
+                    onClick={dismissWelcome}
+                    className="mt-4 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold px-6"
+                  >
+                    Got it
+                  </Button>
+                </div>
+              )}
+
               {/* Middle section — reminders */}
               <div className="flex-1 flex items-center max-w-md w-full">
-                {reminders.length > 0 && (
+                {reminders.length > 0 ? (
                   <div className="space-y-3 text-left w-full">
                     {reminders.map((r, i) => (
                       <div
@@ -336,8 +361,13 @@ const Index = () => {
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <p className="text-center text-sm text-muted-foreground w-full">
+                    Add birthdays and special days in Settings, and we'll remind you when they're near.
+                  </p>
                 )}
               </div>
+
 
               {/* Recent words */}
               {recentWords.length > 0 && (
