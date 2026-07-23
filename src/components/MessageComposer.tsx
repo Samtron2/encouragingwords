@@ -742,6 +742,196 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     photoUploadPromiseRef.current = promise;
   };
 
+  const cleanupRecording = () => {
+    if (recordTimerRef.current) { clearInterval(recordTimerRef.current); recordTimerRef.current = null; }
+    if (autoStopTimerRef.current) { clearTimeout(autoStopTimerRef.current); autoStopTimerRef.current = null; }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+    mediaRecorderRef.current = null;
+  };
+
+  useEffect(() => () => cleanupRecording(), []);
+
+  const pickAudioMimeType = (): string => {
+    const candidates = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm", "audio/mp4;codecs=mp4a.40.2"];
+    if (typeof MediaRecorder !== "undefined" && (MediaRecorder as any).isTypeSupported) {
+      for (const c of candidates) {
+        try { if ((MediaRecorder as any).isTypeSupported(c)) return c; } catch { /* noop */ }
+      }
+    }
+    // iOS Safari best-guess
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ? "audio/mp4" : "audio/webm";
+  };
+
+  const insertTranscript = (text: string) => {
+    setMessage(text);
+    setPendingTranscript(null);
+    setTimeout(() => {
+      const el = messageTextareaRef.current;
+      if (el) {
+        el.focus();
+        try { el.setSelectionRange(text.length, text.length); } catch { /* noop */ }
+      }
+    }, 50);
+    if (!voiceHintShownRef.current) {
+      voiceHintShownRef.current = true;
+      toast("Look it over, make it yours, then send.");
+    }
+  };
+
+  const processAudioBlob = async (blob: Blob, mimeType: string) => {
+    setTranscribing(true);
+    try {
+      const buf = await blob.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let binary = "";
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      const base64 = btoa(binary);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Not authenticated");
+
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-voice`;
+      let res: Response;
+      try {
+        res = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ audio: base64, mimeType }),
+          signal: controller.signal,
+        });
+      } catch (err: any) {
+        clearTimeout(timeoutId);
+        if (err?.name === "AbortError") {
+          toast.error("That took too long. Please try a shorter recording.");
+        } else {
+          toast.error("Couldn't reach the transcription service. Please try again.");
+        }
+        return;
+      }
+      clearTimeout(timeoutId);
+
+      const json = await res.json().catch(() => ({} as any));
+      if (!res.ok || !json?.text) {
+        toast.error(json?.error || "Couldn't transcribe that recording. Please try again.");
+        return;
+      }
+      const text: string = json.text;
+      if (message.trim().length > 0 && text.trim() !== message.trim()) {
+        setPendingTranscript(text);
+      } else {
+        insertTranscript(text);
+      }
+    } catch (err) {
+      console.error("Transcription error:", err);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setTranscribing(false);
+    }
+  };
+
+  const stopRecording = () => {
+    const rec = mediaRecorderRef.current;
+    if (rec && rec.state !== "inactive") {
+      try { rec.stop(); } catch { /* noop */ }
+    } else {
+      cleanupRecording();
+      setIsRecording(false);
+    }
+  };
+
+  const startRecording = async () => {
+    if (isRecording || transcribing) return;
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      toast.error("Voice recording isn't supported on this browser.");
+      return;
+    }
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err: any) {
+      const name = err?.name || "";
+      if (name === "NotAllowedError" || name === "SecurityError" || name === "PermissionDeniedError") {
+        toast.error("Microphone is blocked. Enable it in your browser settings and try again.");
+      } else if (name === "NotFoundError") {
+        toast.error("No microphone found.");
+      } else {
+        toast.error("Couldn't start recording. Please try again.");
+      }
+      return;
+    }
+
+    const mimeType = pickAudioMimeType();
+    let recorder: MediaRecorder;
+    try {
+      recorder = new MediaRecorder(stream, { mimeType });
+    } catch {
+      try { recorder = new MediaRecorder(stream); } catch {
+        stream.getTracks().forEach((t) => t.stop());
+        toast.error("Couldn't start recording. Please try again.");
+        return;
+      }
+    }
+
+    mediaStreamRef.current = stream;
+    mediaRecorderRef.current = recorder;
+    audioChunksRef.current = [];
+
+    recorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data);
+    };
+    recorder.onstop = async () => {
+      const chunks = audioChunksRef.current;
+      const type = recorder.mimeType || mimeType;
+      cleanupRecording();
+      setIsRecording(false);
+      setRecordingSeconds(0);
+      if (!chunks.length) {
+        toast.error("Didn't catch that. Try recording again.");
+        return;
+      }
+      const blob = new Blob(chunks, { type });
+      if (blob.size < 1024) {
+        toast.error("That recording was too short. Please try again.");
+        return;
+      }
+      await processAudioBlob(blob, type);
+    };
+    recorder.onerror = () => {
+      cleanupRecording();
+      setIsRecording(false);
+      setRecordingSeconds(0);
+      toast.error("Recording error. Please try again.");
+    };
+
+    try {
+      recorder.start();
+    } catch {
+      cleanupRecording();
+      toast.error("Couldn't start recording. Please try again.");
+      return;
+    }
+    setIsRecording(true);
+    setRecordingSeconds(0);
+    recordTimerRef.current = setInterval(() => {
+      setRecordingSeconds((s) => s + 1);
+    }, 1000);
+    autoStopTimerRef.current = setTimeout(() => {
+      stopRecording();
+    }, 60000);
+  };
 
   if (sent) {
     return (
