@@ -111,7 +111,7 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
     if (!user) return;
     const { data } = await supabase
       .from("recipients")
-      .select("id, name, email, phone, last_contacted_at")
+      .select("id, name, email, phone, last_contacted_at, created_at")
       .eq("user_id", user.id)
       .order("last_contacted_at", { ascending: false, nullsFirst: false });
     setContacts(data ?? []);
