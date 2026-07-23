@@ -1148,6 +1148,19 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                   </button>
                 </div>
               )}
+
+              {contactPickerSupported && (
+                <div className="flex justify-center mt-3">
+                  <button
+                    type="button"
+                    onClick={handlePickContact}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary/70 transition-colors"
+                  >
+                    <BookUser className="h-4 w-4" />
+                    Choose from contacts
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             /* Name confirmed — read-only display */
