@@ -1590,14 +1590,11 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
           {nameConfirmed && message.trim() && !sending && (
             <div className="mt-3 text-center text-sm text-muted-foreground">
-              {!recipientEmail && recipientPhone && (
+              {!recipientEmail && (
                 <span>Add their email address to send this as an email.</span>
               )}
-              {!recipientPhone && (recipientEmail || smsCapability === "none") && (
+              {!recipientPhone && recipientEmail && smsCapability !== "none" && (
                 <span>Add their phone number to send this as a text.</span>
-              )}
-              {!recipientEmail && !recipientPhone && (
-                <span>Add their email address to send this as an email.</span>
               )}
             </div>
           )}
