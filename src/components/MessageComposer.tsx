@@ -1082,8 +1082,12 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         {/* STEP 1 — WHO (Name) */}
         <section className="mb-8">
           <label className="text-lg font-medium text-muted-foreground mb-2 block">
-            Who is this for?
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent/15 text-accent text-sm font-bold mr-2">
+              1
+            </span>
+            Who's it for
           </label>
+
 
           {!nameConfirmed ? (
             <>
@@ -1293,8 +1297,12 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         {/* STEP 2 — WHAT */}
         <section className="mb-8">
           <label className="text-lg font-medium text-muted-foreground mb-2 block">
-            Your message
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent/15 text-accent text-sm font-bold mr-2">
+              2
+            </span>
+            Your words
           </label>
+
           <div className="relative">
             <textarea
               ref={messageTextareaRef}
@@ -1549,8 +1557,12 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         {/* STEP 3 — HOW */}
         <section>
           <label className="text-lg font-medium text-muted-foreground mb-3 block">
-            How should we send it?
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent/15 text-accent text-sm font-bold mr-2">
+              3
+            </span>
+            Send it
           </label>
+
           <div className="flex gap-3 w-full">
             <Button
               onClick={() => handleSend("email")}

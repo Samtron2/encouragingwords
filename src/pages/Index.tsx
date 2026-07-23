@@ -4,8 +4,9 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useTheme } from "@/hooks/useTheme";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Send, CalendarHeart, Check } from "lucide-react";
+import { Send, CalendarHeart, Check, X } from "lucide-react";
 import logo from "@/assets/encouraging-words-logo.png";
+
 import MessageComposer, { type PrefilledRecipient } from "@/components/MessageComposer";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import SettingsScreen from "@/components/SettingsScreen";
