@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import medallionLogo from "@/assets/encouraging-words-logo.png";
 
-const MEDALLION_URL = supabase.storage.from("button").getPublicUrl("ew.vector.svg").data.publicUrl;
 
 interface MessageData {
   sender_name: string | null;
