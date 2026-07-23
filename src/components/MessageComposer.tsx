@@ -531,7 +531,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
         const status = sendResult.error ? "failed" : "sent";
 
-        await supabase.from("messages").insert({
+        const { error: logError } = await supabase.from("messages").insert({
           user_id: user.id,
           recipient_id: recipientRow?.id || null,
           message_text: message.trim(),
@@ -539,6 +539,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           delivery_method: "email",
           status,
         });
+        if (logError) console.error("Failed to log email message:", logError);
 
         if (sendResult.error || sendResult.data?.error) {
           console.error("Send failed:", sendResult.error || sendResult.data?.error);
