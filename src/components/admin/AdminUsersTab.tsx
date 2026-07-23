@@ -131,9 +131,10 @@ export default function AdminUsersTab() {
   return (
     <div className="space-y-4 animate-fade-in">
       {interestCount !== null && (
-        <p className="text-sm text-muted-foreground">
-          Upgrade interest: {interestCount} {interestCount === 1 ? "person" : "people"}
-        </p>
+        <div className="text-sm text-muted-foreground space-y-0.5">
+          <p>Upgrade interest: {interestCount} {interestCount === 1 ? "person" : "people"}</p>
+          <p>Billing framework: built, switched off.</p>
+        </div>
       )}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
