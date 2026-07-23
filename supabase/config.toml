@@ -14,3 +14,5 @@ verify_jwt = false
 
 [functions.handle-email-suppression]
 verify_jwt = false
+[functions.send-push]
+verify_jwt = true
