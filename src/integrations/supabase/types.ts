@@ -221,6 +221,7 @@ export type Database = {
           id: string
           message_text: string
           recipient_id: string | null
+          reveal_token: string | null
           sent_at: string
           status: string
           user_id: string
@@ -232,6 +233,7 @@ export type Database = {
           id?: string
           message_text: string
           recipient_id?: string | null
+          reveal_token?: string | null
           sent_at?: string
           status?: string
           user_id: string
@@ -243,6 +245,7 @@ export type Database = {
           id?: string
           message_text?: string
           recipient_id?: string | null
+          reveal_token?: string | null
           sent_at?: string
           status?: string
           user_id?: string
