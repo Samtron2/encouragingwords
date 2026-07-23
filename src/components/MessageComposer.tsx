@@ -1073,6 +1073,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                                   onClick={() => {
                                     setSelfiePreview(null);
                                     setSelfieSelected(false);
+                                    setPhotoPublicUrl(null);
+                                    setPhotoUploading(false);
+                                    setPhotoUploadFailed(false);
+                                    photoUploadPromiseRef.current = null;
                                   }}
                                   className="absolute top-2 right-2 h-7 w-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-background transition-colors"
                                   aria-label="Remove photo"
