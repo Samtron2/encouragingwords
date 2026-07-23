@@ -53,7 +53,7 @@ export default function MessageReveal() {
 
   if (notFound) return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0a0a0a", color: "#f5f0e8", fontFamily: "'Georgia', serif", padding: 24 }}>
-      <img src={MEDALLION_URL} alt="" style={{ width: 64, height: 64, marginBottom: 24, opacity: 0.5 }} />
+      <img src={medallionLogo} alt="" style={{ width: 64, height: 64, marginBottom: 24, opacity: 0.5 }} />
       <p style={{ fontSize: 18 }}>This letter has expired or could not be found.</p>
     </div>
   );
@@ -168,12 +168,21 @@ export default function MessageReveal() {
               <line x1="260" y1="180" x2="130" y2="90" stroke="#c9a84c33" strokeWidth="1" />
             </svg>
 
-            {/* Medallion on envelope body */}
+            {/* Wax-seal medallion — sits on top of the flap where its point meets the body */}
             <div style={{
               position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-              zIndex: 2,
+              zIndex: 4,
             }}>
-              <img src={MEDALLION_URL} alt="" style={{ width: 48, height: 48, opacity: 0.7 }} />
+              <img
+                src={medallionLogo}
+                alt=""
+                style={{
+                  width: 80,
+                  height: 80,
+                  display: "block",
+                  filter: "drop-shadow(0 3px 6px rgba(0,0,0,0.55)) drop-shadow(0 1px 2px rgba(0,0,0,0.4))",
+                }}
+              />
             </div>
 
             {/* Flap (top triangle) */}
@@ -210,8 +219,8 @@ export default function MessageReveal() {
         </div>
       ) : (
         <div className="letter-card" style={{ maxWidth: 480, width: "100%" }}>
-          <div style={{ textAlign: "center", marginBottom: 20 }}>
-            <img src={MEDALLION_URL} alt="" style={{ width: 44, height: 44, margin: "0 auto", display: "block", opacity: 0.5 }} />
+          <div style={{ textAlign: "center", marginBottom: 16 }}>
+            <img src={medallionLogo} alt="" style={{ width: 72, height: 72, margin: "0 auto", display: "block" }} />
           </div>
 
           <div style={{
@@ -237,7 +246,7 @@ export default function MessageReveal() {
               </p>
             </div>
 
-            <div style={{ padding: "32px 28px 28px" }}>
+            <div style={{ padding: "32px 32px 32px" }}>
               {data?.visual_emoji && (
                 <p style={{ fontSize: 56, textAlign: "center", margin: "0 0 16px", lineHeight: 1 }}>{data.visual_emoji}</p>
               )}
@@ -257,8 +266,8 @@ export default function MessageReveal() {
               )}
               <p style={{
                 fontFamily: "'Georgia', serif",
-                fontSize: 18,
-                lineHeight: 1.7,
+                fontSize: 20,
+                lineHeight: 1.75,
                 color: "#f5f0e8",
                 whiteSpace: "pre-wrap",
                 margin: "0 0 28px",
