@@ -320,6 +320,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setPhotoUploading(false);
     setPhotoUploadFailed(false);
     photoUploadPromiseRef.current = null;
+    photoFileRef.current = null;
     setSelectedRecipient(null);
     setNudgeField(null);
     setNudgeInputVisible(false);
