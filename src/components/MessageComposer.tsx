@@ -735,9 +735,13 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-accent/15 mb-6">
           <Check className="h-10 w-10 text-accent" />
         </div>
-        <h2 className="font-display text-4xl font-bold text-primary">Your words are on their way</h2>
+        <h2 className="font-display text-4xl font-bold text-primary">
+          {sentMethod === "sms" ? "Almost there" : "Your words are on their way"}
+        </h2>
         <p className="mt-3 text-center text-muted-foreground max-w-xs leading-relaxed text-lg">
-          You just made someone's day a little brighter.
+          {sentMethod === "sms"
+            ? "Your message is ready in Messages — just hit send."
+            : "You just made someone's day a little brighter."}
         </p>
         <Button
           className="mt-8 rounded-full bg-accent text-accent-foreground font-bold px-8 h-16 text-lg shadow-glow hover:bg-accent/90"
