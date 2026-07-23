@@ -231,6 +231,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
   const [isTouchDevice] = useState(() => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
+  const [smsCapability] = useState<SmsCapability>(() => getSmsCapability());
   const inputRef = useRef<HTMLInputElement>(null);
   const contactInputRef = useRef<HTMLInputElement>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
