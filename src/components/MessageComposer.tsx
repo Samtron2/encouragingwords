@@ -437,6 +437,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setRecipientPhone("");
     setSelectedRecipient(null);
     setNudgeField(null);
+    setEditingDetails(false);
     setTimeout(() => inputRef.current?.focus(), 50);
   };
 
@@ -493,15 +494,20 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   const handleNudgeSave = async () => {
     if (!selectedRecipient || !nudgeValue.trim()) return;
+    const isImported = selectedRecipient.id.startsWith("__imported__");
     if (nudgeField === "email") {
       const val = nudgeValue.trim();
       setRecipientEmail(val);
-      await supabase.from("recipients").update({ email: val }).eq("id", selectedRecipient.id);
+      if (!isImported) {
+        await supabase.from("recipients").update({ email: val }).eq("id", selectedRecipient.id);
+      }
       setSelectedRecipient({ ...selectedRecipient, email: val } as Recipient);
     } else {
       const val = nudgeValue.trim();
       setRecipientPhone(val);
-      await supabase.from("recipients").update({ phone: val }).eq("id", selectedRecipient.id);
+      if (!isImported) {
+        await supabase.from("recipients").update({ phone: val }).eq("id", selectedRecipient.id);
+      }
       setSelectedRecipient({ ...selectedRecipient, phone: val } as Recipient);
     }
     setNudgeField(null);
@@ -512,7 +518,9 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   const handleNudgeDismiss = async () => {
     if (!selectedRecipient) return;
-    await supabase.from("recipients").update({ nudge_dismissed: true }).eq("id", selectedRecipient.id);
+    if (!selectedRecipient.id.startsWith("__imported__")) {
+      await supabase.from("recipients").update({ nudge_dismissed: true }).eq("id", selectedRecipient.id);
+    }
     setNudgeField(null);
     setNudgeInputVisible(false);
   };
