@@ -285,6 +285,15 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     }
   }, []);
 
+  // Trigger the one-time success icon scale-in when the sent state appears
+  useEffect(() => {
+    if (sent) {
+      setSuccessEntered(true);
+    } else {
+      setSuccessEntered(false);
+    }
+  }, [sent]);
+
   // Restore selectedVisual index from ID once visuals load
   useEffect(() => {
     if (selectedVisualId && activeVisuals.length > 0 && selectedVisual === null) {
