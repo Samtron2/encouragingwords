@@ -214,6 +214,9 @@
 
 /* Visual tile emoji background */
 .visual-tile-emoji {
+  background-color: hsl(0 0% 10%);
+}
+.theme-light .visual-tile-emoji {
   background-color: #F5F0E8;
 }
 .theme-dark .visual-tile-emoji {
