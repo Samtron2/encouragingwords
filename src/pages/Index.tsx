@@ -326,6 +326,40 @@ const Index = () => {
                 )}
               </div>
 
+              {/* Recent words */}
+              {recentWords.length > 0 && (
+                <div className="max-w-md w-full mt-2 mb-4">
+                  <h2 className="font-display text-2xl font-semibold text-primary mb-3 text-center">
+                    Your recent words
+                  </h2>
+                  <div className="space-y-2">
+                    {recentWords.map((w) => (
+                      <div
+                        key={w.id}
+                        className="rounded-2xl bg-card p-4 shadow-card flex items-center gap-3"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-base font-medium leading-snug truncate">
+                            {w.recipientName}
+                          </p>
+                          <p className="text-[13px] text-muted-foreground mt-0.5">
+                            {methodLabel(w.method)} · {formatDate(w.createdAt)}
+                          </p>
+                        </div>
+                        {w.opened ? (
+                          <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary px-2.5 py-1 text-xs font-semibold">
+                            <Check className="h-3 w-3" />
+                            Opened
+                          </span>
+                        ) : (
+                          <span className="shrink-0 text-xs text-muted-foreground">Sent</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Bottom section — CTA logo + tagline */}
               <div className="pb-8 flex flex-col items-center justify-center">
                 <button
