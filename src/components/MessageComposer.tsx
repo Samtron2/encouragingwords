@@ -245,6 +245,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const photoUploadPromiseRef = useRef<Promise<string | null> | null>(null);
   const photoFileRef = useRef<File | null>(null);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
+  const [editingDetails, setEditingDetails] = useState(false);
   const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
   const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
   const [nudgeValue, setNudgeValue] = useState("");
