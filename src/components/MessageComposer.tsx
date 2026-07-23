@@ -1434,20 +1434,42 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                               <div className="relative">
                                 <button
                                   onClick={() => {
+                                    if (photoUploadFailed) {
+                                      retryPhotoUpload();
+                                      return;
+                                    }
                                     setSelfieSelected(!selfieSelected);
                                     if (!selfieSelected) setSelectedVisual(null);
                                   }}
                                   className="flex flex-col items-center gap-2 transition-all"
                                 >
-                                  <img
-                                    src={selfiePreview}
-                                    alt="Your photo"
-                                    className={`h-[240px] w-[240px] rounded-[16px] object-cover transition-all ${
-                                      selfieSelected
-                                        ? "ring-[3px] ring-accent ring-offset-2 ring-offset-background scale-[1.03]"
-                                        : ""
-                                    }`}
-                                  />
+                                  <div className="relative">
+                                    <img
+                                      src={selfiePreview}
+                                      alt="Your photo"
+                                      className={`h-[240px] w-[240px] rounded-[16px] object-cover transition-all ${
+                                        selfieSelected
+                                          ? "ring-[3px] ring-accent ring-offset-2 ring-offset-background scale-[1.03]"
+                                          : ""
+                                      }`}
+                                    />
+                                    {photoUploading && (
+                                      <div className="absolute inset-0 rounded-[16px] bg-background/40 backdrop-blur-[1px] flex items-center justify-center">
+                                        <Loader2 className="h-8 w-8 text-foreground animate-spin" />
+                                      </div>
+                                    )}
+                                    {photoUploadFailed && !photoUploading && (
+                                      <div className="absolute inset-0 rounded-[16px] bg-destructive/70 flex flex-col items-center justify-center gap-1 text-destructive-foreground">
+                                        <AlertCircle className="h-7 w-7" />
+                                        <span className="text-sm font-semibold">Tap to retry</span>
+                                      </div>
+                                    )}
+                                    {!photoUploading && !photoUploadFailed && photoPublicUrl && (
+                                      <div className="absolute bottom-2 left-2 h-7 w-7 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-sm">
+                                        <Check className="h-4 w-4" />
+                                      </div>
+                                    )}
+                                  </div>
                                   <span className="text-[15px] text-muted-foreground">Your photo</span>
                                 </button>
                                 <button
@@ -1458,6 +1480,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                                     setPhotoUploading(false);
                                     setPhotoUploadFailed(false);
                                     photoUploadPromiseRef.current = null;
+                                    photoFileRef.current = null;
                                   }}
                                   className="absolute top-2 right-2 h-7 w-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-background transition-colors"
                                   aria-label="Remove photo"
@@ -1465,6 +1488,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                                   <X className="h-4 w-4 text-foreground" />
                                 </button>
                               </div>
+
                             )}
                           </CarouselItem>
                           {activeVisuals.slice(midIndex).map((v, i) => renderVisual(v, midIndex + i))}
