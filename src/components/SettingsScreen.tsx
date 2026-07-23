@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Camera, Check, Bell, BellOff } from "lucide-react";
+import { Camera, Check, Bell, BellOff, Users, ChevronRight } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import ImportantDates from "@/components/ImportantDates";
 
@@ -44,7 +44,7 @@ function isStandalonePWA() {
   );
 }
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ onNavigate }: { onNavigate?: (tab: "people") => void } = {}) {
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -422,6 +422,29 @@ export default function SettingsScreen() {
             </button>
           )}
         </div>
+      </section>
+
+      {/* YOUR PEOPLE */}
+      <section className="mb-8">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-primary mb-3">
+          Your people
+        </h2>
+        <button
+          type="button"
+          onClick={() => onNavigate?.("people")}
+          className="w-full rounded-2xl bg-card p-5 shadow-card flex items-center gap-4 text-left hover:bg-muted/50 transition-colors"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/15">
+            <Users className="h-5 w-5 text-accent" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-base font-medium">Your people</p>
+            <p className="text-[14px] text-muted-foreground mt-0.5">
+              See, edit, and merge the people you encourage.
+            </p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+        </button>
       </section>
 
       {/* ABOUT */}

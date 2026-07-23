@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Heart, Search, MoreVertical, Pencil, Trash2, UserPlus, Upload, X, BookUser } from "lucide-react";
+import { Heart, Search, MoreVertical, Pencil, Trash2, UserPlus, Upload, X, BookUser, Merge } from "lucide-react";
 import { toast } from "sonner";
 import { isContactPickerSupported, pickContact } from "@/lib/contactPicker";
 import ContactDetailsChooser from "@/components/ContactDetailsChooser";
+import MergeContactsDialog from "@/components/MergeContactsDialog";
 import type { Tab } from "@/components/BottomNav";
 import type { PrefilledRecipient } from "@/components/MessageComposer";
 import {
@@ -24,6 +25,7 @@ interface Recipient {
   email: string | null;
   phone: string | null;
   last_contacted_at: string | null;
+  created_at: string | null;
 }
 
 const AVATAR_COLORS = [
@@ -105,11 +107,83 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
   const [googleContacts, setGoogleContacts] = useState<Array<{ name: string; email: string; phone: string; selected: boolean }>>([]);
   const [showGooglePreview, setShowGooglePreview] = useState(false);
 
+  // Select / merge mode
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [merging, setMerging] = useState(false);
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds([]);
+    setMergeOpen(false);
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const selectedContacts = contacts.filter((c) => selectedIds.includes(c.id));
+
+  const handleMerge = async (choice: { name: string | null; email: string | null; phone: string | null }) => {
+    if (selectedContacts.length !== 2 || !user) return;
+    const [x, y] = selectedContacts;
+    const xTime = x.created_at ? new Date(x.created_at).getTime() : Infinity;
+    const yTime = y.created_at ? new Date(y.created_at).getTime() : Infinity;
+    const keeper = xTime <= yTime ? x : y;
+    const loser = keeper === x ? y : x;
+
+    setMerging(true);
+    try {
+      const lastContacted = (() => {
+        const kt = keeper.last_contacted_at ? new Date(keeper.last_contacted_at).getTime() : 0;
+        const lt = loser.last_contacted_at ? new Date(loser.last_contacted_at).getTime() : 0;
+        const max = Math.max(kt, lt);
+        return max > 0 ? new Date(max).toISOString() : null;
+      })();
+
+      const { error: updErr } = await supabase
+        .from("recipients")
+        .update({
+          name: choice.name,
+          email: choice.email,
+          phone: choice.phone,
+          last_contacted_at: lastContacted,
+        })
+        .eq("id", keeper.id);
+      if (updErr) throw updErr;
+
+      const { error: msgErr } = await supabase
+        .from("messages")
+        .update({ recipient_id: keeper.id })
+        .eq("recipient_id", loser.id);
+      if (msgErr) throw msgErr;
+
+      const { error: delErr } = await supabase
+        .from("recipients")
+        .delete()
+        .eq("id", loser.id);
+      if (delErr) throw delErr;
+
+      toast.success(`Merged into ${choice.name ?? "contact"}.`);
+      exitSelectMode();
+      await fetchContacts();
+    } catch (err: any) {
+      console.error("Merge failed:", err);
+      toast.error("Couldn't merge these contacts. Nothing was deleted.");
+    } finally {
+      setMerging(false);
+    }
+  };
+
+
   const fetchContacts = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
       .from("recipients")
-      .select("id, name, email, phone, last_contacted_at")
+      .select("id, name, email, phone, last_contacted_at, created_at")
       .eq("user_id", user.id)
       .order("last_contacted_at", { ascending: false, nullsFirst: false });
     setContacts(data ?? []);
@@ -330,39 +404,79 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
     <div className="flex flex-col pb-24">
       <header className="sticky top-0 z-20 bg-background/95 backdrop-blur px-5 pt-5 pb-3">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="font-display text-2xl font-bold text-primary">People</h1>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            {selectMode
+              ? `${selectedIds.length} selected`
+              : "People"}
+          </h1>
           <div className="flex gap-2">
+            {selectMode ? (
               <button
-                onClick={handleGoogleImport}
-                disabled={importingGoogle}
-                className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                onClick={exitSelectMode}
+                className="rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
-                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                </svg>
-                {importingGoogle ? "Importing…" : "Google"}
+                Cancel
               </button>
-            {contactPickerSupported && (
-              <button
-                onClick={handlePhonePicker}
-                className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Upload className="h-3.5 w-3.5" />
-                Import
-              </button>
+            ) : (
+              <>
+                <button
+                  onClick={handleGoogleImport}
+                  disabled={importingGoogle}
+                  className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                >
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                  {importingGoogle ? "Importing…" : "Google"}
+                </button>
+                {contactPickerSupported && (
+                  <button
+                    onClick={handlePhonePicker}
+                    className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Upload className="h-3.5 w-3.5" />
+                    Import
+                  </button>
+                )}
+                {contacts.length >= 2 && (
+                  <button
+                    onClick={() => { setSelectMode(true); setSelectedIds([]); }}
+                    className="rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Select
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowAddForm((v) => !v)}
+                  className="flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:opacity-90 transition-opacity"
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  Add
+                </button>
+              </>
             )}
-            <button
-              onClick={() => setShowAddForm((v) => !v)}
-              className="flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              <UserPlus className="h-3.5 w-3.5" />
-              Add
-            </button>
           </div>
         </div>
+        {selectMode && (
+          <div className="mb-3">
+            {selectedIds.length === 2 ? (
+              <button
+                onClick={() => setMergeOpen(true)}
+                className="w-full flex items-center justify-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-bold text-accent-foreground shadow-glow hover:bg-accent/90 transition-colors"
+              >
+                <Merge className="h-4 w-4" />
+                Merge
+              </button>
+            ) : (
+              <p className="text-xs text-muted-foreground text-center">
+                Select two people to merge.
+              </p>
+            )}
+          </div>
+        )}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -511,12 +625,32 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
       ) : (
 
         <div className="px-4 space-y-2 mt-2">
-          {filtered.map((c) => (
+          {filtered.map((c) => {
+            const isSelected = selectedIds.includes(c.id);
+            return (
             <div key={c.id}>
               <div
-                className="rounded-2xl bg-card p-4 shadow-card flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => editingId !== c.id && handleTap(c)}
+                className={`rounded-2xl bg-card p-4 shadow-card flex items-center gap-3 cursor-pointer transition-colors ${
+                  selectMode && isSelected ? "ring-2 ring-accent bg-accent/5" : "hover:bg-muted/50"
+                }`}
+                onClick={() => {
+                  if (selectMode) toggleSelect(c.id);
+                  else if (editingId !== c.id) handleTap(c);
+                }}
               >
+                {selectMode && (
+                  <div
+                    className={`h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center ${
+                      isSelected ? "border-accent bg-accent" : "border-muted-foreground"
+                    }`}
+                  >
+                    {isSelected && (
+                      <svg className="h-3 w-3 text-accent-foreground" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-8 8a1 1 0 01-1.4 0l-4-4a1 1 0 111.4-1.4L8 12.6l7.3-7.3a1 1 0 011.4 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                )}
                 <div
                   className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white font-bold text-lg"
                   style={{ backgroundColor: getAvatarColor(c.name) }}
@@ -534,24 +668,26 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
                     {daysAgoLabel(c.last_contacted_at)}
                   </p>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <button className="p-1.5 rounded-full hover:bg-muted transition-colors">
-                      <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); startEdit(c); }}>
-                      <Pencil className="h-4 w-4 mr-2" /> Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={(e) => { e.stopPropagation(); handleDelete(c.id, c.name); }}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" /> Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {!selectMode && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <button className="p-1.5 rounded-full hover:bg-muted transition-colors">
+                        <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); startEdit(c); }}>
+                        <Pencil className="h-4 w-4 mr-2" /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={(e) => { e.stopPropagation(); handleDelete(c.id, c.name); }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
 
               {editingId === c.id && (
@@ -578,7 +714,8 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -592,6 +729,14 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
           applyPickedToAddForm(pickerChoice?.name, choice.email, choice.phone);
           setPickerChoice(null);
         }}
+      />
+
+      <MergeContactsDialog
+        open={mergeOpen && selectedContacts.length === 2 && !merging}
+        a={selectedContacts[0] ?? null}
+        b={selectedContacts[1] ?? null}
+        onCancel={() => setMergeOpen(false)}
+        onConfirm={handleMerge}
       />
     </div>
   );
