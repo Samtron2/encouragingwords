@@ -12,6 +12,11 @@ import { toast } from "sonner";
 import { isContactPickerSupported, pickContact } from "@/lib/contactPicker";
 import ContactDetailsChooser from "@/components/ContactDetailsChooser";
 import { getSmsCapability, type SmsCapability } from "@/lib/deviceCapabilities";
+import { useWordsThisMonth, FREE_WORDS_PER_MONTH } from "@/hooks/useWordsThisMonth";
+import { useAdmin } from "@/hooks/useAdmin";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+
+let pitchShownThisSession = false;
 
 const PROMPT_SUGGESTIONS: Record<string, string[]> = {
   default: [
@@ -213,6 +218,10 @@ interface MessageComposerProps {
 
 export default function MessageComposer({ onBack, prefill }: MessageComposerProps) {
   const { user } = useAuth();
+  const { isAdmin } = useAdmin();
+  const { count: wordsThisMonth, refresh: refreshWordsCount } = useWordsThisMonth();
+  const [pitchOpen, setPitchOpen] = useState(false);
+  const pendingMethodRef = useRef<"email" | "sms" | null>(null);
   const { visuals: dailyVisuals, loading: visualsLoading } = useDailyVisuals();
   const { initialDraft, saveDraft, clearDraft } = useComposerDraft();
 
@@ -526,6 +535,28 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setNudgeInputVisible(false);
   };
 
+  const initiateSend = (method: "email" | "sms") => {
+    if (!user || !message.trim()) return;
+    if (!isAdmin && wordsThisMonth >= FREE_WORDS_PER_MONTH && !pitchShownThisSession) {
+      pitchShownThisSession = true;
+      pendingMethodRef.current = method;
+      setPitchOpen(true);
+      return;
+    }
+    void handleSend(method);
+  };
+
+  const recordUpgradeInterest = async () => {
+    if (!user) return;
+    const { error } = await supabase
+      .from("upgrade_interest")
+      .insert([{ user_id: user.id }]);
+    // Ignore unique-violation duplicates
+    if (error && !error.message.toLowerCase().includes("duplicate")) {
+      console.error("upgrade_interest insert failed", error);
+    }
+  };
+
   const handleSend = async (method: "email" | "sms") => {
     if (!user || !message.trim()) return;
     setSending(true);
@@ -744,6 +775,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       clearDraft();
       setSending(false);
       setSent(true);
+      refreshWordsCount();
     } catch (err) {
       console.error("Send error:", err);
       setSendError(true);
@@ -1698,9 +1730,15 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             Send it
           </label>
 
+          {!isAdmin && wordsThisMonth >= 1 && wordsThisMonth <= FREE_WORDS_PER_MONTH && (
+            <p className="mb-3 text-center text-sm text-muted-foreground">
+              {wordsThisMonth} of {FREE_WORDS_PER_MONTH} free words this month.
+            </p>
+          )}
+
           <div className="flex gap-3 w-full">
             <Button
-              onClick={() => handleSend("email")}
+              onClick={() => initiateSend("email")}
               disabled={!canSendEmail || !message.trim() || sending}
               className="gap-2 h-16 font-bold text-lg font-body bg-accent text-white shadow-glow hover:bg-accent/90 disabled:opacity-40 min-w-0"
               style={{ flex: "1 1 45%", borderRadius: "999px" }}
@@ -1709,7 +1747,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               <span className="truncate">{sending ? "Sending…" : "Email"}</span>
             </Button>
             <Button
-              onClick={() => handleSend("sms")}
+              onClick={() => initiateSend("sms")}
               disabled={smsCapability === "none" || !canSendSms || !message.trim() || sending}
               className="gap-2 h-16 font-bold text-lg font-body text-white hover:opacity-90 disabled:opacity-40 min-w-0"
               style={{ flex: "1 1 45%", borderRadius: "999px", backgroundColor: "hsl(var(--primary))" }}
@@ -1759,6 +1797,46 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           setPickerChoice(null);
         }}
       />
+
+      <Dialog open={pitchOpen} onOpenChange={(o) => { if (!o) setPitchOpen(false); }}>
+        <DialogContent className="bg-card border border-accent/30 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-accent text-balance">
+              You've sent your five free words this month
+            </DialogTitle>
+            <DialogDescription className="text-base text-muted-foreground pt-2 leading-relaxed">
+              If you want to keep doing it because it makes you feel good, it's just $1.69 a month. That's how we keep the lights on.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 pt-2">
+            <Button
+              onClick={async () => {
+                await recordUpgradeInterest();
+                setPitchOpen(false);
+                toast.success("You're on the list. We'll let you know the moment it's ready.");
+                const m = pendingMethodRef.current;
+                pendingMethodRef.current = null;
+                if (m) void handleSend(m);
+              }}
+              className="h-12 rounded-full bg-accent text-accent-foreground font-bold hover:bg-accent/90"
+            >
+              I'm in — $1.69/month
+            </Button>
+            <button
+              onClick={() => {
+                setPitchOpen(false);
+                toast("This one's on the house while we're getting started.");
+                const m = pendingMethodRef.current;
+                pendingMethodRef.current = null;
+                if (m) void handleSend(m);
+              }}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+            >
+              Keep sending for now
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -21,6 +21,16 @@ export default function AdminUsersTab() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [interestCount, setInterestCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { count } = await supabase
+        .from("upgrade_interest")
+        .select("id", { count: "exact", head: true });
+      setInterestCount(count ?? 0);
+    })();
+  }, []);
   
 
   const loadProfiles = async () => {
@@ -120,6 +130,11 @@ export default function AdminUsersTab() {
 
   return (
     <div className="space-y-4 animate-fade-in">
+      {interestCount !== null && (
+        <p className="text-sm text-muted-foreground">
+          Upgrade interest: {interestCount} {interestCount === 1 ? "person" : "people"}
+        </p>
+      )}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
