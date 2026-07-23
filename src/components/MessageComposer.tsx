@@ -1730,9 +1730,15 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             Send it
           </label>
 
+          {!isAdmin && wordsThisMonth >= 1 && wordsThisMonth <= FREE_WORDS_PER_MONTH && (
+            <p className="mb-3 text-center text-sm text-muted-foreground">
+              {wordsThisMonth} of {FREE_WORDS_PER_MONTH} free words this month.
+            </p>
+          )}
+
           <div className="flex gap-3 w-full">
             <Button
-              onClick={() => handleSend("email")}
+              onClick={() => initiateSend("email")}
               disabled={!canSendEmail || !message.trim() || sending}
               className="gap-2 h-16 font-bold text-lg font-body bg-accent text-white shadow-glow hover:bg-accent/90 disabled:opacity-40 min-w-0"
               style={{ flex: "1 1 45%", borderRadius: "999px" }}
@@ -1741,7 +1747,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               <span className="truncate">{sending ? "Sending…" : "Email"}</span>
             </Button>
             <Button
-              onClick={() => handleSend("sms")}
+              onClick={() => initiateSend("sms")}
               disabled={smsCapability === "none" || !canSendSms || !message.trim() || sending}
               className="gap-2 h-16 font-bold text-lg font-body text-white hover:opacity-90 disabled:opacity-40 min-w-0"
               style={{ flex: "1 1 45%", borderRadius: "999px", backgroundColor: "hsl(var(--primary))" }}
