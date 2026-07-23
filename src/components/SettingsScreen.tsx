@@ -4,9 +4,45 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Camera, Check } from "lucide-react";
+import { Camera, Check, Bell, BellOff } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import ImportantDates from "@/components/ImportantDates";
+
+const VAPID_PUBLIC_KEY =
+  "BLJP8ASgicNq8Rx3uf7sIVlP2U0k0e5qvJrwAEazeAODMCrZUHG7mtbfajpZ6At2pFq6SNYYZuQW4ZVI0Q49F7M";
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  const arr = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+
+function arrayBufferToBase64(buffer: ArrayBuffer | null) {
+  if (!buffer) return "";
+  const bytes = new Uint8Array(buffer);
+  let bin = "";
+  for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+function isIosSafari() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (ua.includes("Mac") && "ontouchend" in document);
+  const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+  return isIOS && isSafari;
+}
+
+function isStandalonePWA() {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia?.("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone === true
+  );
+}
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
@@ -20,6 +56,108 @@ export default function SettingsScreen() {
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [loaded, setLoaded] = useState(false);
+
+  // Push notifications
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushPermission, setPushPermission] = useState<NotificationPermission>("default");
+  const [pushBusy, setPushBusy] = useState(false);
+  const [needsIosInstall, setNeedsIosInstall] = useState(false);
+
+  useEffect(() => {
+    const supported =
+      typeof window !== "undefined" &&
+      "serviceWorker" in navigator &&
+      "PushManager" in window &&
+      "Notification" in window;
+    setPushSupported(supported);
+    if (!supported) {
+      if (isIosSafari() && !isStandalonePWA()) setNeedsIosInstall(true);
+      return;
+    }
+    setPushPermission(Notification.permission);
+    navigator.serviceWorker.ready.then(async (reg) => {
+      const sub = await reg.pushManager.getSubscription();
+      setPushSubscribed(!!sub);
+    });
+  }, []);
+
+  const handleEnablePush = async () => {
+    if (!user) return;
+    if (isIosSafari() && !isStandalonePWA()) {
+      setNeedsIosInstall(true);
+      return;
+    }
+    setPushBusy(true);
+    try {
+      const permission = await Notification.requestPermission();
+      setPushPermission(permission);
+      if (permission !== "granted") {
+        setPushBusy(false);
+        return;
+      }
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+      }
+      const json = sub.toJSON();
+      const p256dh = json.keys?.p256dh || arrayBufferToBase64(sub.getKey("p256dh"));
+      const auth = json.keys?.auth || arrayBufferToBase64(sub.getKey("auth"));
+
+      // Remove any previous row with same endpoint, then insert
+      await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+      const { error } = await supabase.from("push_subscriptions").insert({
+        user_id: user.id,
+        endpoint: sub.endpoint,
+        p256dh,
+        auth,
+      });
+      if (error) throw error;
+
+      setPushSubscribed(true);
+      toast({ title: "Reminders on ✨" });
+
+      // Fire a welcome push
+      supabase.functions
+        .invoke("send-push", {
+          body: {
+            user_id: user.id,
+            title: "Encouraging Words",
+            body: "You're all set. We'll remind you before important dates.",
+            url: "/",
+          },
+        })
+        .catch((e) => console.error("welcome push failed:", e));
+    } catch (err: any) {
+      console.error("enable push failed:", err);
+      toast({ title: "Couldn't turn on reminders", description: err?.message, variant: "destructive" });
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
+  const handleDisablePush = async () => {
+    setPushBusy(true);
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+        await sub.unsubscribe();
+      }
+      setPushSubscribed(false);
+      toast({ title: "Reminders turned off" });
+    } catch (err: any) {
+      console.error("disable push failed:", err);
+      toast({ title: "Couldn't turn off", description: err?.message, variant: "destructive" });
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -217,6 +355,72 @@ export default function SettingsScreen() {
           <div className="border-t border-border" />
 
           <ImportantDates />
+        </div>
+      </section>
+
+      {/* REMINDERS */}
+      <section className="mb-8">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-primary mb-3">
+          Reminders
+        </h2>
+        <div className="rounded-2xl bg-card p-6 shadow-card space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/15">
+              <Bell className="h-5 w-5 text-accent" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-base font-medium">Get reminded before important dates</p>
+              <p className="text-[14px] text-muted-foreground mt-0.5">
+                We'll send a gentle nudge so you never miss a moment.
+              </p>
+            </div>
+          </div>
+
+          {needsIosInstall ? (
+            <p className="text-[14px] text-muted-foreground leading-relaxed">
+              To get reminders on iPhone, first add Encouraging Words to your Home Screen:
+              tap the <span className="font-medium text-foreground">Share</span> button,
+              then <span className="font-medium text-foreground">"Add to Home Screen"</span>.
+              Then come back here.
+            </p>
+          ) : !pushSupported ? (
+            <p className="text-[14px] text-muted-foreground">
+              This browser doesn't support push notifications.
+            </p>
+          ) : pushPermission === "denied" ? (
+            <p className="text-[14px] text-muted-foreground">
+              Notifications are blocked in your browser settings. Allow them for this
+              site to turn on reminders.
+            </p>
+          ) : pushSubscribed ? (
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+                <Check className="h-4 w-4" />
+                Reminders are on
+              </span>
+              <button
+                onClick={handleDisablePush}
+                disabled={pushBusy}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
+              >
+                <BellOff className="h-4 w-4" />
+                Turn off
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleEnablePush}
+              disabled={pushBusy}
+              className="w-full flex items-center justify-center gap-2 rounded-full bg-accent py-3 text-base font-bold text-accent-foreground shadow-glow transition-all hover:bg-accent/90 disabled:opacity-50"
+            >
+              {pushBusy ? (
+                <div className="h-4 w-4 rounded-full border-2 border-accent-foreground border-t-transparent animate-spin" />
+              ) : (
+                <Bell className="h-4 w-4" />
+              )}
+              Turn on reminders
+            </button>
+          )}
         </div>
       </section>
 
