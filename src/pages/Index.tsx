@@ -208,12 +208,23 @@ function getRestoredTab(): Tab {
   return "home";
 }
 
+const WELCOME_DISMISSED_KEY = "ew-welcome-dismissed";
+
 const Index = () => {
   const { user, loading } = useAuth();
   const { isAdmin } = useAdmin();
   const { theme } = useTheme(); // Load & apply profile theme immediately on auth
   const [activeTab, setActiveTab] = useState<Tab>(getRestoredTab);
   const [composerPrefill, setComposerPrefill] = useState<PrefilledRecipient | undefined>();
+  const [welcomeDismissed, setWelcomeDismissed] = useState(() => {
+    try { return localStorage.getItem(WELCOME_DISMISSED_KEY) === "true"; } catch {}
+    return true;
+  });
+
+  const dismissWelcome = () => {
+    try { localStorage.setItem(WELCOME_DISMISSED_KEY, "true"); } catch {}
+    setWelcomeDismissed(true);
+  };
 
   // Persist active tab
   useEffect(() => {
@@ -223,6 +234,7 @@ const Index = () => {
   const greeting = useGreeting(user?.id);
   const wordsSentMessage = useWordsSentCount(user?.id);
   const recentWords = useRecentWords(user?.id);
+
 
   const methodLabel = (m: string) => (m === "sms_native" ? "Text" : m === "email" ? "Email" : "Sent");
   const formatDate = (iso: string) =>
