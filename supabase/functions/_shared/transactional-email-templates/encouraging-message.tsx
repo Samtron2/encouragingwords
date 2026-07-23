@@ -99,7 +99,7 @@ const EncouragingMessageEmail = ({
             <Row>
               <Column style={{ padding: '0 36px' }}>
                 {recipientName && (
-                  <Text style={greeting}>Dear {recipientName},</Text>
+                  <Text style={greeting}>Dear {titleCase(recipientName)},</Text>
                 )}
                 <Text style={messageText}>{message || ''}</Text>
               </Column>
@@ -116,7 +116,7 @@ const EncouragingMessageEmail = ({
             <Row>
               <Column style={{ padding: '0 36px 28px' }}>
                 <Text style={withEncouragement}>With encouragement,</Text>
-                <Text style={senderName_style}>{senderName || 'A friend'}</Text>
+                <Text style={senderName_style}>{titleCase(senderName) || 'A friend'}</Text>
               </Column>
             </Row>
           </Section>
