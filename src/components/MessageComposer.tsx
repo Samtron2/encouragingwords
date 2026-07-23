@@ -340,6 +340,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setNudgeField(null);
     setNudgeInputVisible(false);
     setNudgeValue("");
+    setEditingDetails(false);
   };
 
   // Parse the contact detail input (Step 2 only)
