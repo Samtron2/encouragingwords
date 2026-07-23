@@ -4,8 +4,9 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useTheme } from "@/hooks/useTheme";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Send, CalendarHeart, Check } from "lucide-react";
+import { Send, CalendarHeart, Check, X } from "lucide-react";
 import logo from "@/assets/encouraging-words-logo.png";
+
 import MessageComposer, { type PrefilledRecipient } from "@/components/MessageComposer";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import SettingsScreen from "@/components/SettingsScreen";
@@ -207,12 +208,23 @@ function getRestoredTab(): Tab {
   return "home";
 }
 
+const WELCOME_DISMISSED_KEY = "ew-welcome-dismissed";
+
 const Index = () => {
   const { user, loading } = useAuth();
   const { isAdmin } = useAdmin();
   const { theme } = useTheme(); // Load & apply profile theme immediately on auth
   const [activeTab, setActiveTab] = useState<Tab>(getRestoredTab);
   const [composerPrefill, setComposerPrefill] = useState<PrefilledRecipient | undefined>();
+  const [welcomeDismissed, setWelcomeDismissed] = useState(() => {
+    try { return localStorage.getItem(WELCOME_DISMISSED_KEY) === "true"; } catch {}
+    return true;
+  });
+
+  const dismissWelcome = () => {
+    try { localStorage.setItem(WELCOME_DISMISSED_KEY, "true"); } catch {}
+    setWelcomeDismissed(true);
+  };
 
   // Persist active tab
   useEffect(() => {
@@ -222,6 +234,7 @@ const Index = () => {
   const greeting = useGreeting(user?.id);
   const wordsSentMessage = useWordsSentCount(user?.id);
   const recentWords = useRecentWords(user?.id);
+
 
   const methodLabel = (m: string) => (m === "sms_native" ? "Text" : m === "email" ? "Email" : "Sent");
   const formatDate = (iso: string) =>
@@ -292,9 +305,34 @@ const Index = () => {
                 )}
               </div>
 
+              {/* Welcome card */}
+              {!welcomeDismissed && (
+                <div className="max-w-md w-full mt-6 mb-4 rounded-2xl bg-card p-5 shadow-card text-center animate-fade-in">
+                  <div className="flex items-start justify-between">
+                    <h2 className="font-display text-2xl font-bold text-primary">Welcome</h2>
+                    <button
+                      onClick={dismissWelcome}
+                      className="p-1 rounded-full hover:bg-muted transition-colors text-muted-foreground"
+                      aria-label="Dismiss welcome"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <p className="mt-2 text-base text-muted-foreground leading-relaxed text-left">
+                    Pick a person, write a few kind words, and send them by email or text. One small note can make someone's whole day.
+                  </p>
+                  <Button
+                    onClick={dismissWelcome}
+                    className="mt-4 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold px-6"
+                  >
+                    Got it
+                  </Button>
+                </div>
+              )}
+
               {/* Middle section — reminders */}
               <div className="flex-1 flex items-center max-w-md w-full">
-                {reminders.length > 0 && (
+                {reminders.length > 0 ? (
                   <div className="space-y-3 text-left w-full">
                     {reminders.map((r, i) => (
                       <div
@@ -323,8 +361,13 @@ const Index = () => {
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <p className="text-center text-sm text-muted-foreground w-full">
+                    Add birthdays and special days in Settings, and we'll remind you when they're near.
+                  </p>
                 )}
               </div>
+
 
               {/* Recent words */}
               {recentWords.length > 0 && (
