@@ -42,7 +42,7 @@ function useWordsSentCount(userId: string | undefined) {
       .from("messages")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
-      .eq("status", "sent")
+      .in("status", ["sent", "initiated"])
       .then(({ count: c }) => {
         setCount(c ?? 0);
       });
