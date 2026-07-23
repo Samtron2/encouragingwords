@@ -1533,6 +1533,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                       );
                     })()}
                   </CarouselContent>
+                  <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full border border-accent/40 bg-card/80 text-accent backdrop-blur-sm transition-opacity hover:bg-card hover:border-accent/60 disabled:opacity-30" />
+                  <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full border border-accent/40 bg-card/80 text-accent backdrop-blur-sm transition-opacity hover:bg-card hover:border-accent/60 disabled:opacity-30" />
                 </Carousel>
               </div>
             )}
