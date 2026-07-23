@@ -19,3 +19,6 @@ verify_jwt = true
 
 [functions.send-date-reminders]
 verify_jwt = false
+
+[functions.transcribe-voice]
+verify_jwt = true

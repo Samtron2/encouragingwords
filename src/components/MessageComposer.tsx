@@ -7,7 +7,7 @@ import { useOccasionVisuals, SPECIAL_OCCASIONS } from "@/hooks/useOccasionVisual
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
-import { Mail, MessageSquare, Check, User, AlertCircle, Pencil, Camera, X } from "lucide-react";
+import { Mail, MessageSquare, Check, User, AlertCircle, Pencil, Camera, X, Mic, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const PROMPT_SUGGESTIONS: Record<string, string[]> = {
@@ -244,6 +244,19 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [nudgeValue, setNudgeValue] = useState("");
   const [selectedOccasion, setSelectedOccasion] = useState<string | null>(null);
   const [customMode, setCustomMode] = useState(false);
+
+  // Voice-to-text state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [transcribing, setTranscribing] = useState(false);
+  const [pendingTranscript, setPendingTranscript] = useState<string | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const messageTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const voiceHintShownRef = useRef(false);
   const { visuals: occasionVisuals, loading: occasionLoading } = useOccasionVisuals(selectedOccasion);
   const activeVisuals = selectedOccasion && occasionVisuals.length > 0 ? occasionVisuals : dailyVisuals;
   const activeVisualsLoading = selectedOccasion ? occasionLoading : visualsLoading;
@@ -729,6 +742,196 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     photoUploadPromiseRef.current = promise;
   };
 
+  const cleanupRecording = () => {
+    if (recordTimerRef.current) { clearInterval(recordTimerRef.current); recordTimerRef.current = null; }
+    if (autoStopTimerRef.current) { clearTimeout(autoStopTimerRef.current); autoStopTimerRef.current = null; }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+    mediaRecorderRef.current = null;
+  };
+
+  useEffect(() => () => cleanupRecording(), []);
+
+  const pickAudioMimeType = (): string => {
+    const candidates = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm", "audio/mp4;codecs=mp4a.40.2"];
+    if (typeof MediaRecorder !== "undefined" && (MediaRecorder as any).isTypeSupported) {
+      for (const c of candidates) {
+        try { if ((MediaRecorder as any).isTypeSupported(c)) return c; } catch { /* noop */ }
+      }
+    }
+    // iOS Safari best-guess
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ? "audio/mp4" : "audio/webm";
+  };
+
+  const insertTranscript = (text: string) => {
+    setMessage(text);
+    setPendingTranscript(null);
+    setTimeout(() => {
+      const el = messageTextareaRef.current;
+      if (el) {
+        el.focus();
+        try { el.setSelectionRange(text.length, text.length); } catch { /* noop */ }
+      }
+    }, 50);
+    if (!voiceHintShownRef.current) {
+      voiceHintShownRef.current = true;
+      toast("Look it over, make it yours, then send.");
+    }
+  };
+
+  const processAudioBlob = async (blob: Blob, mimeType: string) => {
+    setTranscribing(true);
+    try {
+      const buf = await blob.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let binary = "";
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      const base64 = btoa(binary);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Not authenticated");
+
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-voice`;
+      let res: Response;
+      try {
+        res = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ audio: base64, mimeType }),
+          signal: controller.signal,
+        });
+      } catch (err: any) {
+        clearTimeout(timeoutId);
+        if (err?.name === "AbortError") {
+          toast.error("That took too long. Please try a shorter recording.");
+        } else {
+          toast.error("Couldn't reach the transcription service. Please try again.");
+        }
+        return;
+      }
+      clearTimeout(timeoutId);
+
+      const json = await res.json().catch(() => ({} as any));
+      if (!res.ok || !json?.text) {
+        toast.error(json?.error || "Couldn't transcribe that recording. Please try again.");
+        return;
+      }
+      const text: string = json.text;
+      if (message.trim().length > 0 && text.trim() !== message.trim()) {
+        setPendingTranscript(text);
+      } else {
+        insertTranscript(text);
+      }
+    } catch (err) {
+      console.error("Transcription error:", err);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setTranscribing(false);
+    }
+  };
+
+  const stopRecording = () => {
+    const rec = mediaRecorderRef.current;
+    if (rec && rec.state !== "inactive") {
+      try { rec.stop(); } catch { /* noop */ }
+    } else {
+      cleanupRecording();
+      setIsRecording(false);
+    }
+  };
+
+  const startRecording = async () => {
+    if (isRecording || transcribing) return;
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      toast.error("Voice recording isn't supported on this browser.");
+      return;
+    }
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err: any) {
+      const name = err?.name || "";
+      if (name === "NotAllowedError" || name === "SecurityError" || name === "PermissionDeniedError") {
+        toast.error("Microphone is blocked. Enable it in your browser settings and try again.");
+      } else if (name === "NotFoundError") {
+        toast.error("No microphone found.");
+      } else {
+        toast.error("Couldn't start recording. Please try again.");
+      }
+      return;
+    }
+
+    const mimeType = pickAudioMimeType();
+    let recorder: MediaRecorder;
+    try {
+      recorder = new MediaRecorder(stream, { mimeType });
+    } catch {
+      try { recorder = new MediaRecorder(stream); } catch {
+        stream.getTracks().forEach((t) => t.stop());
+        toast.error("Couldn't start recording. Please try again.");
+        return;
+      }
+    }
+
+    mediaStreamRef.current = stream;
+    mediaRecorderRef.current = recorder;
+    audioChunksRef.current = [];
+
+    recorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data);
+    };
+    recorder.onstop = async () => {
+      const chunks = audioChunksRef.current;
+      const type = recorder.mimeType || mimeType;
+      cleanupRecording();
+      setIsRecording(false);
+      setRecordingSeconds(0);
+      if (!chunks.length) {
+        toast.error("Didn't catch that. Try recording again.");
+        return;
+      }
+      const blob = new Blob(chunks, { type });
+      if (blob.size < 1024) {
+        toast.error("That recording was too short. Please try again.");
+        return;
+      }
+      await processAudioBlob(blob, type);
+    };
+    recorder.onerror = () => {
+      cleanupRecording();
+      setIsRecording(false);
+      setRecordingSeconds(0);
+      toast.error("Recording error. Please try again.");
+    };
+
+    try {
+      recorder.start();
+    } catch {
+      cleanupRecording();
+      toast.error("Couldn't start recording. Please try again.");
+      return;
+    }
+    setIsRecording(true);
+    setRecordingSeconds(0);
+    recordTimerRef.current = setInterval(() => {
+      setRecordingSeconds((s) => s + 1);
+    }, 1000);
+    autoStopTimerRef.current = setTimeout(() => {
+      stopRecording();
+    }, 60000);
+  };
 
   if (sent) {
     return (
@@ -990,18 +1193,86 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           </label>
           <div className="relative">
             <textarea
+              ref={messageTextareaRef}
               value={message}
               onChange={(e) => {
                 if (e.target.value.length <= 160) setMessage(e.target.value);
               }}
               placeholder="Write something kind…"
               rows={4}
-              className="flex w-full rounded-2xl border border-input bg-card px-5 py-5 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-body shadow-card leading-relaxed"
+              disabled={isRecording || transcribing}
+              className="flex w-full rounded-2xl border border-input bg-card px-5 py-5 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-body shadow-card leading-relaxed disabled:opacity-70"
             />
             <span className="absolute bottom-3 right-4 text-[15px] text-muted-foreground">
               {message.length}/160
             </span>
           </div>
+
+          {/* Voice-to-text controls */}
+          <div className="mt-3">
+            {!isRecording && !transcribing && (
+              <button
+                type="button"
+                onClick={startRecording}
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-2 text-base font-medium text-primary hover:bg-primary/10 transition-colors"
+              >
+                <Mic className="h-4 w-4" />
+                Speak it
+              </button>
+            )}
+            {isRecording && (
+              <div className="flex items-center gap-3 rounded-full border border-destructive/30 bg-destructive/5 px-4 py-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-destructive opacity-60 animate-ping" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-destructive" />
+                </span>
+                <span className="text-base font-medium text-destructive tabular-nums">
+                  Recording… {recordingSeconds}s
+                </span>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={stopRecording}
+                  className="ml-auto rounded-full h-8 px-4 text-sm bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  Done
+                </Button>
+              </div>
+            )}
+            {transcribing && (
+              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-4 py-2 text-base text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Polishing your words…
+              </div>
+            )}
+          </div>
+
+          {/* Replace-confirmation prompt when textarea already has content */}
+          {pendingTranscript && (
+            <div className="mt-3 rounded-2xl border border-border bg-card p-4 text-left">
+              <p className="text-sm text-muted-foreground mb-2">Replace your current message with this?</p>
+              <p className="text-base text-foreground italic mb-3">"{pendingTranscript}"</p>
+              <div className="flex gap-2 justify-end">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setPendingTranscript(null)}
+                  className="rounded-full h-8 px-4 text-sm"
+                >
+                  Keep original
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => insertTranscript(pendingTranscript)}
+                  className="rounded-full h-8 px-4 text-sm bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  Replace
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className="mt-3">
             <p className="text-sm text-muted-foreground mb-2">Or tap a starter:</p>
