@@ -49,7 +49,39 @@ function isStandalonePWA() {
 export default function SettingsScreen({ onNavigate }: { onNavigate?: (tab: "people") => void } = {}) {
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { isAdmin } = useAdmin();
+  const { count: wordsUsed } = useWordsThisMonth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [onInterestList, setOnInterestList] = useState(false);
+  const [joiningInterest, setJoiningInterest] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("upgrade_interest")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setOnInterestList(!!data);
+    })();
+  }, [user]);
+
+  const handleJoinInterest = async () => {
+    if (!user) return;
+    setJoiningInterest(true);
+    const { error } = await supabase
+      .from("upgrade_interest")
+      .upsert({ user_id: user.id }, { onConflict: "user_id", ignoreDuplicates: true });
+    setJoiningInterest(false);
+    if (error) {
+      toast({ title: "Couldn't add you", description: error.message, variant: "destructive" });
+      return;
+    }
+    setOnInterestList(true);
+    toast({ title: "You're on the list. We'll let you know the moment it's ready." });
+  };
 
   const [displayName, setDisplayName] = useState("");
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
