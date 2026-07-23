@@ -730,6 +730,14 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
           setPickerChoice(null);
         }}
       />
+
+      <MergeContactsDialog
+        open={mergeOpen && selectedContacts.length === 2 && !merging}
+        a={selectedContacts[0] ?? null}
+        b={selectedContacts[1] ?? null}
+        onCancel={() => setMergeOpen(false)}
+        onConfirm={handleMerge}
+      />
     </div>
   );
 }
