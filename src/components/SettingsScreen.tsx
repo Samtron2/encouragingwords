@@ -57,6 +57,108 @@ export default function SettingsScreen() {
   const [dirty, setDirty] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
+  // Push notifications
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushPermission, setPushPermission] = useState<NotificationPermission>("default");
+  const [pushBusy, setPushBusy] = useState(false);
+  const [needsIosInstall, setNeedsIosInstall] = useState(false);
+
+  useEffect(() => {
+    const supported =
+      typeof window !== "undefined" &&
+      "serviceWorker" in navigator &&
+      "PushManager" in window &&
+      "Notification" in window;
+    setPushSupported(supported);
+    if (!supported) {
+      if (isIosSafari() && !isStandalonePWA()) setNeedsIosInstall(true);
+      return;
+    }
+    setPushPermission(Notification.permission);
+    navigator.serviceWorker.ready.then(async (reg) => {
+      const sub = await reg.pushManager.getSubscription();
+      setPushSubscribed(!!sub);
+    });
+  }, []);
+
+  const handleEnablePush = async () => {
+    if (!user) return;
+    if (isIosSafari() && !isStandalonePWA()) {
+      setNeedsIosInstall(true);
+      return;
+    }
+    setPushBusy(true);
+    try {
+      const permission = await Notification.requestPermission();
+      setPushPermission(permission);
+      if (permission !== "granted") {
+        setPushBusy(false);
+        return;
+      }
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+      }
+      const json = sub.toJSON();
+      const p256dh = json.keys?.p256dh || arrayBufferToBase64(sub.getKey("p256dh"));
+      const auth = json.keys?.auth || arrayBufferToBase64(sub.getKey("auth"));
+
+      // Remove any previous row with same endpoint, then insert
+      await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+      const { error } = await supabase.from("push_subscriptions").insert({
+        user_id: user.id,
+        endpoint: sub.endpoint,
+        p256dh,
+        auth,
+      });
+      if (error) throw error;
+
+      setPushSubscribed(true);
+      toast({ title: "Reminders on ✨" });
+
+      // Fire a welcome push
+      supabase.functions
+        .invoke("send-push", {
+          body: {
+            user_id: user.id,
+            title: "Encouraging Words",
+            body: "You're all set. We'll remind you before important dates.",
+            url: "/",
+          },
+        })
+        .catch((e) => console.error("welcome push failed:", e));
+    } catch (err: any) {
+      console.error("enable push failed:", err);
+      toast({ title: "Couldn't turn on reminders", description: err?.message, variant: "destructive" });
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
+  const handleDisablePush = async () => {
+    setPushBusy(true);
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+        await sub.unsubscribe();
+      }
+      setPushSubscribed(false);
+      toast({ title: "Reminders turned off" });
+    } catch (err: any) {
+      console.error("disable push failed:", err);
+      toast({ title: "Couldn't turn off", description: err?.message, variant: "destructive" });
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
     (async () => {
