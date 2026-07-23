@@ -522,22 +522,35 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       const emojiChar = isEmoji ? visual.image_url!.slice(6) : undefined;
       let imageUrl = !isEmoji ? visual?.image_url || undefined : undefined;
 
-      // If a selfie/photo is selected, wait for the background upload to finish
-      // and use the resulting public URL (falls back to no image on failure).
+      // If a selfie/photo is selected, wait (with hard timeout) for the background upload.
+      // If it isn't ready, stop the send — never send silently without the photo.
       let uploadedPhotoUrl: string | null = null;
       if (selfieSelected && selfiePreview) {
+        if (photoUploadFailed) {
+          toast.error("Your photo didn't finish uploading. Tap the photo to retry, or remove it to send without it.");
+          setSending(false);
+          return;
+        }
         if (photoUploadPromiseRef.current) {
           try {
-            uploadedPhotoUrl = await photoUploadPromiseRef.current;
+            uploadedPhotoUrl = await withTimeout(photoUploadPromiseRef.current, 10000, "photo upload");
           } catch (err) {
             console.error("Photo upload await failed:", err);
-            uploadedPhotoUrl = null;
+            toast.error("Your photo didn't finish uploading. Tap the photo to retry, or remove it to send without it.");
+            setSending(false);
+            return;
           }
         } else {
           uploadedPhotoUrl = photoPublicUrl;
         }
-        if (uploadedPhotoUrl) imageUrl = uploadedPhotoUrl;
+        if (!uploadedPhotoUrl) {
+          toast.error("Your photo didn't finish uploading. Tap the photo to retry, or remove it to send without it.");
+          setSending(false);
+          return;
+        }
+        imageUrl = uploadedPhotoUrl;
       }
+
 
       if (method === "email") {
         const idempotencyKey = `encouraging-${user.id}-${Date.now()}`;
