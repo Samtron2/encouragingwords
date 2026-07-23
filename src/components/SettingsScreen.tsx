@@ -4,9 +4,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Camera, Check, Bell, BellOff, Users, ChevronRight } from "lucide-react";
+import { Camera, Check, Bell, BellOff, Users, ChevronRight, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import ImportantDates from "@/components/ImportantDates";
+import { useAdmin } from "@/hooks/useAdmin";
+import { useWordsThisMonth, FREE_WORDS_PER_MONTH } from "@/hooks/useWordsThisMonth";
 
 const VAPID_PUBLIC_KEY =
   "BLJP8ASgicNq8Rx3uf7sIVlP2U0k0e5qvJrwAEazeAODMCrZUHG7mtbfajpZ6At2pFq6SNYYZuQW4ZVI0Q49F7M";
@@ -47,7 +49,39 @@ function isStandalonePWA() {
 export default function SettingsScreen({ onNavigate }: { onNavigate?: (tab: "people") => void } = {}) {
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { isAdmin } = useAdmin();
+  const { count: wordsUsed } = useWordsThisMonth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [onInterestList, setOnInterestList] = useState(false);
+  const [joiningInterest, setJoiningInterest] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("upgrade_interest")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setOnInterestList(!!data);
+    })();
+  }, [user]);
+
+  const handleJoinInterest = async () => {
+    if (!user) return;
+    setJoiningInterest(true);
+    const { error } = await supabase
+      .from("upgrade_interest")
+      .upsert({ user_id: user.id }, { onConflict: "user_id", ignoreDuplicates: true });
+    setJoiningInterest(false);
+    if (error) {
+      toast({ title: "Couldn't add you", description: error.message, variant: "destructive" });
+      return;
+    }
+    setOnInterestList(true);
+    toast({ title: "You're on the list. We'll let you know the moment it's ready." });
+  };
 
   const [displayName, setDisplayName] = useState("");
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
@@ -420,6 +454,49 @@ export default function SettingsScreen({ onNavigate }: { onNavigate?: (tab: "peo
               )}
               Turn on reminders
             </button>
+          )}
+        </div>
+      </section>
+
+      {/* MEMBERSHIP */}
+      <section className="mb-8">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-primary mb-3">
+          Membership
+        </h2>
+        <div className="rounded-2xl bg-card p-6 shadow-card space-y-4">
+          {isAdmin ? (
+            <div>
+              <p className="text-base font-medium">Admin</p>
+              <p className="text-[14px] text-muted-foreground mt-0.5">Unlimited words.</p>
+            </div>
+          ) : (
+            <>
+              <div>
+                <p className="text-base font-medium">Free plan</p>
+                <p className="text-[14px] text-muted-foreground mt-0.5">
+                  {wordsUsed} of {FREE_WORDS_PER_MONTH} free words used this month
+                </p>
+              </div>
+              <p className="text-[15px] text-muted-foreground leading-relaxed">
+                If you want to keep doing it because it makes you feel good, it's just
+                $1.69 a month. That's how we keep the lights on.
+              </p>
+              {onInterestList ? (
+                <div className="inline-flex items-center gap-2 text-sm font-semibold text-accent">
+                  <Check className="h-4 w-4" />
+                  You're on the list. We'll let you know the moment it's ready.
+                </div>
+              ) : (
+                <button
+                  onClick={handleJoinInterest}
+                  disabled={joiningInterest}
+                  className="w-full flex items-center justify-center gap-2 rounded-full bg-accent py-3 text-base font-bold text-accent-foreground shadow-glow transition-all hover:bg-accent/90 disabled:opacity-50"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  I'm in — $1.69/month
+                </button>
+              )}
+            </>
           )}
         </div>
       </section>
