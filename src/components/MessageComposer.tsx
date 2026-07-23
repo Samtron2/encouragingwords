@@ -218,6 +218,10 @@ interface MessageComposerProps {
 
 export default function MessageComposer({ onBack, prefill }: MessageComposerProps) {
   const { user } = useAuth();
+  const { isAdmin } = useAdmin();
+  const { count: wordsThisMonth, refresh: refreshWordsCount } = useWordsThisMonth();
+  const [pitchOpen, setPitchOpen] = useState(false);
+  const pendingMethodRef = useRef<"email" | "sms" | null>(null);
   const { visuals: dailyVisuals, loading: visualsLoading } = useDailyVisuals();
   const { initialDraft, saveDraft, clearDraft } = useComposerDraft();
 
