@@ -89,11 +89,6 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
       toast.error("Couldn't open your contacts. You can type the name instead.");
     }
   };
-  const [contactPickerSupported] = useState(() =>
-    typeof navigator !== "undefined" &&
-    "contacts" in navigator &&
-    "ContactsManager" in window
-  );
   const [importingGoogle, setImportingGoogle] = useState(false);
   const [googleContacts, setGoogleContacts] = useState<Array<{ name: string; email: string; phone: string; selected: boolean }>>([]);
   const [showGooglePreview, setShowGooglePreview] = useState(false);
