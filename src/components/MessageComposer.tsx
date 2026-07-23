@@ -426,6 +426,29 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setTimeout(() => inputRef.current?.focus(), 50);
   };
 
+  const [contactPickerSupported] = useState(() => isContactPickerSupported());
+
+  const handlePickContact = async () => {
+    try {
+      const picked = await pickContact();
+      if (!picked) return;
+      const name = picked.name?.trim() || "";
+      if (name) {
+        setRecipientInput(name);
+        setRecipientName(name);
+        setNameConfirmed(true);
+      }
+      if (picked.email) setRecipientEmail(picked.email);
+      if (picked.phone) setRecipientPhone(picked.phone);
+      setContactInput(picked.email || picked.phone || "");
+      setSelectedRecipient(null);
+      setShowSuggestions(false);
+    } catch {
+      toast.error("Couldn't open your contacts. You can type the name instead.");
+    }
+  };
+
+
   // Whether to show "Add [name]" chip — typed ≥2 chars, no suggestion selected, has no exact match, valid name
   const showAddChip = !nameConfirmed
     && recipientInput.trim().length >= 2
