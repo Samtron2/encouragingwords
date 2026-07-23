@@ -21,6 +21,16 @@ export default function AdminUsersTab() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [interestCount, setInterestCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { count } = await supabase
+        .from("upgrade_interest")
+        .select("id", { count: "exact", head: true });
+      setInterestCount(count ?? 0);
+    })();
+  }, []);
   
 
   const loadProfiles = async () => {
