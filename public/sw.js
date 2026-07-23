@@ -1,4 +1,4 @@
-const CACHE_NAME = "ew-cache-v1-2026-03-26";
+const CACHE_NAME = "ew-cache-v2-2026-07-23-push";
 const STATIC_ASSETS = ["/", "/manifest.json"];
 
 // Install — precache static assets (do NOT skipWaiting to avoid reload-on-focus)
