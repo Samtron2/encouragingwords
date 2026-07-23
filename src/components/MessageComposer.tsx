@@ -628,6 +628,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           visual_id: visual?.id || null,
           delivery_method: "sms_native",
           status: "initiated",
+          reveal_token: revealToken,
         });
         if (smsLogError) console.error("Failed to log SMS message:", smsLogError);
 

@@ -4,7 +4,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useTheme } from "@/hooks/useTheme";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Send, CalendarHeart } from "lucide-react";
+import { Send, CalendarHeart, Check } from "lucide-react";
 import logo from "@/assets/encouraging-words-logo.png";
 import MessageComposer, { type PrefilledRecipient } from "@/components/MessageComposer";
 import BottomNav, { type Tab } from "@/components/BottomNav";
@@ -122,6 +122,81 @@ function useUpcomingDates(userId: string | undefined) {
   return reminders;
 }
 
+interface RecentWord {
+  id: string;
+  recipientName: string;
+  method: "email" | "sms_native" | string;
+  createdAt: string;
+  opened: boolean;
+}
+
+function useRecentWords(userId: string | undefined) {
+  const [items, setItems] = useState<RecentWord[]>([]);
+
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      const { data: msgs } = await supabase
+        .from("messages")
+        .select("id, recipient_id, delivery_method, status, created_at, reveal_token")
+        .eq("user_id", userId)
+        .neq("status", "failed")
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      if (!msgs || msgs.length === 0) {
+        setItems([]);
+        return;
+      }
+
+      const recipientIds = Array.from(
+        new Set(msgs.map((m) => m.recipient_id).filter(Boolean) as string[])
+      );
+      const tokens = Array.from(
+        new Set(msgs.map((m) => m.reveal_token).filter(Boolean) as string[])
+      );
+
+      const [recipRes, tokenRes] = await Promise.all([
+        recipientIds.length
+          ? supabase.from("recipients").select("id, name").in("id", recipientIds)
+          : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+        tokens.length
+          ? supabase
+              .from("message_tokens")
+              .select("token, recipient_name, opened_at")
+              .in("token", tokens)
+          : Promise.resolve({
+              data: [] as { token: string; recipient_name: string | null; opened_at: string | null }[],
+            }),
+      ]);
+
+      const recipMap = new Map((recipRes.data ?? []).map((r) => [r.id, r.name]));
+      const tokenMap = new Map(
+        (tokenRes.data ?? []).map((t) => [t.token, t])
+      );
+
+      setItems(
+        msgs.map((m) => {
+          const tokenRow = m.reveal_token ? tokenMap.get(m.reveal_token) : undefined;
+          const name =
+            (m.recipient_id && recipMap.get(m.recipient_id)) ||
+            tokenRow?.recipient_name ||
+            "A friend";
+          return {
+            id: m.id,
+            recipientName: name,
+            method: m.delivery_method,
+            createdAt: m.created_at,
+            opened: !!tokenRow?.opened_at,
+          };
+        })
+      );
+    })();
+  }, [userId]);
+
+  return items;
+}
+
 const TAB_KEY = "ew-active-tab";
 
 function getRestoredTab(): Tab {
@@ -146,6 +221,11 @@ const Index = () => {
   const reminders = useUpcomingDates(user?.id);
   const greeting = useGreeting(user?.id);
   const wordsSentMessage = useWordsSentCount(user?.id);
+  const recentWords = useRecentWords(user?.id);
+
+  const methodLabel = (m: string) => (m === "sms_native" ? "Text" : m === "email" ? "Email" : "Sent");
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
   if (loading) {
     return (
@@ -245,6 +325,40 @@ const Index = () => {
                   </div>
                 )}
               </div>
+
+              {/* Recent words */}
+              {recentWords.length > 0 && (
+                <div className="max-w-md w-full mt-2 mb-4">
+                  <h2 className="font-display text-2xl font-semibold text-primary mb-3 text-center">
+                    Your recent words
+                  </h2>
+                  <div className="space-y-2">
+                    {recentWords.map((w) => (
+                      <div
+                        key={w.id}
+                        className="rounded-2xl bg-card p-4 shadow-card flex items-center gap-3"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-base font-medium leading-snug truncate">
+                            {w.recipientName}
+                          </p>
+                          <p className="text-[13px] text-muted-foreground mt-0.5">
+                            {methodLabel(w.method)} · {formatDate(w.createdAt)}
+                          </p>
+                        </div>
+                        {w.opened ? (
+                          <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary px-2.5 py-1 text-xs font-semibold">
+                            <Check className="h-3 w-3" />
+                            Opened
+                          </span>
+                        ) : (
+                          <span className="shrink-0 text-xs text-muted-foreground">Sent</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Bottom section — CTA logo + tagline */}
               <div className="pb-8 flex flex-col items-center justify-center">
