@@ -225,6 +225,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [visualIndex, setVisualIndex] = useState(0);
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [sent, setSent] = useState(false);
+  const [sentMethod, setSentMethod] = useState<"email" | "sms" | null>(null);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
   const [isTouchDevice] = useState(() => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
@@ -572,29 +573,68 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           return;
         }
       } else {
-        let smsText = message.trim();
-        if (selfieSelected) {
-          // Skip image for SMS when selfie is selected — just send text
-        } else if (emojiChar) {
-          smsText = `${emojiChar} ${smsText}`;
-        } else if (imageUrl) {
-          smsText = `${smsText}\n${imageUrl}`;
+        // Create a reveal token so the SMS recipient gets the full experience.
+        let revealToken: string | null = null;
+        try {
+          const bytes = new Uint8Array(32);
+          crypto.getRandomValues(bytes);
+          const candidate = Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+          const senderProfile = await supabase
+            .from("profiles")
+            .select("display_name")
+            .eq("user_id", user.id)
+            .single();
+          const senderName = senderProfile.data?.display_name || null;
+
+          let tokenVisualImageUrl: string | null = null;
+          let tokenVisualEmoji: string | null = null;
+          if (selfieSelected && uploadedPhotoUrl) {
+            tokenVisualImageUrl = uploadedPhotoUrl;
+          } else if (emojiChar) {
+            tokenVisualEmoji = emojiChar;
+          } else if (imageUrl && !imageUrl.startsWith("blob:")) {
+            tokenVisualImageUrl = imageUrl;
+          }
+
+          const { error: tokenError } = await supabase.from("message_tokens").insert({
+            token: candidate,
+            sender_name: senderName,
+            recipient_name: recipientName || null,
+            message_text: message.trim(),
+            visual_image_url: tokenVisualImageUrl,
+            visual_emoji: tokenVisualEmoji,
+          });
+          if (tokenError) {
+            console.error("Failed to create message token:", tokenError);
+          } else {
+            revealToken = candidate;
+          }
+        } catch (err) {
+          console.error("Token creation error:", err);
         }
+
+        const trimmed = message.trim();
+        const smsText = revealToken
+          ? `${trimmed}\n\nOpen your Encouraging Word: ${window.location.origin}/m/${revealToken}`
+          : trimmed;
         const smsBody = encodeURIComponent(smsText);
         const smsUrl = `sms:${recipientPhone}?body=${smsBody}`;
 
         const { error: smsLogError } = await supabase.from("messages").insert({
           user_id: user.id,
           recipient_id: recipientRow?.id || null,
-          message_text: message.trim(),
+          message_text: trimmed,
           visual_id: visual?.id || null,
           delivery_method: "sms_native",
           status: "initiated",
         });
         if (smsLogError) console.error("Failed to log SMS message:", smsLogError);
 
-        window.open(smsUrl, "_self");
+        window.location.href = smsUrl;
       }
+
+      setSentMethod(method);
 
       clearDraft();
       setSending(false);
@@ -695,9 +735,13 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-accent/15 mb-6">
           <Check className="h-10 w-10 text-accent" />
         </div>
-        <h2 className="font-display text-4xl font-bold text-primary">Your words are on their way</h2>
+        <h2 className="font-display text-4xl font-bold text-primary">
+          {sentMethod === "sms" ? "Almost there" : "Your words are on their way"}
+        </h2>
         <p className="mt-3 text-center text-muted-foreground max-w-xs leading-relaxed text-lg">
-          You just made someone's day a little brighter.
+          {sentMethod === "sms"
+            ? "Your message is ready in Messages — just hit send."
+            : "You just made someone's day a little brighter."}
         </p>
         <Button
           className="mt-8 rounded-full bg-accent text-accent-foreground font-bold px-8 h-16 text-lg shadow-glow hover:bg-accent/90"
