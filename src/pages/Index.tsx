@@ -423,7 +423,7 @@ const Index = () => {
                   />
                 </button>
                 <span className="font-display italic text-[18px] mt-4 text-center text-foreground">
-                  Click here to brighten someone's day.
+                  Tap the medallion above to brighten someone's day.
                 </span>
               </div>
             </main>
