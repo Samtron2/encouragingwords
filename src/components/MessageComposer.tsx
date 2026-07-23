@@ -6,7 +6,7 @@ import { useComposerDraft } from "@/hooks/useComposerDraft";
 import { useOccasionVisuals, SPECIAL_OCCASIONS } from "@/hooks/useOccasionVisuals";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from "@/components/ui/carousel";
 import { Mail, MessageSquare, Check, User, AlertCircle, Pencil, Camera, X, Mic, Loader2, BookUser } from "lucide-react";
 import { toast } from "sonner";
 import { isContactPickerSupported, pickContact } from "@/lib/contactPicker";
