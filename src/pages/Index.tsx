@@ -29,7 +29,7 @@ function useGreeting(userId: string | undefined) {
   }, [userId]);
 
   const hour = new Date().getHours();
-  const timeOfDay = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const timeOfDay = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
   return displayName ? `${timeOfDay}, ${displayName}` : timeOfDay;
 }
 
