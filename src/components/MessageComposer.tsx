@@ -502,9 +502,21 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       const emojiChar = isEmoji ? visual.image_url!.slice(6) : undefined;
       let imageUrl = !isEmoji ? visual?.image_url || undefined : undefined;
 
-      // If selfie is selected, use it as the image for email, skip for SMS
+      // If a selfie/photo is selected, wait for the background upload to finish
+      // and use the resulting public URL (falls back to no image on failure).
+      let uploadedPhotoUrl: string | null = null;
       if (selfieSelected && selfiePreview) {
-        imageUrl = selfiePreview;
+        if (photoUploadPromiseRef.current) {
+          try {
+            uploadedPhotoUrl = await photoUploadPromiseRef.current;
+          } catch (err) {
+            console.error("Photo upload await failed:", err);
+            uploadedPhotoUrl = null;
+          }
+        } else {
+          uploadedPhotoUrl = photoPublicUrl;
+        }
+        if (uploadedPhotoUrl) imageUrl = uploadedPhotoUrl;
       }
 
       if (method === "email") {
@@ -518,6 +530,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
         const senderName = senderProfile.data?.display_name || null;
 
+        const emailImageUrl = selfieSelected
+          ? (uploadedPhotoUrl || undefined)
+          : (!imageUrl || imageUrl.startsWith("blob:") ? undefined : imageUrl);
+
         const sendResult = await supabase.functions.invoke("send-transactional-email", {
           body: {
             templateName: "encouraging-message",
@@ -527,7 +543,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               recipientName: recipientName || undefined,
               senderName: senderName || undefined,
               message: message.trim(),
-              visualImageUrl: (selfieSelected || !imageUrl || imageUrl.startsWith("blob:")) ? undefined : imageUrl,
+              visualImageUrl: emailImageUrl,
               visualEmoji: selfieSelected ? undefined : emojiChar,
             },
           },
