@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Heart, Search, MoreVertical, Pencil, Trash2, UserPlus, Upload, X } from "lucide-react";
+import { Heart, Search, MoreVertical, Pencil, Trash2, UserPlus, Upload, X, BookUser } from "lucide-react";
 import { toast } from "sonner";
+import { isContactPickerSupported, pickContact } from "@/lib/contactPicker";
 import type { Tab } from "@/components/BottomNav";
 import type { PrefilledRecipient } from "@/components/MessageComposer";
 import {
@@ -73,11 +74,21 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [addForm, setAddForm] = useState({ name: "", email: "", phone: "" });
   const [addingContact, setAddingContact] = useState(false);
-  const [contactPickerSupported] = useState(() =>
-    typeof navigator !== "undefined" &&
-    "contacts" in navigator &&
-    "ContactsManager" in window
-  );
+  const [contactPickerSupported] = useState(() => isContactPickerSupported());
+
+  const handleAddPickContact = async () => {
+    try {
+      const picked = await pickContact();
+      if (!picked) return;
+      setAddForm({
+        name: picked.name || "",
+        email: picked.email || "",
+        phone: picked.phone || "",
+      });
+    } catch {
+      toast.error("Couldn't open your contacts. You can type the name instead.");
+    }
+  };
   const [importingGoogle, setImportingGoogle] = useState(false);
   const [googleContacts, setGoogleContacts] = useState<Array<{ name: string; email: string; phone: string; selected: boolean }>>([]);
   const [showGooglePreview, setShowGooglePreview] = useState(false);
@@ -354,6 +365,16 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
       {showAddForm && (
         <div className="mx-4 mt-2 mb-3 rounded-2xl bg-card p-4 shadow-card space-y-3 animate-fade-in">
           <p className="text-base font-semibold text-foreground">New contact</p>
+          {contactPickerSupported && (
+            <button
+              type="button"
+              onClick={handleAddPickContact}
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary/70 transition-colors"
+            >
+              <BookUser className="h-4 w-4" />
+              Choose from contacts
+            </button>
+          )}
           <Input
             placeholder="Name (required)"
             value={addForm.name}

@@ -7,8 +7,9 @@ import { useOccasionVisuals, SPECIAL_OCCASIONS } from "@/hooks/useOccasionVisual
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
-import { Mail, MessageSquare, Check, User, AlertCircle, Pencil, Camera, X, Mic, Loader2 } from "lucide-react";
+import { Mail, MessageSquare, Check, User, AlertCircle, Pencil, Camera, X, Mic, Loader2, BookUser } from "lucide-react";
 import { toast } from "sonner";
+import { isContactPickerSupported, pickContact } from "@/lib/contactPicker";
 
 const PROMPT_SUGGESTIONS: Record<string, string[]> = {
   default: [
@@ -424,6 +425,29 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setNudgeField(null);
     setTimeout(() => inputRef.current?.focus(), 50);
   };
+
+  const [contactPickerSupported] = useState(() => isContactPickerSupported());
+
+  const handlePickContact = async () => {
+    try {
+      const picked = await pickContact();
+      if (!picked) return;
+      const name = picked.name?.trim() || "";
+      if (name) {
+        setRecipientInput(name);
+        setRecipientName(name);
+        setNameConfirmed(true);
+      }
+      if (picked.email) setRecipientEmail(picked.email);
+      if (picked.phone) setRecipientPhone(picked.phone);
+      setContactInput(picked.email || picked.phone || "");
+      setSelectedRecipient(null);
+      setShowSuggestions(false);
+    } catch {
+      toast.error("Couldn't open your contacts. You can type the name instead.");
+    }
+  };
+
 
   // Whether to show "Add [name]" chip — typed ≥2 chars, no suggestion selected, has no exact match, valid name
   const showAddChip = !nameConfirmed
@@ -1121,6 +1145,19 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                     className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
                   >
                     Add {recipientInput.trim()}
+                  </button>
+                </div>
+              )}
+
+              {contactPickerSupported && (
+                <div className="flex justify-center mt-3">
+                  <button
+                    type="button"
+                    onClick={handlePickContact}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary/70 transition-colors"
+                  >
+                    <BookUser className="h-4 w-4" />
+                    Choose from contacts
                   </button>
                 </div>
               )}
