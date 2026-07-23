@@ -1281,6 +1281,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 >
                   <Input
                     autoFocus
+                    autoComplete="off"
+                    name="recipient-contact-detail"
                     placeholder={nudgeField === "email" ? "Email address" : "Phone number"}
                     value={nudgeValue}
                     onChange={(e) => setNudgeValue(e.target.value)}
@@ -1662,6 +1664,18 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           )}
         </section>
       </div>
+
+      <ContactDetailsChooser
+        open={!!pickerChoice}
+        name={pickerChoice?.name}
+        emails={pickerChoice?.emails ?? []}
+        phones={pickerChoice?.phones ?? []}
+        onCancel={() => setPickerChoice(null)}
+        onConfirm={(choice) => {
+          applyPickedContact(pickerChoice?.name, choice.email, choice.phone);
+          setPickerChoice(null);
+        }}
+      />
     </div>
   );
 }
