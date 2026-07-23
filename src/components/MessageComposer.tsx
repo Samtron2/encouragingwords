@@ -1036,24 +1036,48 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   if (sent) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-6 animate-fade-in">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-accent/15 mb-6">
-          <Check className="h-10 w-10 text-accent" />
+      <div className="fixed inset-x-0 top-0 bottom-16 z-40 flex items-center justify-center bg-background px-6 animate-fade-in">
+        <div className="relative w-full max-w-[360px] flex flex-col items-center text-center">
+          {/* Subtle gold radial glow centered behind the icon */}
+          <div
+            className="absolute left-1/2 top-12 -translate-x-1/2 -translate-y-1/2 h-80 w-80 rounded-full bg-accent/10 blur-3xl pointer-events-none"
+            aria-hidden="true"
+          />
+
+          <div
+            className={`relative z-10 h-24 w-24 rounded-full bg-accent flex items-center justify-center transition-transform duration-400 ease-out ${successEntered ? "scale-100" : "scale-90"}`}
+          >
+            <Check className="h-12 w-12 text-accent-foreground stroke-[3]" />
+          </div>
+
+          <h2 className="font-display text-4xl font-bold text-primary text-balance mt-6">
+            {sentMethod === "sms" ? "Almost there" : "Your words are on their way"}
+          </h2>
+          <p className="mt-3 text-muted-foreground leading-relaxed text-lg">
+            {sentMethod === "sms"
+              ? "Your message is ready in Messages — just hit send."
+              : "You just made someone's day a little brighter."}
+          </p>
+
+          <div className="mt-8 flex flex-col items-center gap-3 w-full">
+            <Button
+              className="rounded-full bg-accent text-accent-foreground font-bold px-8 h-14 text-lg shadow-[0_4px_16px_hsl(var(--accent)/0.15)] hover:bg-accent/90"
+              onClick={onBack}
+            >
+              Back to home
+            </Button>
+            <Button
+              variant="ghost"
+              className="text-muted-foreground hover:text-accent-foreground hover:bg-transparent"
+              onClick={() => {
+                handleClearDraft();
+                setSent(false);
+              }}
+            >
+              Send another word
+            </Button>
+          </div>
         </div>
-        <h2 className="font-display text-4xl font-bold text-primary">
-          {sentMethod === "sms" ? "Almost there" : "Your words are on their way"}
-        </h2>
-        <p className="mt-3 text-center text-muted-foreground max-w-xs leading-relaxed text-lg">
-          {sentMethod === "sms"
-            ? "Your message is ready in Messages — just hit send."
-            : "You just made someone's day a little brighter."}
-        </p>
-        <Button
-          className="mt-8 rounded-full bg-accent text-accent-foreground font-bold px-8 h-16 text-lg shadow-glow hover:bg-accent/90"
-          onClick={onBack}
-        >
-          Back to home
-        </Button>
       </div>
     );
   }
