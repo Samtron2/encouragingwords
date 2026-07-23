@@ -244,6 +244,19 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [nudgeValue, setNudgeValue] = useState("");
   const [selectedOccasion, setSelectedOccasion] = useState<string | null>(null);
   const [customMode, setCustomMode] = useState(false);
+
+  // Voice-to-text state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [transcribing, setTranscribing] = useState(false);
+  const [pendingTranscript, setPendingTranscript] = useState<string | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const messageTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const voiceHintShownRef = useRef(false);
   const { visuals: occasionVisuals, loading: occasionLoading } = useOccasionVisuals(selectedOccasion);
   const activeVisuals = selectedOccasion && occasionVisuals.length > 0 ? occasionVisuals : dailyVisuals;
   const activeVisualsLoading = selectedOccasion ? occasionLoading : visualsLoading;
