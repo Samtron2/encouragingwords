@@ -1235,8 +1235,63 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 </div>
               )}
             </>
+          ) : selectedRecipient ? (
+            /* Selected saved/imported recipient — clean summary card */
+            <div className="rounded-2xl border border-border bg-card px-4 py-3 text-left">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground text-[15px] font-semibold">
+                  {(recipientName || "?")[0].toUpperCase()}
+                </div>
+                <span className="text-lg font-medium text-foreground flex-1 truncate">{recipientName}</span>
+                <button
+                  onClick={editName}
+                  className="p-1.5 rounded-full hover:bg-secondary/60 transition-colors text-muted-foreground hover:text-foreground"
+                  aria-label="Edit name"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {recipientEmail && recipientPhone
+                  ? "Email and phone on file"
+                  : recipientEmail
+                  ? "Email on file"
+                  : recipientPhone
+                  ? "Phone on file"
+                  : ""}
+              </p>
+              <button
+                type="button"
+                onClick={() => setEditingDetails((v) => !v)}
+                className="mt-2 text-sm font-medium text-accent hover:text-accent/80 transition-colors"
+              >
+                {editingDetails ? "Done" : "Edit details"}
+              </button>
+              {editingDetails && (
+                <div className="mt-3 animate-fade-in space-y-2">
+                  <Input
+                    type="email"
+                    autoComplete="off"
+                    name="recipient-email-edit"
+                    placeholder="Email address"
+                    value={recipientEmail}
+                    onChange={(e) => setRecipientEmail(e.target.value)}
+                    className="text-base py-3"
+                  />
+                  <Input
+                    type="tel"
+                    autoComplete="off"
+                    name="recipient-phone-edit"
+                    placeholder="Phone number"
+                    value={recipientPhone}
+                    onChange={(e) => setRecipientPhone(e.target.value)}
+                    className="text-base py-3"
+                  />
+                </div>
+              )}
+            </div>
           ) : (
-            /* Name confirmed — read-only display */
+            /* Name confirmed — read-only display for new typed recipients */
             <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3">
               <User className="h-4 w-4 text-muted-foreground shrink-0" />
               <span className="text-lg font-medium text-foreground flex-1 text-left truncate">{recipientName}</span>
