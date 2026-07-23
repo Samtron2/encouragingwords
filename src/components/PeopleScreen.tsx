@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, Search, MoreVertical, Pencil, Trash2, UserPlus, Upload, X, BookUser } from "lucide-react";
 import { toast } from "sonner";
 import { isContactPickerSupported, pickContact } from "@/lib/contactPicker";
+import ContactDetailsChooser from "@/components/ContactDetailsChooser";
 import type { Tab } from "@/components/BottomNav";
 import type { PrefilledRecipient } from "@/components/MessageComposer";
 import {
@@ -388,18 +389,24 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
           )}
           <Input
             placeholder="Name (required)"
+            autoComplete="off"
+            name="recipient-contact-name"
             value={addForm.name}
             onChange={(e) => setAddForm((f) => ({ ...f, name: e.target.value }))}
           />
           <Input
             placeholder="Email"
             type="email"
+            autoComplete="off"
+            name="recipient-contact-email"
             value={addForm.email}
             onChange={(e) => setAddForm((f) => ({ ...f, email: e.target.value }))}
           />
           <Input
             placeholder="Phone number"
             type="tel"
+            autoComplete="off"
+            name="recipient-contact-phone"
             value={addForm.phone}
             onChange={(e) => setAddForm((f) => ({ ...f, phone: e.target.value }))}
           />
@@ -574,6 +581,18 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
           ))}
         </div>
       )}
+
+      <ContactDetailsChooser
+        open={!!pickerChoice}
+        name={pickerChoice?.name}
+        emails={pickerChoice?.emails ?? []}
+        phones={pickerChoice?.phones ?? []}
+        onCancel={() => setPickerChoice(null)}
+        onConfirm={(choice) => {
+          applyPickedToAddForm(pickerChoice?.name, choice.email, choice.phone);
+          setPickerChoice(null);
+        }}
+      />
     </div>
   );
 }
