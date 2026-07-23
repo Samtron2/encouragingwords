@@ -1797,6 +1797,46 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           setPickerChoice(null);
         }}
       />
+
+      <Dialog open={pitchOpen} onOpenChange={(o) => { if (!o) setPitchOpen(false); }}>
+        <DialogContent className="bg-card border border-accent/30 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-accent text-balance">
+              You've sent your five free words this month
+            </DialogTitle>
+            <DialogDescription className="text-base text-muted-foreground pt-2 leading-relaxed">
+              If you want to keep doing it because it makes you feel good, it's just $1.69 a month. That's how we keep the lights on.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 pt-2">
+            <Button
+              onClick={async () => {
+                await recordUpgradeInterest();
+                setPitchOpen(false);
+                toast.success("You're on the list. We'll let you know the moment it's ready.");
+                const m = pendingMethodRef.current;
+                pendingMethodRef.current = null;
+                if (m) void handleSend(m);
+              }}
+              className="h-12 rounded-full bg-accent text-accent-foreground font-bold hover:bg-accent/90"
+            >
+              I'm in — $1.69/month
+            </Button>
+            <button
+              onClick={() => {
+                setPitchOpen(false);
+                toast("This one's on the house while we're getting started.");
+                const m = pendingMethodRef.current;
+                pendingMethodRef.current = null;
+                if (m) void handleSend(m);
+              }}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+            >
+              Keep sending for now
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
