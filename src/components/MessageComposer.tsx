@@ -1141,6 +1141,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   ref={inputRef}
+                  autoComplete="off"
+                  name="recipient-contact-name"
                   placeholder="Who is this for?"
                   value={recipientInput}
                   onChange={(e) => {
@@ -1234,6 +1236,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             <div className="mt-3 animate-fade-in">
               <Input
                 ref={contactInputRef}
+                autoComplete="off"
+                name="recipient-contact-detail"
                 placeholder="Email or phone number"
                 value={contactInput}
                 onChange={(e) => {
