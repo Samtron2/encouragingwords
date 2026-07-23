@@ -613,6 +613,62 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     ? PROMPT_SUGGESTIONS[selectedOccasion]
     : PROMPT_SUGGESTIONS.default;
 
+  const resizeImageToJpeg = async (file: File, maxDim = 1600, quality = 0.85): Promise<Blob> => {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject(new Error("image load failed"));
+      i.src = dataUrl;
+    });
+    const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+    const w = Math.round(img.width * scale);
+    const h = Math.round(img.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("no canvas ctx");
+    ctx.drawImage(img, 0, 0, w, h);
+    return await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/jpeg", quality);
+    });
+  };
+
+  const startPhotoUpload = (file: File) => {
+    if (!user) return;
+    setPhotoPublicUrl(null);
+    setPhotoUploadFailed(false);
+    setPhotoUploading(true);
+    const promise = (async () => {
+      try {
+        const blob = await resizeImageToJpeg(file);
+        const path = `${user.id}/${crypto.randomUUID()}.jpg`;
+        const { error: upErr } = await supabase.storage
+          .from("message-photos")
+          .upload(path, blob, { contentType: "image/jpeg", upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("message-photos").getPublicUrl(path);
+        const url = pub.publicUrl;
+        setPhotoPublicUrl(url);
+        return url;
+      } catch (err) {
+        console.error("Photo upload failed:", err);
+        setPhotoUploadFailed(true);
+        return null;
+      } finally {
+        setPhotoUploading(false);
+      }
+    })();
+    photoUploadPromiseRef.current = promise;
+  };
+
+
   if (sent) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6 animate-fade-in">
