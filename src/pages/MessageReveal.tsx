@@ -21,7 +21,8 @@ export default function MessageReveal() {
   const [opening, setOpening] = useState(false);
   const [revealed, setRevealed] = useState(false);
 
-  const useDropCap = /^[A-Za-z]/.test(data?.message_text ?? "");
+  const messageText = data?.message_text ?? "";
+  const useDropCap = /^[A-Za-z]/.test(messageText) && messageText.length >= 80;
 
   useEffect(() => {
     if (!token) return;
