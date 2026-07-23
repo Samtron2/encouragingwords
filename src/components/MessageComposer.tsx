@@ -454,8 +454,18 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     if (email) setRecipientEmail(email);
     if (phone) setRecipientPhone(phone);
     setContactInput(email || phone || "");
-    setSelectedRecipient(null);
+    setSelectedRecipient({
+      id: "__imported__",
+      name: cleanName || null,
+      email: email || null,
+      phone: phone || null,
+      nudge_dismissed: true,
+    });
     setShowSuggestions(false);
+    setNudgeField(null);
+    setNudgeInputVisible(false);
+    setNudgeValue("");
+    setEditingDetails(false);
   };
 
   const handlePickContact = async () => {
