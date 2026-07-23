@@ -703,7 +703,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             setSelfiePreview(url);
             setSelfieSelected(true);
             setSelectedVisual(null);
+            startPhotoUpload(file);
           }
+          // reset so selecting the same file again re-triggers onChange
+          e.target.value = "";
         }}
       />
       <div className="w-full max-w-[480px] mx-auto text-center">
