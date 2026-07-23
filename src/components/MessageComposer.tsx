@@ -7,7 +7,7 @@ import { useOccasionVisuals, SPECIAL_OCCASIONS } from "@/hooks/useOccasionVisual
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
-import { Mail, MessageSquare, Check, User, AlertCircle, Pencil, Camera, X } from "lucide-react";
+import { Mail, MessageSquare, Check, User, AlertCircle, Pencil, Camera, X, Mic, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const PROMPT_SUGGESTIONS: Record<string, string[]> = {
