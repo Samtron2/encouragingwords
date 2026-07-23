@@ -1563,7 +1563,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             </Button>
             <Button
               onClick={() => handleSend("sms")}
-              disabled={!canSendSms || !message.trim() || sending}
+              disabled={smsCapability === "none" || !canSendSms || !message.trim() || sending}
               className="gap-2 h-16 font-bold text-lg font-body text-white hover:opacity-90 disabled:opacity-40 min-w-0"
               style={{ flex: "1 1 45%", borderRadius: "999px", backgroundColor: "hsl(var(--primary))" }}
             >
@@ -1571,6 +1571,36 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               <span className="truncate">{sending ? "Sending…" : "Text"}</span>
             </Button>
           </div>
+
+          {smsCapability === "partial" && (
+            <p className="mt-3 text-center text-sm text-muted-foreground">
+              On a Mac, Text opens your Messages app.
+            </p>
+          )}
+          {smsCapability === "none" && (
+            <p className="mt-3 text-center text-sm text-muted-foreground">
+              Texting works from your phone. Email works everywhere.
+            </p>
+          )}
+          {smsCapability === "full" && (
+            <p className="mt-3 text-center text-sm text-muted-foreground">
+              Email sends right from the app. Text opens your Messages so it sends from your number.
+            </p>
+          )}
+
+          {nameConfirmed && message.trim() && !sending && (
+            <div className="mt-3 text-center text-sm text-muted-foreground">
+              {!recipientEmail && recipientPhone && (
+                <span>Add their email address to send this as an email.</span>
+              )}
+              {!recipientPhone && (recipientEmail || smsCapability === "none") && (
+                <span>Add their phone number to send this as a text.</span>
+              )}
+              {!recipientEmail && !recipientPhone && (
+                <span>Add their email address to send this as an email.</span>
+              )}
+            </div>
+          )}
         </section>
       </div>
     </div>
