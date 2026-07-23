@@ -107,6 +107,78 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
   const [googleContacts, setGoogleContacts] = useState<Array<{ name: string; email: string; phone: string; selected: boolean }>>([]);
   const [showGooglePreview, setShowGooglePreview] = useState(false);
 
+  // Select / merge mode
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [merging, setMerging] = useState(false);
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds([]);
+    setMergeOpen(false);
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const selectedContacts = contacts.filter((c) => selectedIds.includes(c.id));
+
+  const handleMerge = async (choice: { name: string | null; email: string | null; phone: string | null }) => {
+    if (selectedContacts.length !== 2 || !user) return;
+    const [x, y] = selectedContacts;
+    const xTime = x.created_at ? new Date(x.created_at).getTime() : Infinity;
+    const yTime = y.created_at ? new Date(y.created_at).getTime() : Infinity;
+    const keeper = xTime <= yTime ? x : y;
+    const loser = keeper === x ? y : x;
+
+    setMerging(true);
+    try {
+      const lastContacted = (() => {
+        const kt = keeper.last_contacted_at ? new Date(keeper.last_contacted_at).getTime() : 0;
+        const lt = loser.last_contacted_at ? new Date(loser.last_contacted_at).getTime() : 0;
+        const max = Math.max(kt, lt);
+        return max > 0 ? new Date(max).toISOString() : null;
+      })();
+
+      const { error: updErr } = await supabase
+        .from("recipients")
+        .update({
+          name: choice.name,
+          email: choice.email,
+          phone: choice.phone,
+          last_contacted_at: lastContacted,
+        })
+        .eq("id", keeper.id);
+      if (updErr) throw updErr;
+
+      const { error: msgErr } = await supabase
+        .from("messages")
+        .update({ recipient_id: keeper.id })
+        .eq("recipient_id", loser.id);
+      if (msgErr) throw msgErr;
+
+      const { error: delErr } = await supabase
+        .from("recipients")
+        .delete()
+        .eq("id", loser.id);
+      if (delErr) throw delErr;
+
+      toast.success(`Merged into ${choice.name ?? "contact"}.`);
+      exitSelectMode();
+      await fetchContacts();
+    } catch (err: any) {
+      console.error("Merge failed:", err);
+      toast.error("Couldn't merge these contacts. Nothing was deleted.");
+    } finally {
+      setMerging(false);
+    }
+  };
+
+
   const fetchContacts = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
