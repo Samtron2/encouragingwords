@@ -535,6 +535,28 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setNudgeInputVisible(false);
   };
 
+  const initiateSend = (method: "email" | "sms") => {
+    if (!user || !message.trim()) return;
+    if (!isAdmin && wordsThisMonth >= FREE_WORDS_PER_MONTH && !pitchShownThisSession) {
+      pitchShownThisSession = true;
+      pendingMethodRef.current = method;
+      setPitchOpen(true);
+      return;
+    }
+    void handleSend(method);
+  };
+
+  const recordUpgradeInterest = async () => {
+    if (!user) return;
+    const { error } = await supabase
+      .from("upgrade_interest")
+      .insert([{ user_id: user.id }]);
+    // Ignore unique-violation duplicates
+    if (error && !error.message.toLowerCase().includes("duplicate")) {
+      console.error("upgrade_interest insert failed", error);
+    }
+  };
+
   const handleSend = async (method: "email" | "sms") => {
     if (!user || !message.trim()) return;
     setSending(true);
