@@ -233,6 +233,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const selfieInputRef = useRef<HTMLInputElement>(null);
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const [selfieSelected, setSelfieSelected] = useState(false);
+  const [photoPublicUrl, setPhotoPublicUrl] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoUploadFailed, setPhotoUploadFailed] = useState(false);
+  const photoUploadPromiseRef = useRef<Promise<string | null> | null>(null);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
   const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
   const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
@@ -297,6 +301,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setContactInput("");
     setSelfiePreview(null);
     setSelfieSelected(false);
+    setPhotoPublicUrl(null);
+    setPhotoUploading(false);
+    setPhotoUploadFailed(false);
+    photoUploadPromiseRef.current = null;
     setSelectedRecipient(null);
     setNudgeField(null);
     setNudgeInputVisible(false);
@@ -498,9 +506,21 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       const emojiChar = isEmoji ? visual.image_url!.slice(6) : undefined;
       let imageUrl = !isEmoji ? visual?.image_url || undefined : undefined;
 
-      // If selfie is selected, use it as the image for email, skip for SMS
+      // If a selfie/photo is selected, wait for the background upload to finish
+      // and use the resulting public URL (falls back to no image on failure).
+      let uploadedPhotoUrl: string | null = null;
       if (selfieSelected && selfiePreview) {
-        imageUrl = selfiePreview;
+        if (photoUploadPromiseRef.current) {
+          try {
+            uploadedPhotoUrl = await photoUploadPromiseRef.current;
+          } catch (err) {
+            console.error("Photo upload await failed:", err);
+            uploadedPhotoUrl = null;
+          }
+        } else {
+          uploadedPhotoUrl = photoPublicUrl;
+        }
+        if (uploadedPhotoUrl) imageUrl = uploadedPhotoUrl;
       }
 
       if (method === "email") {
@@ -514,6 +534,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
         const senderName = senderProfile.data?.display_name || null;
 
+        const emailImageUrl = selfieSelected
+          ? (uploadedPhotoUrl || undefined)
+          : (!imageUrl || imageUrl.startsWith("blob:") ? undefined : imageUrl);
+
         const sendResult = await supabase.functions.invoke("send-transactional-email", {
           body: {
             templateName: "encouraging-message",
@@ -523,7 +547,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               recipientName: recipientName || undefined,
               senderName: senderName || undefined,
               message: message.trim(),
-              visualImageUrl: (selfieSelected || !imageUrl || imageUrl.startsWith("blob:")) ? undefined : imageUrl,
+              visualImageUrl: emailImageUrl,
               visualEmoji: selfieSelected ? undefined : emojiChar,
             },
           },
@@ -609,6 +633,62 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     ? PROMPT_SUGGESTIONS[selectedOccasion]
     : PROMPT_SUGGESTIONS.default;
 
+  const resizeImageToJpeg = async (file: File, maxDim = 1600, quality = 0.85): Promise<Blob> => {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject(new Error("image load failed"));
+      i.src = dataUrl;
+    });
+    const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+    const w = Math.round(img.width * scale);
+    const h = Math.round(img.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("no canvas ctx");
+    ctx.drawImage(img, 0, 0, w, h);
+    return await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/jpeg", quality);
+    });
+  };
+
+  const startPhotoUpload = (file: File) => {
+    if (!user) return;
+    setPhotoPublicUrl(null);
+    setPhotoUploadFailed(false);
+    setPhotoUploading(true);
+    const promise = (async () => {
+      try {
+        const blob = await resizeImageToJpeg(file);
+        const path = `${user.id}/${crypto.randomUUID()}.jpg`;
+        const { error: upErr } = await supabase.storage
+          .from("message-photos")
+          .upload(path, blob, { contentType: "image/jpeg", upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("message-photos").getPublicUrl(path);
+        const url = pub.publicUrl;
+        setPhotoPublicUrl(url);
+        return url;
+      } catch (err) {
+        console.error("Photo upload failed:", err);
+        setPhotoUploadFailed(true);
+        return null;
+      } finally {
+        setPhotoUploading(false);
+      }
+    })();
+    photoUploadPromiseRef.current = promise;
+  };
+
+
   if (sent) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6 animate-fade-in">
@@ -643,7 +723,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             setSelfiePreview(url);
             setSelfieSelected(true);
             setSelectedVisual(null);
+            startPhotoUpload(file);
           }
+          // reset so selecting the same file again re-triggers onChange
+          e.target.value = "";
         }}
       />
       <div className="w-full max-w-[480px] mx-auto text-center">
@@ -990,6 +1073,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                                   onClick={() => {
                                     setSelfiePreview(null);
                                     setSelfieSelected(false);
+                                    setPhotoPublicUrl(null);
+                                    setPhotoUploading(false);
+                                    setPhotoUploadFailed(false);
+                                    photoUploadPromiseRef.current = null;
                                   }}
                                   className="absolute top-2 right-2 h-7 w-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-background transition-colors"
                                   aria-label="Remove photo"
