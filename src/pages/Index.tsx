@@ -443,7 +443,7 @@ const Index = () => {
           />
         )}
 
-        {activeTab === "settings" && <SettingsScreen />}
+        {activeTab === "settings" && <SettingsScreen onNavigate={(tab) => switchTab(tab)} />}
 
         {activeTab === "admin" && isAdmin && <AdminPanel />}
 
