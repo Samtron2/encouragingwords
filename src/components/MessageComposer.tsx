@@ -233,6 +233,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const selfieInputRef = useRef<HTMLInputElement>(null);
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const [selfieSelected, setSelfieSelected] = useState(false);
+  const [photoPublicUrl, setPhotoPublicUrl] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoUploadFailed, setPhotoUploadFailed] = useState(false);
+  const photoUploadPromiseRef = useRef<Promise<string | null> | null>(null);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
   const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
   const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
