@@ -238,6 +238,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoUploadFailed, setPhotoUploadFailed] = useState(false);
   const photoUploadPromiseRef = useRef<Promise<string | null> | null>(null);
+  const photoFileRef = useRef<File | null>(null);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
   const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
   const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
@@ -319,6 +320,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setPhotoUploading(false);
     setPhotoUploadFailed(false);
     photoUploadPromiseRef.current = null;
+    photoFileRef.current = null;
     setSelectedRecipient(null);
     setNudgeField(null);
     setNudgeInputVisible(false);
@@ -520,22 +522,35 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       const emojiChar = isEmoji ? visual.image_url!.slice(6) : undefined;
       let imageUrl = !isEmoji ? visual?.image_url || undefined : undefined;
 
-      // If a selfie/photo is selected, wait for the background upload to finish
-      // and use the resulting public URL (falls back to no image on failure).
+      // If a selfie/photo is selected, wait (with hard timeout) for the background upload.
+      // If it isn't ready, stop the send — never send silently without the photo.
       let uploadedPhotoUrl: string | null = null;
       if (selfieSelected && selfiePreview) {
+        if (photoUploadFailed) {
+          toast.error("Your photo didn't finish uploading. Tap the photo to retry, or remove it to send without it.");
+          setSending(false);
+          return;
+        }
         if (photoUploadPromiseRef.current) {
           try {
-            uploadedPhotoUrl = await photoUploadPromiseRef.current;
+            uploadedPhotoUrl = await withTimeout(photoUploadPromiseRef.current, 10000, "photo upload");
           } catch (err) {
             console.error("Photo upload await failed:", err);
-            uploadedPhotoUrl = null;
+            toast.error("Your photo didn't finish uploading. Tap the photo to retry, or remove it to send without it.");
+            setSending(false);
+            return;
           }
         } else {
           uploadedPhotoUrl = photoPublicUrl;
         }
-        if (uploadedPhotoUrl) imageUrl = uploadedPhotoUrl;
+        if (!uploadedPhotoUrl) {
+          toast.error("Your photo didn't finish uploading. Tap the photo to retry, or remove it to send without it.");
+          setSending(false);
+          return;
+        }
+        imageUrl = uploadedPhotoUrl;
       }
+
 
       if (method === "email") {
         const idempotencyKey = `encouraging-${user.id}-${Date.now()}`;
@@ -687,45 +702,88 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     ? PROMPT_SUGGESTIONS[selectedOccasion]
     : PROMPT_SUGGESTIONS.default;
 
-  const resizeImageToJpeg = async (file: File, maxDim = 1600, quality = 0.85): Promise<Blob> => {
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(r.result as string);
-      r.onerror = () => reject(r.error);
-      r.readAsDataURL(file);
-    });
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const i = new Image();
-      i.onload = () => resolve(i);
-      i.onerror = () => reject(new Error("image load failed"));
-      i.src = dataUrl;
-    });
-    const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-    const w = Math.round(img.width * scale);
-    const h = Math.round(img.height * scale);
+  const withTimeout = <T,>(p: Promise<T>, ms: number, label: string): Promise<T> =>
+    Promise.race([
+      p,
+      new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`${label} timed out`)), ms)),
+    ]);
+
+  const drawToJpegBlob = async (
+    src: CanvasImageSource,
+    srcW: number,
+    srcH: number,
+    maxDim: number,
+    quality: number,
+  ): Promise<Blob> => {
+    const scale = Math.min(1, maxDim / Math.max(srcW, srcH));
+    const w = Math.max(1, Math.round(srcW * scale));
+    const h = Math.max(1, Math.round(srcH * scale));
     const canvas = document.createElement("canvas");
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("no canvas ctx");
-    ctx.drawImage(img, 0, 0, w, h);
+    ctx.drawImage(src, 0, 0, w, h);
     return await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/jpeg", quality);
     });
   };
 
+  const resizeImageToJpeg = async (file: File, maxDim = 1600, quality = 0.85): Promise<Blob> => {
+    // Prefer createImageBitmap — decodes off-main-thread and avoids the FileReader data-URL memory hit.
+    if (typeof createImageBitmap === "function") {
+      let bitmap: ImageBitmap | null = null;
+      try {
+        bitmap = await createImageBitmap(file);
+        const blob = await drawToJpegBlob(bitmap, bitmap.width, bitmap.height, maxDim, quality);
+        return blob;
+      } finally {
+        try { bitmap?.close?.(); } catch { /* noop */ }
+      }
+    }
+    // Fallback: object URL + Image (never FileReader data URLs).
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const i = new Image();
+        i.onload = () => resolve(i);
+        i.onerror = () => reject(new Error("image load failed"));
+        i.src = objectUrl;
+      });
+      return await drawToJpegBlob(img, img.width, img.height, maxDim, quality);
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  };
+
   const startPhotoUpload = (file: File) => {
     if (!user) return;
+    photoFileRef.current = file;
     setPhotoPublicUrl(null);
     setPhotoUploadFailed(false);
     setPhotoUploading(true);
-    const promise = (async () => {
+    const promise = (async (): Promise<string | null> => {
       try {
-        const blob = await resizeImageToJpeg(file);
-        const path = `${user.id}/${crypto.randomUUID()}.jpg`;
+        let uploadBlob: Blob;
+        let contentType = "image/jpeg";
+        let ext = "jpg";
+        try {
+          uploadBlob = await withTimeout(resizeImageToJpeg(file), 15000, "resize");
+        } catch (resizeErr) {
+          console.warn("Resize failed/timed out, considering original:", resizeErr);
+          const okType = file.type === "image/jpeg" || file.type === "image/png" || file.type === "image/webp";
+          if (okType && file.size <= 5 * 1024 * 1024) {
+            uploadBlob = file;
+            contentType = file.type;
+            ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+          } else {
+            throw resizeErr;
+          }
+        }
+        const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("message-photos")
-          .upload(path, blob, { contentType: "image/jpeg", upsert: false });
+          .upload(path, uploadBlob, { contentType, upsert: false });
         if (upErr) throw upErr;
         const { data: pub } = supabase.storage.from("message-photos").getPublicUrl(path);
         const url = pub.publicUrl;
@@ -734,6 +792,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       } catch (err) {
         console.error("Photo upload failed:", err);
         setPhotoUploadFailed(true);
+        toast.error("Couldn't upload your photo — tap it to try again.");
         return null;
       } finally {
         setPhotoUploading(false);
@@ -741,6 +800,12 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     })();
     photoUploadPromiseRef.current = promise;
   };
+
+  const retryPhotoUpload = () => {
+    const f = photoFileRef.current;
+    if (f) startPhotoUpload(f);
+  };
+
 
   const cleanupRecording = () => {
     if (recordTimerRef.current) { clearInterval(recordTimerRef.current); recordTimerRef.current = null; }
@@ -1369,20 +1434,42 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                               <div className="relative">
                                 <button
                                   onClick={() => {
+                                    if (photoUploadFailed) {
+                                      retryPhotoUpload();
+                                      return;
+                                    }
                                     setSelfieSelected(!selfieSelected);
                                     if (!selfieSelected) setSelectedVisual(null);
                                   }}
                                   className="flex flex-col items-center gap-2 transition-all"
                                 >
-                                  <img
-                                    src={selfiePreview}
-                                    alt="Your photo"
-                                    className={`h-[240px] w-[240px] rounded-[16px] object-cover transition-all ${
-                                      selfieSelected
-                                        ? "ring-[3px] ring-accent ring-offset-2 ring-offset-background scale-[1.03]"
-                                        : ""
-                                    }`}
-                                  />
+                                  <div className="relative">
+                                    <img
+                                      src={selfiePreview}
+                                      alt="Your photo"
+                                      className={`h-[240px] w-[240px] rounded-[16px] object-cover transition-all ${
+                                        selfieSelected
+                                          ? "ring-[3px] ring-accent ring-offset-2 ring-offset-background scale-[1.03]"
+                                          : ""
+                                      }`}
+                                    />
+                                    {photoUploading && (
+                                      <div className="absolute inset-0 rounded-[16px] bg-background/40 backdrop-blur-[1px] flex items-center justify-center">
+                                        <Loader2 className="h-8 w-8 text-foreground animate-spin" />
+                                      </div>
+                                    )}
+                                    {photoUploadFailed && !photoUploading && (
+                                      <div className="absolute inset-0 rounded-[16px] bg-destructive/70 flex flex-col items-center justify-center gap-1 text-destructive-foreground">
+                                        <AlertCircle className="h-7 w-7" />
+                                        <span className="text-sm font-semibold">Tap to retry</span>
+                                      </div>
+                                    )}
+                                    {!photoUploading && !photoUploadFailed && photoPublicUrl && (
+                                      <div className="absolute bottom-2 left-2 h-7 w-7 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-sm">
+                                        <Check className="h-4 w-4" />
+                                      </div>
+                                    )}
+                                  </div>
                                   <span className="text-[15px] text-muted-foreground">Your photo</span>
                                 </button>
                                 <button
@@ -1393,6 +1480,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                                     setPhotoUploading(false);
                                     setPhotoUploadFailed(false);
                                     photoUploadPromiseRef.current = null;
+                                    photoFileRef.current = null;
                                   }}
                                   className="absolute top-2 right-2 h-7 w-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-background transition-colors"
                                   aria-label="Remove photo"
@@ -1400,6 +1488,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                                   <X className="h-4 w-4 text-foreground" />
                                 </button>
                               </div>
+
                             )}
                           </CarouselItem>
                           {activeVisuals.slice(midIndex).map((v, i) => renderVisual(v, midIndex + i))}
