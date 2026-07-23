@@ -689,45 +689,88 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     ? PROMPT_SUGGESTIONS[selectedOccasion]
     : PROMPT_SUGGESTIONS.default;
 
-  const resizeImageToJpeg = async (file: File, maxDim = 1600, quality = 0.85): Promise<Blob> => {
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(r.result as string);
-      r.onerror = () => reject(r.error);
-      r.readAsDataURL(file);
-    });
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const i = new Image();
-      i.onload = () => resolve(i);
-      i.onerror = () => reject(new Error("image load failed"));
-      i.src = dataUrl;
-    });
-    const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-    const w = Math.round(img.width * scale);
-    const h = Math.round(img.height * scale);
+  const withTimeout = <T,>(p: Promise<T>, ms: number, label: string): Promise<T> =>
+    Promise.race([
+      p,
+      new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`${label} timed out`)), ms)),
+    ]);
+
+  const drawToJpegBlob = async (
+    src: CanvasImageSource,
+    srcW: number,
+    srcH: number,
+    maxDim: number,
+    quality: number,
+  ): Promise<Blob> => {
+    const scale = Math.min(1, maxDim / Math.max(srcW, srcH));
+    const w = Math.max(1, Math.round(srcW * scale));
+    const h = Math.max(1, Math.round(srcH * scale));
     const canvas = document.createElement("canvas");
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("no canvas ctx");
-    ctx.drawImage(img, 0, 0, w, h);
+    ctx.drawImage(src, 0, 0, w, h);
     return await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/jpeg", quality);
     });
   };
 
+  const resizeImageToJpeg = async (file: File, maxDim = 1600, quality = 0.85): Promise<Blob> => {
+    // Prefer createImageBitmap — decodes off-main-thread and avoids the FileReader data-URL memory hit.
+    if (typeof createImageBitmap === "function") {
+      let bitmap: ImageBitmap | null = null;
+      try {
+        bitmap = await createImageBitmap(file);
+        const blob = await drawToJpegBlob(bitmap, bitmap.width, bitmap.height, maxDim, quality);
+        return blob;
+      } finally {
+        try { bitmap?.close?.(); } catch { /* noop */ }
+      }
+    }
+    // Fallback: object URL + Image (never FileReader data URLs).
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const i = new Image();
+        i.onload = () => resolve(i);
+        i.onerror = () => reject(new Error("image load failed"));
+        i.src = objectUrl;
+      });
+      return await drawToJpegBlob(img, img.width, img.height, maxDim, quality);
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  };
+
   const startPhotoUpload = (file: File) => {
     if (!user) return;
+    photoFileRef.current = file;
     setPhotoPublicUrl(null);
     setPhotoUploadFailed(false);
     setPhotoUploading(true);
-    const promise = (async () => {
+    const promise = (async (): Promise<string | null> => {
       try {
-        const blob = await resizeImageToJpeg(file);
-        const path = `${user.id}/${crypto.randomUUID()}.jpg`;
+        let uploadBlob: Blob;
+        let contentType = "image/jpeg";
+        let ext = "jpg";
+        try {
+          uploadBlob = await withTimeout(resizeImageToJpeg(file), 15000, "resize");
+        } catch (resizeErr) {
+          console.warn("Resize failed/timed out, considering original:", resizeErr);
+          const okType = file.type === "image/jpeg" || file.type === "image/png" || file.type === "image/webp";
+          if (okType && file.size <= 5 * 1024 * 1024) {
+            uploadBlob = file;
+            contentType = file.type;
+            ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+          } else {
+            throw resizeErr;
+          }
+        }
+        const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("message-photos")
-          .upload(path, blob, { contentType: "image/jpeg", upsert: false });
+          .upload(path, uploadBlob, { contentType, upsert: false });
         if (upErr) throw upErr;
         const { data: pub } = supabase.storage.from("message-photos").getPublicUrl(path);
         const url = pub.publicUrl;
@@ -736,6 +779,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       } catch (err) {
         console.error("Photo upload failed:", err);
         setPhotoUploadFailed(true);
+        toast.error("Couldn't upload your photo — tap it to try again.");
         return null;
       } finally {
         setPhotoUploading(false);
@@ -743,6 +787,12 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     })();
     photoUploadPromiseRef.current = promise;
   };
+
+  const retryPhotoUpload = () => {
+    const f = photoFileRef.current;
+    if (f) startPhotoUpload(f);
+  };
+
 
   const cleanupRecording = () => {
     if (recordTimerRef.current) { clearInterval(recordTimerRef.current); recordTimerRef.current = null; }
