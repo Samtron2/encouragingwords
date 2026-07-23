@@ -365,6 +365,16 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
       {showAddForm && (
         <div className="mx-4 mt-2 mb-3 rounded-2xl bg-card p-4 shadow-card space-y-3 animate-fade-in">
           <p className="text-base font-semibold text-foreground">New contact</p>
+          {contactPickerSupported && (
+            <button
+              type="button"
+              onClick={handleAddPickContact}
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary/70 transition-colors"
+            >
+              <BookUser className="h-4 w-4" />
+              Choose from contacts
+            </button>
+          )}
           <Input
             placeholder="Name (required)"
             value={addForm.name}
