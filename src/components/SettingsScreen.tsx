@@ -358,6 +358,72 @@ export default function SettingsScreen() {
         </div>
       </section>
 
+      {/* REMINDERS */}
+      <section className="mb-8">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-primary mb-3">
+          Reminders
+        </h2>
+        <div className="rounded-2xl bg-card p-6 shadow-card space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/15">
+              <Bell className="h-5 w-5 text-accent" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-base font-medium">Get reminded before important dates</p>
+              <p className="text-[14px] text-muted-foreground mt-0.5">
+                We'll send a gentle nudge so you never miss a moment.
+              </p>
+            </div>
+          </div>
+
+          {needsIosInstall ? (
+            <p className="text-[14px] text-muted-foreground leading-relaxed">
+              To get reminders on iPhone, first add Encouraging Words to your Home Screen:
+              tap the <span className="font-medium text-foreground">Share</span> button,
+              then <span className="font-medium text-foreground">"Add to Home Screen"</span>.
+              Then come back here.
+            </p>
+          ) : !pushSupported ? (
+            <p className="text-[14px] text-muted-foreground">
+              This browser doesn't support push notifications.
+            </p>
+          ) : pushPermission === "denied" ? (
+            <p className="text-[14px] text-muted-foreground">
+              Notifications are blocked in your browser settings. Allow them for this
+              site to turn on reminders.
+            </p>
+          ) : pushSubscribed ? (
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+                <Check className="h-4 w-4" />
+                Reminders are on
+              </span>
+              <button
+                onClick={handleDisablePush}
+                disabled={pushBusy}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
+              >
+                <BellOff className="h-4 w-4" />
+                Turn off
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleEnablePush}
+              disabled={pushBusy}
+              className="w-full flex items-center justify-center gap-2 rounded-full bg-accent py-3 text-base font-bold text-accent-foreground shadow-glow transition-all hover:bg-accent/90 disabled:opacity-50"
+            >
+              {pushBusy ? (
+                <div className="h-4 w-4 rounded-full border-2 border-accent-foreground border-t-transparent animate-spin" />
+              ) : (
+                <Bell className="h-4 w-4" />
+              )}
+              Turn on reminders
+            </button>
+          )}
+        </div>
+      </section>
+
       {/* ABOUT */}
       <section className="mb-8">
         <h2 className="text-xs font-bold uppercase tracking-widest text-primary mb-3">
