@@ -25,6 +25,7 @@ interface Recipient {
   email: string | null;
   phone: string | null;
   last_contacted_at: string | null;
+  created_at: string | null;
 }
 
 const AVATAR_COLORS = [
