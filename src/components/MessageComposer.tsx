@@ -301,6 +301,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setContactInput("");
     setSelfiePreview(null);
     setSelfieSelected(false);
+    setPhotoPublicUrl(null);
+    setPhotoUploading(false);
+    setPhotoUploadFailed(false);
+    photoUploadPromiseRef.current = null;
     setSelectedRecipient(null);
     setNudgeField(null);
     setNudgeInputVisible(false);
