@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Camera, Check, Bell, BellOff } from "lucide-react";
+import { Camera, Check, Bell, BellOff, Users, ChevronRight } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import ImportantDates from "@/components/ImportantDates";
 
