@@ -775,6 +775,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       clearDraft();
       setSending(false);
       setSent(true);
+      refreshWordsCount();
     } catch (err) {
       console.error("Send error:", err);
       setSendError(true);
