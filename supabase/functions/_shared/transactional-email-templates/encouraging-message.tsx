@@ -8,6 +8,14 @@ import type { TemplateEntry } from './registry.ts'
 const MEDALLION_JPG = "https://zwivxqoxbsacyvccrmel.supabase.co/storage/v1/object/public/button/medallion.jpg"
 const SITE_NAME = 'Encouraging Words'
 
+const titleCase = (value?: string) =>
+  value
+    ? value
+        .split(' ')
+        .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : ''))
+        .join(' ')
+    : undefined
+
 interface EncouragingMessageProps {
   recipientName?: string
   senderName?: string
@@ -91,7 +99,7 @@ const EncouragingMessageEmail = ({
             <Row>
               <Column style={{ padding: '0 36px' }}>
                 {recipientName && (
-                  <Text style={greeting}>Dear {recipientName},</Text>
+                  <Text style={greeting}>Dear {titleCase(recipientName)},</Text>
                 )}
                 <Text style={messageText}>{message || ''}</Text>
               </Column>
@@ -108,7 +116,7 @@ const EncouragingMessageEmail = ({
             <Row>
               <Column style={{ padding: '0 36px 28px' }}>
                 <Text style={withEncouragement}>With encouragement,</Text>
-                <Text style={senderName_style}>{senderName || 'A friend'}</Text>
+                <Text style={senderName_style}>{titleCase(senderName) || 'A friend'}</Text>
               </Column>
             </Row>
           </Section>

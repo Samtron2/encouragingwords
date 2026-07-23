@@ -4,8 +4,8 @@
   "description": "Send a beautiful, personal message to someone who needs it. One tap. One moment. One encouraging word.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f7f4f0",
-  "theme_color": "#2D6E6E",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
   "icons": [
     { "src": "/icon-72x72.png", "sizes": "72x72", "type": "image/png" },
     { "src": "/icon-96x96.png", "sizes": "96x96", "type": "image/png" },
