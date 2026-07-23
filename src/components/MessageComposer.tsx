@@ -573,29 +573,68 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           return;
         }
       } else {
-        let smsText = message.trim();
-        if (selfieSelected) {
-          // Skip image for SMS when selfie is selected — just send text
-        } else if (emojiChar) {
-          smsText = `${emojiChar} ${smsText}`;
-        } else if (imageUrl) {
-          smsText = `${smsText}\n${imageUrl}`;
+        // Create a reveal token so the SMS recipient gets the full experience.
+        let revealToken: string | null = null;
+        try {
+          const bytes = new Uint8Array(32);
+          crypto.getRandomValues(bytes);
+          const candidate = Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+          const senderProfile = await supabase
+            .from("profiles")
+            .select("display_name")
+            .eq("user_id", user.id)
+            .single();
+          const senderName = senderProfile.data?.display_name || null;
+
+          let tokenVisualImageUrl: string | null = null;
+          let tokenVisualEmoji: string | null = null;
+          if (selfieSelected && uploadedPhotoUrl) {
+            tokenVisualImageUrl = uploadedPhotoUrl;
+          } else if (emojiChar) {
+            tokenVisualEmoji = emojiChar;
+          } else if (imageUrl && !imageUrl.startsWith("blob:")) {
+            tokenVisualImageUrl = imageUrl;
+          }
+
+          const { error: tokenError } = await supabase.from("message_tokens").insert({
+            token: candidate,
+            sender_name: senderName,
+            recipient_name: recipientName || null,
+            message_text: message.trim(),
+            visual_image_url: tokenVisualImageUrl,
+            visual_emoji: tokenVisualEmoji,
+          });
+          if (tokenError) {
+            console.error("Failed to create message token:", tokenError);
+          } else {
+            revealToken = candidate;
+          }
+        } catch (err) {
+          console.error("Token creation error:", err);
         }
+
+        const trimmed = message.trim();
+        const smsText = revealToken
+          ? `${trimmed}\n\nOpen your Encouraging Word: ${window.location.origin}/m/${revealToken}`
+          : trimmed;
         const smsBody = encodeURIComponent(smsText);
         const smsUrl = `sms:${recipientPhone}?body=${smsBody}`;
 
         const { error: smsLogError } = await supabase.from("messages").insert({
           user_id: user.id,
           recipient_id: recipientRow?.id || null,
-          message_text: message.trim(),
+          message_text: trimmed,
           visual_id: visual?.id || null,
           delivery_method: "sms_native",
           status: "initiated",
         });
         if (smsLogError) console.error("Failed to log SMS message:", smsLogError);
 
-        window.open(smsUrl, "_self");
+        window.location.href = smsUrl;
       }
+
+      setSentMethod(method);
 
       clearDraft();
       setSending(false);
