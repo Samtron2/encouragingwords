@@ -741,7 +741,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
           const { error: tokenError } = await supabase.from("message_tokens").insert({
             token: candidate,
-            sender_name: senderName,
+            sender_name: effectiveSignOff,
             recipient_name: recipientName || null,
             message_text: message.trim(),
             visual_image_url: tokenVisualImageUrl,
