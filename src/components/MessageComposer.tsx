@@ -1692,6 +1692,44 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           </div>
         </section>
 
+        {/* Sign it as */}
+        <section>
+          <p className="text-sm text-muted-foreground mb-2">Sign it as</p>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { mode: "name" as const, label: profileDisplayName || "My name" },
+              { mode: "anonymous" as const, label: "A friend" },
+              { mode: "custom" as const, label: "Write your own" },
+            ]).map(({ mode, label }) => {
+              const isSelected = signOffMode === mode;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setSignOffMode(mode)}
+                  className={`rounded-full border px-4 py-2 text-base font-medium transition-colors text-center leading-snug ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-primary border-primary/30 hover:bg-primary/5"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          {signOffMode === "custom" && (
+            <div className="mt-3 animate-fade-in">
+              <Input
+                value={customSignOff}
+                onChange={(e) => setCustomSignOff(e.target.value)}
+                placeholder="Your secret admirer"
+                maxLength={30}
+              />
+            </div>
+          )}
+        </section>
+
         {/* STEP 3 — HOW */}
         <section>
           <label className="text-lg font-medium text-muted-foreground mb-3 block">
