@@ -446,7 +446,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setRecipientPhone("");
     setSelectedRecipient(null);
     setNudgeField(null);
-    setEditingDetails(false);
     setTimeout(() => inputRef.current?.focus(), 50);
   };
 
