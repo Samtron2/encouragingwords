@@ -368,6 +368,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setNudgeField(null);
     setNudgeInputVisible(false);
     setNudgeValue("");
+    setSignOffMode("name");
+    setCustomSignOff("");
   };
 
   // Parse the contact detail input (Step 2 only)
