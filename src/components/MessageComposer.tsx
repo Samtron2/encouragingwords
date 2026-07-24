@@ -261,6 +261,25 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [selectedOccasion, setSelectedOccasion] = useState<string | null>(null);
   const [customMode, setCustomMode] = useState(false);
 
+  // Sign-off state
+  const [signOffMode, setSignOffMode] = useState<"name" | "anonymous" | "custom">("name");
+  const [customSignOff, setCustomSignOff] = useState("");
+  const [profileDisplayName, setProfileDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .single();
+      if (!cancelled) setProfileDisplayName(data?.display_name ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
   // Voice-to-text state
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
