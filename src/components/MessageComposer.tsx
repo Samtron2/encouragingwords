@@ -668,17 +668,13 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         imageUrl = uploadedPhotoUrl;
       }
 
+      const effectiveSignOff =
+        signOffMode === "anonymous" ? null
+        : signOffMode === "custom" ? (customSignOff.trim() || null)
+        : (profileDisplayName || null);
 
       if (method === "email") {
         const idempotencyKey = `encouraging-${user.id}-${Date.now()}`;
-
-        const senderProfile = await supabase
-          .from("profiles")
-          .select("display_name")
-          .eq("user_id", user.id)
-          .single();
-
-        const senderName = senderProfile.data?.display_name || null;
 
         const emailImageUrl = selfieSelected
           ? (uploadedPhotoUrl || undefined)
