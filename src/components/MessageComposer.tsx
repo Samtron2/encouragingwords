@@ -261,6 +261,25 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const [selectedOccasion, setSelectedOccasion] = useState<string | null>(null);
   const [customMode, setCustomMode] = useState(false);
 
+  // Sign-off state
+  const [signOffMode, setSignOffMode] = useState<"name" | "anonymous" | "custom">("name");
+  const [customSignOff, setCustomSignOff] = useState("");
+  const [profileDisplayName, setProfileDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .single();
+      if (!cancelled) setProfileDisplayName(data?.display_name ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
   // Voice-to-text state
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
@@ -349,6 +368,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setNudgeField(null);
     setNudgeInputVisible(false);
     setNudgeValue("");
+    setSignOffMode("name");
+    setCustomSignOff("");
   };
 
   // Parse the contact detail input (Step 2 only)
@@ -647,17 +668,13 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
         imageUrl = uploadedPhotoUrl;
       }
 
+      const effectiveSignOff =
+        signOffMode === "anonymous" ? null
+        : signOffMode === "custom" ? (customSignOff.trim() || null)
+        : (profileDisplayName || null);
 
       if (method === "email") {
         const idempotencyKey = `encouraging-${user.id}-${Date.now()}`;
-
-        const senderProfile = await supabase
-          .from("profiles")
-          .select("display_name")
-          .eq("user_id", user.id)
-          .single();
-
-        const senderName = senderProfile.data?.display_name || null;
 
         const emailImageUrl = selfieSelected
           ? (uploadedPhotoUrl || undefined)
@@ -670,7 +687,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             idempotencyKey,
             templateData: {
               recipientName: recipientName || undefined,
-              senderName: senderName || undefined,
+              senderName: effectiveSignOff || undefined,
               message: message.trim(),
               visualImageUrl: emailImageUrl,
               visualEmoji: selfieSelected ? undefined : emojiChar,
@@ -712,13 +729,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           }
           const candidate = chars.join("");
 
-          const senderProfile = await supabase
-            .from("profiles")
-            .select("display_name")
-            .eq("user_id", user.id)
-            .single();
-          const senderName = senderProfile.data?.display_name || null;
-
           let tokenVisualImageUrl: string | null = null;
           let tokenVisualEmoji: string | null = null;
           if (selfieSelected && uploadedPhotoUrl) {
@@ -731,7 +741,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
           const { error: tokenError } = await supabase.from("message_tokens").insert({
             token: candidate,
-            sender_name: senderName,
+            sender_name: effectiveSignOff,
             recipient_name: recipientName || null,
             message_text: message.trim(),
             visual_image_url: tokenVisualImageUrl,
@@ -770,6 +780,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       setSentMethod(method);
 
       clearDraft();
+      setSignOffMode("name");
+      setCustomSignOff("");
       setSending(false);
       setSent(true);
       refreshWordsCount();
@@ -1678,6 +1690,44 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
               {selectedOccasion && occasionVisuals.length > 0 ? `Showing visuals for ${selectedOccasion}` : "Today's visuals · refreshes at midnight"}
             </p>
           </div>
+        </section>
+
+        {/* Sign it as */}
+        <section>
+          <p className="text-sm text-muted-foreground mb-2">Sign it as</p>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { mode: "name" as const, label: profileDisplayName || "My name" },
+              { mode: "anonymous" as const, label: "A friend" },
+              { mode: "custom" as const, label: "Write your own" },
+            ]).map(({ mode, label }) => {
+              const isSelected = signOffMode === mode;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setSignOffMode(mode)}
+                  className={`rounded-full border px-4 py-2 text-base font-medium transition-colors text-center leading-snug ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-primary border-primary/30 hover:bg-primary/5"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          {signOffMode === "custom" && (
+            <div className="mt-3 animate-fade-in">
+              <Input
+                value={customSignOff}
+                onChange={(e) => setCustomSignOff(e.target.value)}
+                placeholder="Your secret admirer"
+                maxLength={30}
+              />
+            </div>
+          )}
         </section>
 
         {/* STEP 3 — HOW */}
