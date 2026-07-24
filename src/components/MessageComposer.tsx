@@ -474,7 +474,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setNudgeField(null);
     setNudgeInputVisible(false);
     setNudgeValue("");
-    setEditingDetails(false);
   };
 
   const handlePickContact = async () => {
