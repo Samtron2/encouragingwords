@@ -729,13 +729,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           }
           const candidate = chars.join("");
 
-          const senderProfile = await supabase
-            .from("profiles")
-            .select("display_name")
-            .eq("user_id", user.id)
-            .single();
-          const senderName = senderProfile.data?.display_name || null;
-
           let tokenVisualImageUrl: string | null = null;
           let tokenVisualEmoji: string | null = null;
           if (selfieSelected && uploadedPhotoUrl) {
