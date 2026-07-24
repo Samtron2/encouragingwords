@@ -780,6 +780,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
       setSentMethod(method);
 
       clearDraft();
+      setSignOffMode("name");
+      setCustomSignOff("");
       setSending(false);
       setSent(true);
       refreshWordsCount();
