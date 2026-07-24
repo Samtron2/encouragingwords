@@ -687,7 +687,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
             idempotencyKey,
             templateData: {
               recipientName: recipientName || undefined,
-              senderName: senderName || undefined,
+              senderName: effectiveSignOff || undefined,
               message: message.trim(),
               visualImageUrl: emailImageUrl,
               visualEmoji: selfieSelected ? undefined : emojiChar,
