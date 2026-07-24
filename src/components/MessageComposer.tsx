@@ -254,7 +254,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const photoUploadPromiseRef = useRef<Promise<string | null> | null>(null);
   const photoFileRef = useRef<File | null>(null);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
-  const [editingDetails, setEditingDetails] = useState(false);
+  
   const [nudgeField, setNudgeField] = useState<"email" | "phone" | null>(null);
   const [nudgeInputVisible, setNudgeInputVisible] = useState(false);
   const [nudgeValue, setNudgeValue] = useState("");
@@ -349,7 +349,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setNudgeField(null);
     setNudgeInputVisible(false);
     setNudgeValue("");
-    setEditingDetails(false);
   };
 
   // Parse the contact detail input (Step 2 only)
@@ -447,7 +446,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setRecipientPhone("");
     setSelectedRecipient(null);
     setNudgeField(null);
-    setEditingDetails(false);
     setTimeout(() => inputRef.current?.focus(), 50);
   };
 
@@ -476,7 +474,6 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     setNudgeField(null);
     setNudgeInputVisible(false);
     setNudgeValue("");
-    setEditingDetails(false);
   };
 
   const handlePickContact = async () => {
@@ -1285,51 +1282,13 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
                 </div>
                 <span className="text-lg font-medium text-foreground flex-1 truncate">{recipientName}</span>
                 <button
+                  type="button"
                   onClick={editName}
-                  className="p-1.5 rounded-full hover:bg-secondary/60 transition-colors text-muted-foreground hover:text-foreground"
-                  aria-label="Edit name"
+                  className="text-sm font-medium text-accent hover:text-accent/80 transition-colors"
                 >
-                  <Pencil className="h-4 w-4" />
+                  Change
                 </button>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {recipientEmail && recipientPhone
-                  ? "Email and phone on file"
-                  : recipientEmail
-                  ? "Email on file"
-                  : recipientPhone
-                  ? "Phone on file"
-                  : ""}
-              </p>
-              <button
-                type="button"
-                onClick={() => setEditingDetails((v) => !v)}
-                className="mt-2 text-sm font-medium text-accent hover:text-accent/80 transition-colors"
-              >
-                {editingDetails ? "Done" : "Edit details"}
-              </button>
-              {editingDetails && (
-                <div className="mt-3 animate-fade-in space-y-2">
-                  <Input
-                    type="email"
-                    autoComplete="off"
-                    name="recipient-email-edit"
-                    placeholder="Email address"
-                    value={recipientEmail}
-                    onChange={(e) => setRecipientEmail(e.target.value)}
-                    className="text-base py-3"
-                  />
-                  <Input
-                    type="tel"
-                    autoComplete="off"
-                    name="recipient-phone-edit"
-                    placeholder="Phone number"
-                    value={recipientPhone}
-                    onChange={(e) => setRecipientPhone(e.target.value)}
-                    className="text-base py-3"
-                  />
-                </div>
-              )}
             </div>
           ) : (
             /* Name confirmed — read-only display for new typed recipients */
