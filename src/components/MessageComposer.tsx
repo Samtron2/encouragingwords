@@ -15,6 +15,7 @@ import { getSmsCapability, type SmsCapability } from "@/lib/deviceCapabilities";
 import { useWordsThisMonth, FREE_WORDS_PER_MONTH } from "@/hooks/useWordsThisMonth";
 import { useAdmin } from "@/hooks/useAdmin";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { isLikelyValidEmail } from "@/lib/utils";
 
 let pitchShownThisSession = false;
 
@@ -525,6 +526,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     const isImported = selectedRecipient.id.startsWith("__imported__");
     if (nudgeField === "email") {
       const val = nudgeValue.trim();
+      if (!isLikelyValidEmail(val)) {
+        toast.error("That email looks incomplete — double-check it (missing .com or .net?)");
+        return;
+      }
       setRecipientEmail(val);
       if (!isImported) {
         await supabase.from("recipients").update({ email: val }).eq("id", selectedRecipient.id);
