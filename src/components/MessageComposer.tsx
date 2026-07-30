@@ -704,7 +704,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           },
         });
 
-        const status = sendResult.error ? "failed" : "sent";
+        const suppressedSend = sendResult.data?.reason === "email_suppressed";
+        const status = sendResult.error || suppressedSend ? "failed" : "sent";
 
         const { error: logError } = await supabase.from("messages").insert({
           user_id: user.id,
@@ -715,6 +716,14 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           status,
         });
         if (logError) console.error("Failed to log email message:", logError);
+
+        if (suppressedSend) {
+          toast.error("This address has bounced before, so it can't receive messages. Double-check the email in the People tab, fix it, and try again.");
+          setSending(false);
+          return;
+        }
+
+
 
         if (sendResult.error || sendResult.data?.error) {
           console.error("Send failed:", sendResult.error || sendResult.data?.error);

@@ -16,6 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { isLikelyValidEmail } from "@/lib/utils";
 
 const GOOGLE_CLIENT_ID = "878390311268-gr1hjedful6oi20tntbvp1euv3fuku2n.apps.googleusercontent.com";
 
@@ -223,6 +224,10 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
 
   const saveEdit = async () => {
     if (!editingId) return;
+    if (editForm.email.trim() && !isLikelyValidEmail(editForm.email)) {
+      toast.error("That email looks incomplete — double-check it (missing .com or .net?)");
+      return;
+    }
     const { error } = await supabase
       .from("recipients")
       .update({

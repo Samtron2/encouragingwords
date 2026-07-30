@@ -479,7 +479,7 @@ export default function SettingsScreen({ onNavigate }: { onNavigate?: (tab: "peo
               </div>
               <p className="text-[15px] text-muted-foreground leading-relaxed">
                 If you want to keep doing it because it makes you feel good, it's just
-                $1.69 a month. That's how we keep the lights on.
+                $1.95 a month. That's how we keep the lights on.
               </p>
               {onInterestList ? (
                 <div className="inline-flex items-center gap-2 text-sm font-semibold text-accent">
@@ -493,7 +493,7 @@ export default function SettingsScreen({ onNavigate }: { onNavigate?: (tab: "peo
                   className="w-full flex items-center justify-center gap-2 rounded-full bg-accent py-3 text-base font-bold text-accent-foreground shadow-glow transition-all hover:bg-accent/90 disabled:opacity-50"
                 >
                   <Sparkles className="h-4 w-4" />
-                  I'm in — $1.69/month
+                  I'm in — $1.95/month
                 </button>
               )}
             </>
