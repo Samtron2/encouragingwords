@@ -262,6 +262,10 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
     const phone = addForm.phone.trim();
     if (!name) { toast.error("Name is required."); return; }
     if (!email && !phone) { toast.error("Please add an email or phone number."); return; }
+    if (email && !isLikelyValidEmail(email)) {
+      toast.error("That email looks incomplete — double-check it (missing .com or .net?)");
+      return;
+    }
     setAddingContact(true);
     let existingId: string | null = null;
     if (email) {
