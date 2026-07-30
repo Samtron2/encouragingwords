@@ -15,6 +15,7 @@ import { getSmsCapability, type SmsCapability } from "@/lib/deviceCapabilities";
 import { useWordsThisMonth, FREE_WORDS_PER_MONTH } from "@/hooks/useWordsThisMonth";
 import { useAdmin } from "@/hooks/useAdmin";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { isLikelyValidEmail } from "@/lib/utils";
 
 let pitchShownThisSession = false;
 
@@ -376,7 +377,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const parseContactInput = (value: string) => {
     const trimmed = value.trim();
     if (trimmed.includes("@")) {
-      setRecipientEmail(trimmed);
+      setRecipientEmail(isLikelyValidEmail(trimmed) ? trimmed : "");
       setRecipientPhone("");
     } else if (/^\+?\d[\d\s\-()]{6,}$/.test(trimmed)) {
       setRecipientPhone(trimmed);
@@ -525,6 +526,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
     const isImported = selectedRecipient.id.startsWith("__imported__");
     if (nudgeField === "email") {
       const val = nudgeValue.trim();
+      if (!isLikelyValidEmail(val)) {
+        toast.error("That email looks incomplete — double-check it (missing .com or .net?)");
+        return;
+      }
       setRecipientEmail(val);
       if (!isImported) {
         await supabase.from("recipients").update({ email: val }).eq("id", selectedRecipient.id);
@@ -555,6 +560,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   const initiateSend = (method: "email" | "sms") => {
     if (!user || !message.trim()) return;
+    if (method === "email" && !isLikelyValidEmail(recipientEmail)) {
+      toast.error("That email looks incomplete — double-check it (missing .com or .net?)");
+      return;
+    }
     if (!isAdmin && wordsThisMonth >= FREE_WORDS_PER_MONTH && !pitchShownThisSession) {
       pitchShownThisSession = true;
       pendingMethodRef.current = method;
@@ -695,7 +704,8 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           },
         });
 
-        const status = sendResult.error ? "failed" : "sent";
+        const suppressedSend = sendResult.data?.reason === "email_suppressed";
+        const status = sendResult.error || suppressedSend ? "failed" : "sent";
 
         const { error: logError } = await supabase.from("messages").insert({
           user_id: user.id,
@@ -706,6 +716,14 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
           status,
         });
         if (logError) console.error("Failed to log email message:", logError);
+
+        if (suppressedSend) {
+          toast.error("This address has bounced before, so it can't receive messages. Double-check the email in the People tab, fix it, and try again.");
+          setSending(false);
+          return;
+        }
+
+
 
         if (sendResult.error || sendResult.data?.error) {
           console.error("Send failed:", sendResult.error || sendResult.data?.error);
