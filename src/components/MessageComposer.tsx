@@ -377,7 +377,7 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
   const parseContactInput = (value: string) => {
     const trimmed = value.trim();
     if (trimmed.includes("@")) {
-      setRecipientEmail(trimmed);
+      setRecipientEmail(isLikelyValidEmail(trimmed) ? trimmed : "");
       setRecipientPhone("");
     } else if (/^\+?\d[\d\s\-()]{6,}$/.test(trimmed)) {
       setRecipientPhone(trimmed);
@@ -560,6 +560,10 @@ export default function MessageComposer({ onBack, prefill }: MessageComposerProp
 
   const initiateSend = (method: "email" | "sms") => {
     if (!user || !message.trim()) return;
+    if (method === "email" && !isLikelyValidEmail(recipientEmail)) {
+      toast.error("That email looks incomplete — double-check it (missing .com or .net?)");
+      return;
+    }
     if (!isAdmin && wordsThisMonth >= FREE_WORDS_PER_MONTH && !pitchShownThisSession) {
       pitchShownThisSession = true;
       pendingMethodRef.current = method;
