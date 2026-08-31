@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://encouragingwords.lovable.app/sitemap.xml
+Disallow: /m/
+Disallow: /unsubscribe
+
+Sitemap: https://sendencouragingwords.com/sitemap.xml
