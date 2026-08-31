@@ -151,6 +151,29 @@ export default function Auth() {
           Continue with Google
         </Button>
 
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full rounded-full font-medium text-lg py-6 mt-3"
+          size="lg"
+          onClick={async () => {
+            const result = await lovable.auth.signInWithOAuth("apple", {
+              redirect_uri: window.location.origin,
+            });
+            if (result.error) {
+              toast({ title: "Sign-in failed", description: result.error.message, variant: "destructive" });
+              return;
+            }
+            if (result.redirected) return;
+            navigate("/");
+          }}
+        >
+          <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+            <path d="M17.05 20.28c-.98 1.4-2.17 2.38-3.55 2.38-1.38 0-2.1-.82-3.55-.82-1.45 0-2.18.82-3.55.82-1.38 0-2.57-.98-3.55-2.38C1.03 16.7.5 12.44.5 9.7c0-4.38 3.17-6.72 6.3-6.72 1.65 0 3.02.86 4.05.86 1.03 0 2.63-.91 4.5-.91 1.08 0 4.17.25 6.15 2.66-.16.1-3.65 2.1-3.65 6.5 0 5.17 4.57 6.86 4.7 6.9-.03.17-.73 2.5-2.7 4.3zM12.03 4.25c0-.8.03-1.46.18-2.1 1.05.13 2.4.7 3.18 1.58-.85.83-2.18 1.46-3.36 1.52z" />
+          </svg>
+          Continue with Apple
+        </Button>
+
         <p className="mt-6 text-center text-lg text-muted-foreground">
           {isSignUp ? "Already have an account?" : "New here?"}{" "}
           <button
