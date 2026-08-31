@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.4"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -187,6 +187,7 @@ export type Database = {
           recipient_name: string | null
           sender_name: string | null
           token: string
+          user_id: string | null
           visual_emoji: string | null
           visual_image_url: string | null
         }
@@ -198,6 +199,7 @@ export type Database = {
           recipient_name?: string | null
           sender_name?: string | null
           token?: string
+          user_id?: string | null
           visual_emoji?: string | null
           visual_image_url?: string | null
         }
@@ -209,6 +211,7 @@ export type Database = {
           recipient_name?: string | null
           sender_name?: string | null
           token?: string
+          user_id?: string | null
           visual_emoji?: string | null
           visual_image_url?: string | null
         }
@@ -474,6 +477,17 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      get_message_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          message_text: string
+          opened_at: string
+          recipient_name: string
+          sender_name: string
+          visual_emoji: string
+          visual_image_url: string
+        }[]
       }
       has_role: {
         Args: {
