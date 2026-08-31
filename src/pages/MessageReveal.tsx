@@ -27,17 +27,10 @@ export default function MessageReveal() {
   useEffect(() => {
     if (!token) return;
     (async () => {
-      const { data: row, error } = await supabase
-        .from("message_tokens")
-        .select("sender_name, recipient_name, message_text, visual_emoji, visual_image_url, opened_at")
-        .eq("token", token)
-        .maybeSingle();
-      if (error || !row) { setNotFound(true); setLoading(false); return; }
-      setData(row);
+      const { data: rows, error } = await supabase.rpc("get_message_by_token", { p_token: token });
+      if (error || !rows || rows.length === 0 || !rows[0]) { setNotFound(true); setLoading(false); return; }
+      setData(rows[0]);
       setLoading(false);
-      if (!row.opened_at) {
-        await supabase.from("message_tokens").update({ opened_at: new Date().toISOString() }).eq("token", token);
-      }
     })();
   }, [token]);
 
