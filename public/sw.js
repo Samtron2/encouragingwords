@@ -1,4 +1,4 @@
-const CACHE_NAME = "ew-cache-v3-2026-08-31";
+const CACHE_NAME = "ew-cache-v4-2026-09-01";
 const STATIC_ASSETS = ["/", "/manifest.json"];
 
 // Install — precache static assets (do NOT skipWaiting to avoid reload-on-focus)
@@ -25,21 +25,16 @@ self.addEventListener("fetch", (event) => {
   // Skip non-GET
   if (request.method !== "GET") return;
 
-  // API calls & supabase — network first, cache fallback
+  // API calls & supabase — always network, never cached.
+  // These responses contain personal data and must not be written to a
+  // cache that is shared by every user of this browser.
   if (
     url.pathname.startsWith("/rest/") ||
     url.pathname.startsWith("/functions/") ||
+    url.pathname.startsWith("/auth/") ||
     url.hostname.includes("supabase")
   ) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          return response;
-        })
-        .catch(() => caches.match(request))
-    );
+    event.respondWith(fetch(request));
     return;
   }
 

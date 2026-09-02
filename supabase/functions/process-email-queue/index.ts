@@ -267,13 +267,57 @@ Deno.serve(async (req) => {
           { apiKey, sendUrl: Deno.env.get('LOVABLE_SEND_URL') }
         )
 
-        // Log success
-        await supabase.from('email_send_log').insert({
-          message_id: payload.message_id,
-          template_name: payload.label || queue,
-          recipient_email: payload.to,
-          status: 'sent',
-        })
+        // Resolve the pending row for this message if one exists, otherwise
+        // insert a fresh sent row (auth emails may not have a pending row).
+        if (payload?.message_id && typeof payload.message_id === 'string') {
+          const { data: updatedRows, error: updateError } = await supabase
+            .from('email_send_log')
+            .update({ status: 'sent' })
+            .eq('message_id', payload.message_id)
+            .eq('status', 'pending')
+            .select('id')
+
+          if (updateError) {
+            console.error('Failed to update pending email_send_log row', {
+              queue,
+              msg_id: msg.msg_id,
+              message_id: payload.message_id,
+              error: updateError,
+            })
+          }
+
+          if (!updatedRows || updatedRows.length === 0) {
+            const { error: insertError } = await supabase.from('email_send_log').insert({
+              message_id: payload.message_id,
+              template_name: payload.label || queue,
+              recipient_email: payload.to,
+              status: 'sent',
+            })
+            if (insertError) {
+              console.error('Failed to insert sent email_send_log row', {
+                queue,
+                msg_id: msg.msg_id,
+                message_id: payload.message_id,
+                error: insertError,
+              })
+            }
+          }
+        } else {
+          const { error: insertError } = await supabase.from('email_send_log').insert({
+            message_id: payload.message_id,
+            template_name: payload.label || queue,
+            recipient_email: payload.to,
+            status: 'sent',
+          })
+          if (insertError) {
+            console.error('Failed to insert sent email_send_log row', {
+              queue,
+              msg_id: msg.msg_id,
+              message_id: payload.message_id,
+              error: insertError,
+            })
+          }
+        }
 
         // Delete from queue
         const { error: delError } = await supabase.rpc('delete_email', {
