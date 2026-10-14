@@ -14,7 +14,6 @@ import ContactDetailsChooser from "@/components/ContactDetailsChooser";
 import { getSmsCapability, type SmsCapability } from "@/lib/deviceCapabilities";
 import { useMembership, FREE_WORDS_TOTAL } from "@/hooks/useMembership";
 import PlanButtons, { PAYWALL_BODY } from "@/components/PlanButtons";
-import { useAdmin } from "@/hooks/useAdmin";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { isLikelyValidEmail } from "@/lib/utils";
 

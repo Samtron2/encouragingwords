@@ -4,11 +4,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Camera, Check, Bell, BellOff, Users, ChevronRight, Sparkles } from "lucide-react";
+import { Camera, Check, Bell, BellOff, Users, ChevronRight } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import ImportantDates from "@/components/ImportantDates";
 import { useAdmin } from "@/hooks/useAdmin";
-import { useWordsThisMonth, FREE_WORDS_PER_MONTH } from "@/hooks/useWordsThisMonth";
+import { useMembership, FREE_WORDS_TOTAL } from "@/hooks/useMembership";
+import PlanButtons, { PAYWALL_BODY } from "@/components/PlanButtons";
+import { format } from "date-fns";
+import { Loader2 } from "lucide-react";
 
 const VAPID_PUBLIC_KEY =
   "BLJP8ASgicNq8Rx3uf7sIVlP2U0k0e5qvJrwAEazeAODMCrZUHG7mtbfajpZ6At2pFq6SNYYZuQW4ZVI0Q49F7M";
@@ -50,37 +53,20 @@ export default function SettingsScreen({ onNavigate }: { onNavigate?: (tab: "peo
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const { isAdmin } = useAdmin();
-  const { count: wordsUsed } = useWordsThisMonth();
+  const membership = useMembership();
+  const [openingPortal, setOpeningPortal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [onInterestList, setOnInterestList] = useState(false);
-  const [joiningInterest, setJoiningInterest] = useState(false);
-
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const { data } = await supabase
-        .from("upgrade_interest")
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      setOnInterestList(!!data);
-    })();
-  }, [user]);
-
-  const handleJoinInterest = async () => {
-    if (!user) return;
-    setJoiningInterest(true);
-    const { error } = await supabase
-      .from("upgrade_interest")
-      .upsert({ user_id: user.id }, { onConflict: "user_id", ignoreDuplicates: true });
-    setJoiningInterest(false);
-    if (error) {
-      toast({ title: "Couldn't add you", description: error.message, variant: "destructive" });
+  const openPortal = async () => {
+    setOpeningPortal(true);
+    const { data, error } = await supabase.functions.invoke("customer-portal");
+    if (error || !data?.url) {
+      console.error("customer-portal failed", error, data);
+      toast({ title: "Something went wrong opening your membership. Please try again.", variant: "destructive" });
+      setOpeningPortal(false);
       return;
     }
-    setOnInterestList(true);
-    toast({ title: "You're on the list. We'll let you know the moment it's ready." });
+    window.location.href = data.url;
   };
 
   const [displayName, setDisplayName] = useState("");
@@ -464,38 +450,48 @@ export default function SettingsScreen({ onNavigate }: { onNavigate?: (tab: "peo
           Membership
         </h2>
         <div className="rounded-2xl bg-card p-6 shadow-card space-y-4">
-          {isAdmin ? (
+          {isAdmin || membership.reason === "admin" ? (
             <div>
               <p className="text-base font-medium">Admin</p>
               <p className="text-[14px] text-muted-foreground mt-0.5">Unlimited words.</p>
             </div>
+          ) : membership.reason === "comped" ? (
+            <div>
+              <p className="text-base font-medium">Complimentary membership</p>
+              <p className="text-[14px] text-muted-foreground mt-0.5">Unlimited words, on the house.</p>
+            </div>
+          ) : membership.reason === "subscription" ? (
+            <>
+              <div>
+                <p className="text-base font-medium">
+                  Member{membership.plan ? ` · ${membership.plan === "year" ? "Yearly" : "Monthly"}` : ""}
+                </p>
+                {membership.currentPeriodEnd && (
+                  <p className="text-[14px] text-muted-foreground mt-0.5">
+                    {membership.cancelAtPeriodEnd ? "Ends" : "Renews"}{" "}
+                    {format(new Date(membership.currentPeriodEnd), "MMM d, yyyy")}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={openPortal}
+                disabled={openingPortal}
+                className="w-full flex items-center justify-center gap-2 rounded-full border border-accent/40 py-3 text-base font-bold transition-all hover:bg-accent/10 disabled:opacity-50"
+              >
+                {openingPortal && <Loader2 className="h-4 w-4 animate-spin" />}
+                Manage membership
+              </button>
+            </>
           ) : (
             <>
               <div>
                 <p className="text-base font-medium">Free plan</p>
                 <p className="text-[14px] text-muted-foreground mt-0.5">
-                  {wordsUsed} of {FREE_WORDS_PER_MONTH} free words used this month
+                  {Math.min(membership.freeUsed, FREE_WORDS_TOTAL)} of {FREE_WORDS_TOTAL} free words used
                 </p>
               </div>
-              <p className="text-[15px] text-muted-foreground leading-relaxed">
-                If you want to keep doing it because it makes you feel good, it's just
-                $1.95 a month. That's how we keep the lights on.
-              </p>
-              {onInterestList ? (
-                <div className="inline-flex items-center gap-2 text-sm font-semibold text-accent">
-                  <Check className="h-4 w-4" />
-                  You're on the list. We'll let you know the moment it's ready.
-                </div>
-              ) : (
-                <button
-                  onClick={handleJoinInterest}
-                  disabled={joiningInterest}
-                  className="w-full flex items-center justify-center gap-2 rounded-full bg-accent py-3 text-base font-bold text-accent-foreground shadow-glow transition-all hover:bg-accent/90 disabled:opacity-50"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  I'm in — $1.95/month
-                </button>
-              )}
+              <p className="text-[15px] text-muted-foreground leading-relaxed">{PAYWALL_BODY}</p>
+              <PlanButtons />
             </>
           )}
         </div>
