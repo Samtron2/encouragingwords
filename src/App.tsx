@@ -10,6 +10,7 @@ import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
 import Landing from "./pages/Landing.tsx";
+import GiftClaim from "./pages/GiftClaim";
 import MessageReveal from "./pages/MessageReveal.tsx";
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="/m/:token" element={<MessageReveal />} />
+          <Route path="/gift/:token" element={<GiftClaim />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

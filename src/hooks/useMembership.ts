@@ -10,7 +10,7 @@ export function notifyMembershipChanged() {
   window.dispatchEvent(new Event(EVENT));
 }
 
-export type MembershipReason = "admin" | "comped" | "subscription" | "free";
+export type MembershipReason = "admin" | "comped" | "subscription" | "gift" | "free";
 
 export function useMembership() {
   const { user } = useAuth();
@@ -20,6 +20,8 @@ export function useMembership() {
   const [plan, setPlan] = useState<string | null>(null);
   const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  const [giftAccessUntil, setGiftAccessUntil] = useState<string | null>(null);
+  const [giftFrom, setGiftFrom] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
@@ -39,10 +41,12 @@ export function useMembership() {
         .maybeSingle(),
     ]);
     if (error) console.error("my_membership failed", error);
-    const info = (m ?? {}) as { is_member?: boolean; reason?: MembershipReason; free_used?: number };
+    const info = (m ?? {}) as { is_member?: boolean; reason?: MembershipReason; free_used?: number; gift_access_until?: string | null; gift_from?: string | null };
     setIsMember(!!info.is_member);
     setReason(info.reason ?? "free");
     setFreeUsed(info.free_used ?? 0);
+    setGiftAccessUntil(info.gift_access_until ?? null);
+    setGiftFrom(info.gift_from ?? null);
     setPlan(sub?.plan_interval ?? null);
     setCurrentPeriodEnd(sub?.current_period_end ?? null);
     setCancelAtPeriodEnd(!!sub?.cancel_at_period_end);
@@ -58,5 +62,5 @@ export function useMembership() {
 
   const freeLeft = Math.max(0, FREE_WORDS_TOTAL - freeUsed);
 
-  return { isMember, reason, freeUsed, freeLeft, plan, currentPeriodEnd, cancelAtPeriodEnd, loading, refresh };
+  return { isMember, reason, freeUsed, freeLeft, plan, currentPeriodEnd, cancelAtPeriodEnd, giftAccessUntil, giftFrom, loading, refresh };
 }
