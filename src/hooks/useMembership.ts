@@ -5,6 +5,11 @@ import { FREE_WORDS_TOTAL } from "@/lib/billing";
 
 export { FREE_WORDS_TOTAL };
 
+const EVENT = "ew-membership-changed";
+export function notifyMembershipChanged() {
+  window.dispatchEvent(new Event(EVENT));
+}
+
 export type MembershipReason = "admin" | "comped" | "subscription" | "free";
 
 export function useMembership() {
@@ -46,6 +51,9 @@ export function useMembership() {
 
   useEffect(() => {
     refresh();
+    const onChange = () => { void refresh(); };
+    window.addEventListener(EVENT, onChange);
+    return () => window.removeEventListener(EVENT, onChange);
   }, [refresh]);
 
   const freeLeft = Math.max(0, FREE_WORDS_TOTAL - freeUsed);

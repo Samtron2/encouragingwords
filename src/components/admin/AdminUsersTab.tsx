@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Trash2, ChevronLeft } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
 
 interface Profile {
   id: string;
@@ -22,6 +23,40 @@ export default function AdminUsersTab() {
   const [selected, setSelected] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [interestCount, setInterestCount] = useState<number | null>(null);
+  const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
+  const [memberIds, setMemberIds] = useState<Set<string>>(new Set());
+  const [savingComp, setSavingComp] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const [{ data: roles }, { data: subs }] = await Promise.all([
+        supabase.from("user_roles").select("user_id").eq("role", "admin"),
+        supabase.from("subscriptions").select("user_id").in("status", ["active", "trialing", "past_due"]),
+      ]);
+      setAdminIds(new Set((roles ?? []).map((r) => r.user_id)));
+      setMemberIds(new Set((subs ?? []).map((r) => r.user_id)));
+    })();
+  }, []);
+
+  const membershipLabel = (p: Profile) =>
+    adminIds.has(p.user_id) ? "Admin"
+    : p.subscription_status === "comped" ? "Comped"
+    : memberIds.has(p.user_id) ? "Member"
+    : "Free";
+
+  const toggleComped = async (p: Profile, comped: boolean) => {
+    setSavingComp(true);
+    const { error } = await supabase.rpc("set_comped", { _user_id: p.user_id, _comped: comped });
+    setSavingComp(false);
+    if (error) {
+      toast({ title: "Couldn't update membership", description: error.message, variant: "destructive" });
+      return;
+    }
+    const updated = { ...p, subscription_status: comped ? "comped" : "free" };
+    setSelected(updated);
+    setProfiles((prev) => prev.map((x) => (x.id === p.id ? updated : x)));
+    toast({ title: comped ? "Complimentary membership on" : "Complimentary membership off" });
+  };
 
   useEffect(() => {
     (async () => {
@@ -106,9 +141,18 @@ export default function AdminUsersTab() {
               <p className="font-medium">{format(new Date(selected.created_at), "MMM d, yyyy")}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Plan</p>
-              <p className="font-medium capitalize">{selected.subscription_status}</p>
+              <p className="text-muted-foreground">Membership</p>
+              <p className="font-medium">{membershipLabel(selected)}</p>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-border">
+            <p className="text-base font-medium">Complimentary membership</p>
+            <Switch
+              checked={selected.subscription_status === "comped"}
+              disabled={savingComp}
+              onCheckedChange={(v) => toggleComped(selected, v)}
+            />
           </div>
 
           <div className="pt-2 border-t border-border">
@@ -133,7 +177,7 @@ export default function AdminUsersTab() {
       {interestCount !== null && (
         <div className="text-sm text-muted-foreground space-y-0.5">
           <p>Upgrade interest: {interestCount} {interestCount === 1 ? "person" : "people"}</p>
-          <p>Billing framework: built, switched off.</p>
+          <p>Billing: live.</p>
         </div>
       )}
       <div className="relative">
@@ -171,7 +215,7 @@ export default function AdminUsersTab() {
                 <p className="text-sm text-muted-foreground">
                   {format(new Date(p.created_at), "MMM d, yyyy")}
                 </p>
-                <p className="text-sm capitalize text-muted-foreground">{p.subscription_status}</p>
+                <p className="text-sm text-muted-foreground">{membershipLabel(p)}</p>
               </div>
             </button>
           ))}
