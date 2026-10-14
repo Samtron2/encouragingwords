@@ -137,6 +137,60 @@ export type Database = {
         }
         Relationships: []
       }
+      gifts: {
+        Row: {
+          access_until: string | null
+          created_at: string
+          id: string
+          note: string | null
+          paid_at: string | null
+          purchaser_name: string
+          purchaser_user_id: string | null
+          recipient_email: string
+          recipient_name: string
+          redeem_token: string
+          redeemed_at: string | null
+          redeemed_by: string | null
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+        }
+        Insert: {
+          access_until?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          purchaser_name: string
+          purchaser_user_id?: string | null
+          recipient_email: string
+          recipient_name: string
+          redeem_token: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Update: {
+          access_until?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          purchaser_name?: string
+          purchaser_user_id?: string | null
+          recipient_email?: string
+          recipient_name?: string
+          redeem_token?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Relationships: []
+      }
       important_dates: {
         Row: {
           contact_id: string | null
@@ -479,6 +533,7 @@ export type Database = {
         Returns: number
       }
       free_words_used_internal: { Args: { _uid: string }; Returns: number }
+      get_gift_preview: { Args: { _token: string }; Returns: Json }
       get_message_by_token: {
         Args: { p_token: string }
         Returns: {

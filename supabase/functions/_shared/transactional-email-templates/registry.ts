@@ -10,7 +10,9 @@ export interface TemplateEntry {
 }
 
 import { template as encouragingMessage } from './encouraging-message.tsx'
+import { template as giftReceived } from './gift-received.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'encouraging-message': encouragingMessage,
+  'gift-received': giftReceived,
 }
