@@ -10,6 +10,7 @@ import ImportantDates from "@/components/ImportantDates";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useMembership, FREE_WORDS_TOTAL } from "@/hooks/useMembership";
 import PlanButtons, { PAYWALL_BODY } from "@/components/PlanButtons";
+import GiveGiftCard from "@/components/GiveGiftCard";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
 
@@ -460,6 +461,25 @@ export default function SettingsScreen({ onNavigate }: { onNavigate?: (tab: "peo
               <p className="text-base font-medium">Complimentary membership</p>
               <p className="text-[14px] text-muted-foreground mt-0.5">Unlimited words, on the house.</p>
             </div>
+          ) : membership.reason === "gift" ? (
+            <>
+              <div>
+                <p className="text-base font-medium">Gift membership</p>
+                <p className="text-[14px] text-muted-foreground mt-0.5">
+                  From {membership.giftFrom || "a friend"}
+                  {membership.giftAccessUntil && <>, through {format(new Date(membership.giftAccessUntil), "MMM d, yyyy")}</>}
+                </p>
+              </div>
+              {membership.giftAccessUntil &&
+                new Date(membership.giftAccessUntil).getTime() - Date.now() <= 14 * 24 * 60 * 60 * 1000 && (
+                  <>
+                    <p className="text-[15px] text-muted-foreground leading-relaxed">
+                      Your gift year ends {format(new Date(membership.giftAccessUntil), "MMM d, yyyy")}. Want to keep going?
+                    </p>
+                    <PlanButtons />
+                  </>
+                )}
+            </>
           ) : membership.reason === "subscription" ? (
             <>
               <div>
@@ -496,6 +516,8 @@ export default function SettingsScreen({ onNavigate }: { onNavigate?: (tab: "peo
           )}
         </div>
       </section>
+
+      <GiveGiftCard defaultSignOff={displayName} />
 
       {/* YOUR PEOPLE */}
       <section className="mb-8">
