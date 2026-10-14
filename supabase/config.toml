@@ -34,3 +34,9 @@ verify_jwt = false
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.create-gift-checkout]
+verify_jwt = false
+
+[functions.redeem-gift]
+verify_jwt = false
