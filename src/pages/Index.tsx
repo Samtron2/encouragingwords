@@ -13,6 +13,7 @@ import SettingsScreen from "@/components/SettingsScreen";
 import AdminPanel from "@/components/admin/AdminPanel";
 import PeopleScreen from "@/components/PeopleScreen";
 import { supabase } from "@/integrations/supabase/client";
+import { useCheckoutReturn } from "@/hooks/useCheckoutReturn";
 
 function useGreeting(userId: string | undefined) {
   const [displayName, setDisplayName] = useState<string | null>(null);
@@ -213,6 +214,7 @@ const WELCOME_DISMISSED_KEY = "ew-welcome-dismissed";
 const Index = () => {
   const { user, loading } = useAuth();
   const { isAdmin } = useAdmin();
+  useCheckoutReturn(user?.id);
   const { theme } = useTheme(); // Load & apply profile theme immediately on auth
   const [activeTab, setActiveTab] = useState<Tab>(getRestoredTab);
   const [composerPrefill, setComposerPrefill] = useState<PrefilledRecipient | undefined>();

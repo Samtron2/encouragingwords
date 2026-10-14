@@ -143,6 +143,29 @@ Deno.serve(async (req) => {
   // Create Supabase client with service role (bypasses RLS)
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+  // Free-tier gate for encouraging messages (billing on only)
+  if (Deno.env.get('BILLING_ENABLED') === 'true' && templateName === 'encouraging-message') {
+    const callerId = claimsData.claims.sub as string
+    const [{ data: isMember, error: memberErr }, { data: used, error: usedErr }] = await Promise.all([
+      supabase.rpc('is_member_internal', { _uid: callerId }),
+      supabase.rpc('free_words_used_internal', { _uid: callerId }),
+    ])
+    if (memberErr || usedErr) {
+      console.error('Membership check failed', { memberErr, usedErr })
+      return new Response(JSON.stringify({ error: 'Failed to verify membership' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+    if (!isMember && (used ?? 0) >= 5) {
+      console.log('Free limit reached', { callerId })
+      return new Response(JSON.stringify({ error: 'free_limit_reached' }), {
+        status: 402,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+  }
+
   // 2. Check suppression list (fail-closed: if we can't verify, don't send)
   const { data: suppressed, error: suppressionError } = await supabase
     .from('suppressed_emails')

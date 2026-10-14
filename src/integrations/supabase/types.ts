@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
@@ -478,6 +478,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      free_words_used_internal: { Args: { _uid: string }; Returns: number }
       get_message_by_token: {
         Args: { p_token: string }
         Returns: {
@@ -496,6 +497,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_member_internal: { Args: { _uid: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -505,6 +507,7 @@ export type Database = {
         }
         Returns: number
       }
+      my_membership: { Args: never; Returns: Json }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -512,6 +515,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      set_comped: {
+        Args: { _comped: boolean; _user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

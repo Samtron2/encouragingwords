@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
     const { data: claims, error: claimsErr } = await supabase.auth.getClaims(token);
     if (claimsErr || !claims?.claims) return json({ error: "Unauthorized" }, 401);
     const email = (claims.claims.email as string) || undefined;
-    if (!email) return json({ error: "No email on account" }, 400);
+    const userId = claims.claims.sub as string;
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) return json({ error: "Stripe not configured" }, 500);
@@ -37,8 +37,20 @@ Deno.serve(async (req) => {
     const Stripe = (await import("npm:stripe@14")).default;
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    const found = await stripe.customers.list({ email, limit: 1 });
-    const customerId = found.data[0]?.id;
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data: subRow } = await admin
+      .from("subscriptions")
+      .select("stripe_customer_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    let customerId: string | undefined = subRow?.stripe_customer_id ?? undefined;
+    if (!customerId && email) {
+      const found = await stripe.customers.list({ email, limit: 1 });
+      customerId = found.data[0]?.id;
+    }
     if (!customerId) return json({ error: "No Stripe customer for this account" }, 404);
 
     const origin = "https://sendencouragingwords.com";
@@ -47,7 +59,7 @@ Deno.serve(async (req) => {
       return_url: `${origin}/`,
     });
 
-    console.log("[customer-portal] session created", { email });
+    console.log("[customer-portal] session created", { userId });
     return json({ url: portal.url });
   } catch (err) {
     console.error("[customer-portal] error", err);

@@ -1,15 +1,13 @@
-// Kill switch for the Stripe subscription framework.
-//
-// While `BILLING_ENABLED` is false, the entire billing surface is dormant:
-// - No UI in the app calls checkout, the customer portal, or subscription sync.
-// - The edge functions (create-checkout, check-subscription, customer-portal,
-//   stripe-webhook) short-circuit and return `{ disabled: true }`.
-//
-// To activate billing later:
-//   1. Add the Stripe secrets in Project Settings → Secrets:
-//        - STRIPE_SECRET_KEY
-//        - STRIPE_MONTHLY_PRICE_ID
-//        - STRIPE_WEBHOOK_SECRET (for stripe-webhook)
-//      and set the edge-function env var BILLING_ENABLED=true.
-//   2. Flip this constant to `true` and wire the UI to the billing functions.
-export const BILLING_ENABLED = false;
+// Billing switch for the Stripe subscription framework.
+// Edge functions (create-checkout, check-subscription, customer-portal,
+// stripe-webhook) also check the BILLING_ENABLED secret on the server.
+export const BILLING_ENABLED = true;
+
+// Live Stripe price IDs (not secrets). Mirrors supabase/functions/_shared/billing-prices.ts.
+export const PRICES = {
+  MONTHLY: "price_1UQaXE3fJjU3X18zBQOh2e54", // $1.95 a month
+  ANNUAL: "price_1UQaXI3fJjU3X18zEwmxKFeF", // $19.95 a year
+  GIFT_YEAR: "price_1UQaXJ3fJjU3X18zTnEGUTim", // $19.95 one time
+} as const;
+
+export const FREE_WORDS_TOTAL = 5;
