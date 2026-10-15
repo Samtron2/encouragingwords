@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { oauthReturnPath } from "@/lib/oauth-return-path";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,8 @@ export default function Auth() {
   const [submitting, setSubmitting] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const next = oauthReturnPath(searchParams.get("next"));
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,13 +33,13 @@ export default function Auth() {
     setSubmitting(true);
 
     if (isSignUp) {
-      const { error } = await signUp(email, password);
+      const { error } = await signUp(email, password, new URL(next, window.location.origin).href);
       if (error) {
         toast({ title: "Oops!", description: error.message, variant: "destructive" });
         setSubmitting(false);
         return;
       }
-      navigate("/");
+      navigate(next);
     } else {
       const { error } = await signIn(email, password);
       if (error) {
@@ -44,7 +47,7 @@ export default function Auth() {
         setSubmitting(false);
         return;
       }
-      navigate("/");
+      navigate(next);
     }
 
     setSubmitting(false);
@@ -132,14 +135,14 @@ export default function Auth() {
           size="lg"
           onClick={async () => {
             const result = await lovable.auth.signInWithOAuth("google", {
-              redirect_uri: window.location.origin,
+              redirect_uri: new URL(next, window.location.origin).href,
             });
             if (result.error) {
               toast({ title: "Sign-in failed", description: result.error.message, variant: "destructive" });
               return;
             }
             if (result.redirected) return;
-            navigate("/");
+            navigate(next);
           }}
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -158,14 +161,14 @@ export default function Auth() {
           size="lg"
           onClick={async () => {
             const result = await lovable.auth.signInWithOAuth("apple", {
-              redirect_uri: window.location.origin,
+              redirect_uri: new URL(next, window.location.origin).href,
             });
             if (result.error) {
               toast({ title: "Sign-in failed", description: result.error.message, variant: "destructive" });
               return;
             }
             if (result.redirected) return;
-            navigate("/");
+            navigate(next);
           }}
         >
           <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">

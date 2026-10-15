@@ -12,6 +12,7 @@ import Unsubscribe from "./pages/Unsubscribe.tsx";
 import Landing from "./pages/Landing.tsx";
 import GiftClaim from "./pages/GiftClaim";
 import MessageReveal from "./pages/MessageReveal.tsx";
+import OAuthConsent from "./pages/OAuthConsent";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="/m/:token" element={<MessageReveal />} />
           <Route path="/gift/:token" element={<GiftClaim />} />
+          <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
