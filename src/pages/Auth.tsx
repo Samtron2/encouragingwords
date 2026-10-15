@@ -33,7 +33,7 @@ export default function Auth() {
     setSubmitting(true);
 
     if (isSignUp) {
-      const { error } = await signUp(email, password);
+      const { error } = await signUp(email, password, new URL(next, window.location.origin).href);
       if (error) {
         toast({ title: "Oops!", description: error.message, variant: "destructive" });
         setSubmitting(false);
