@@ -73,6 +73,8 @@ Deno.serve(async (req) => {
       mode: "subscription",
       customer: customerId,
       customer_email: customerId ? undefined : email,
+      automatic_tax: { enabled: true },
+      customer_update: customerId ? { address: "auto", name: "auto" } : undefined,
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
       success_url: `${origin}/?checkout=success`,

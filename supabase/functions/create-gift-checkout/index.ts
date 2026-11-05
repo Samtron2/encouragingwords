@@ -79,6 +79,7 @@ Deno.serve(async (req) => {
     const metadata = { kind: "gift", gift_id: gift.id };
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      automatic_tax: { enabled: true },
       line_items: [{ price: PRICES.GIFT_YEAR, quantity: 1 }],
       customer_email: email,
       metadata,
