@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { oauthReturnPath } from "@/lib/oauth-return-path";
 import { useAuth } from "@/hooks/useAuth";
@@ -55,6 +56,9 @@ export default function Auth() {
 
   return (
     <div className="relative flex min-h-screen justify-start items-start px-4 pt-16">
+      <Helmet>
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <div className="bg-decoration" />
       <div className="relative z-10 w-full max-w-sm mx-auto animate-fade-in">
         <div className="mb-8 text-center">
