@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Heart, Search, MoreVertical, Pencil, Trash2, UserPlus, Upload, X, BookUser, Merge } from "lucide-react";
@@ -70,6 +71,7 @@ interface PeopleScreenProps {
 
 export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
   const { user } = useAuth();
+  const { isAdmin } = useAdmin();
   const [contacts, setContacts] = useState<Recipient[]>([]);
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -105,6 +107,7 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
     }
   };
   const [importingGoogle, setImportingGoogle] = useState(false);
+  const [importingPhone, setImportingPhone] = useState(false);
   const [googleContacts, setGoogleContacts] = useState<Array<{ name: string; email: string; phone: string; selected: boolean }>>([]);
   const [showGooglePreview, setShowGooglePreview] = useState(false);
 
@@ -289,38 +292,85 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
     fetchContacts();
   };
 
-  const handlePhonePicker = async () => {
-    try {
-      const contacts = await (navigator as any).contacts.select(["name", "email", "tel"], { multiple: true });
-      if (!contacts || contacts.length === 0) return;
-      let added = 0;
-      let updated = 0;
-      for (const c of contacts) {
-        const name = c.name?.[0]?.trim() || null;
-        const email = c.email?.[0]?.trim() || null;
-        const phone = c.tel?.[0]?.trim() || null;
-        if (!email && !phone) continue;
+  const importContacts = async (
+    list: Array<{ name: string | null | undefined; email: string | null | undefined; phone: string | null | undefined }>
+  ) => {
+    let added = 0;
+    let updated = 0;
+    let failed = 0;
+    let skipped = 0;
+    for (const c of list) {
+      if (!c.email && !c.phone) {
+        skipped++;
+        continue;
+      }
+      try {
         let existingId: string | null = null;
-        if (email) {
-          const { data } = await supabase.from("recipients").select("id").eq("user_id", user!.id).eq("email", email).maybeSingle();
+        if (c.email) {
+          const { data, error } = await supabase.from("recipients").select("id").eq("user_id", user!.id).eq("email", c.email).maybeSingle();
+          if (error) throw error;
           if (data) existingId = data.id;
         }
-        if (!existingId && phone) {
-          const { data } = await supabase.from("recipients").select("id").eq("user_id", user!.id).eq("phone", phone).maybeSingle();
+        if (!existingId && c.phone) {
+          const { data, error } = await supabase.from("recipients").select("id").eq("user_id", user!.id).eq("phone", c.phone).maybeSingle();
+          if (error) throw error;
           if (data) existingId = data.id;
         }
         if (existingId) {
-          await supabase.from("recipients").update({ name: name || undefined, email: email || undefined, phone: phone || undefined }).eq("id", existingId);
+          const { error } = await supabase.from("recipients").update({ name: c.name, email: c.email, phone: c.phone }).eq("id", existingId);
+          if (error) throw error;
           updated++;
         } else {
-          await supabase.from("recipients").insert({ user_id: user!.id, name, email, phone });
+          const { error } = await supabase.from("recipients").insert({ user_id: user!.id, name: c.name ?? null, email: c.email ?? null, phone: c.phone ?? null });
+          if (error) throw error;
           added++;
         }
+      } catch (err) {
+        console.error("Import failed for contact:", err);
+        failed++;
       }
-      toast.success(`${added} added, ${updated} updated.`);
+    }
+    return { added, updated, failed, skipped };
+  };
+
+  const reportImportResult = (added: number, updated: number, failed: number, skipped: number) => {
+    const saved = added + updated;
+    if (saved > 0 && failed === 0) {
+      toast.success(
+        `${added} added, ${updated} updated.` +
+        (skipped > 0 ? ` ${skipped} skipped because they have no phone or email.` : "")
+      );
+    } else if (saved > 0 && failed > 0) {
+      toast.warning(`${added} added, ${updated} updated. ${failed} couldn't be saved. Try those again or add them with the Add button.`);
+    } else if (failed > 0) {
+      toast.error("We couldn't save those contacts. Try again, or add them with the Add button.");
+    } else {
+      toast.error("Those contacts don't have a phone number or email, so there was nothing to add.");
+    }
+  };
+
+  const handlePhonePicker = async () => {
+    let picked: any[];
+    try {
+      picked = await (navigator as any).contacts.select(["name", "email", "tel"], { multiple: true });
+    } catch (err: any) {
+      if (err?.name === "AbortError" || /cancel/i.test(err?.message ?? "")) return;
+      toast.error("We couldn't open your contacts. You can add people with the Add button instead.");
+      return;
+    }
+    if (!picked || picked.length === 0) return;
+    setImportingPhone(true);
+    try {
+      const list = picked.map((c: any) => ({
+        name: c.name?.[0]?.trim() || undefined,
+        email: c.email?.[0]?.trim() || undefined,
+        phone: c.tel?.[0]?.trim() || undefined,
+      }));
+      const { added, updated, failed, skipped } = await importContacts(list);
+      reportImportResult(added, updated, failed, skipped);
       fetchContacts();
-    } catch (err) {
-      toast.error("Could not access contacts.");
+    } finally {
+      setImportingPhone(false);
     }
   };
 
@@ -334,7 +384,7 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
       scope: "https://www.googleapis.com/auth/contacts.readonly",
       callback: async (response: any) => {
         if (response.error) {
-          toast.error("Google sign-in failed.");
+          toast.error("Google didn't allow access to your contacts.");
           return;
         }
         setImportingGoogle(true);
@@ -343,6 +393,11 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
             "https://people.googleapis.com/v1/people/me/connections?personFields=names,emailAddresses,phoneNumbers&pageSize=500",
             { headers: { Authorization: `Bearer ${response.access_token}` } }
           );
+          if (!res.ok) {
+            toast.error("Google didn't allow access to your contacts.");
+            setImportingGoogle(false);
+            return;
+          }
           const data = await res.json();
           const connections = data.connections || [];
           const parsed = connections
@@ -374,27 +429,10 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
     const toImport = googleContacts.filter((c) => c.selected);
     if (toImport.length === 0) { toast.error("No contacts selected."); return; }
     setImportingGoogle(true);
-    let added = 0;
-    let updated = 0;
-    for (const c of toImport) {
-      let existingId: string | null = null;
-      if (c.email) {
-        const { data } = await supabase.from("recipients").select("id").eq("user_id", user.id).eq("email", c.email).maybeSingle();
-        if (data) existingId = data.id;
-      }
-      if (!existingId && c.phone) {
-        const { data } = await supabase.from("recipients").select("id").eq("user_id", user.id).eq("phone", c.phone).maybeSingle();
-        if (data) existingId = data.id;
-      }
-      if (existingId) {
-        await supabase.from("recipients").update({ name: c.name || null, email: c.email || null, phone: c.phone || null }).eq("id", existingId);
-        updated++;
-      } else {
-        await supabase.from("recipients").insert({ user_id: user.id, name: c.name || null, email: c.email || null, phone: c.phone || null });
-        added++;
-      }
-    }
-    toast.success(`${added} added, ${updated} updated.`);
+    const { added, updated, failed, skipped } = await importContacts(
+      toImport.map((c) => ({ name: c.name || null, email: c.email || null, phone: c.phone || null }))
+    );
+    reportImportResult(added, updated, failed, skipped);
     setShowGooglePreview(false);
     setGoogleContacts([]);
     setImportingGoogle(false);
@@ -428,26 +466,29 @@ export default function PeopleScreen({ onSelectContact }: PeopleScreenProps) {
               </button>
             ) : (
               <>
-                <button
-                  onClick={handleGoogleImport}
-                  disabled={importingGoogle}
-                  className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-                >
-                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                  </svg>
-                  {importingGoogle ? "Importing…" : "Google"}
-                </button>
+                {isAdmin && (
+                  <button
+                    onClick={handleGoogleImport}
+                    disabled={importingGoogle}
+                    className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                  >
+                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    {importingGoogle ? "Importing…" : "Google"}
+                  </button>
+                )}
                 {contactPickerSupported && (
                   <button
                     onClick={handlePhonePicker}
-                    className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    disabled={importingPhone}
+                    className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
                   >
                     <Upload className="h-3.5 w-3.5" />
-                    Import
+                    {importingPhone ? "Importing…" : "Import"}
                   </button>
                 )}
                 {contacts.length >= 2 && (
