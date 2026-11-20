@@ -55,33 +55,35 @@ export default function ContactDetailsChooser({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onCancel(); }}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-md max-h-[85vh] overflow-y-auto rounded-2xl p-5 bg-card border-border">
-        <DialogHeader>
-          <DialogTitle className="font-display text-2xl text-primary pr-8 break-words text-balance text-left leading-tight">
-            Which details for {displayName}?
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="w-[calc(100%-2rem)] max-w-md max-h-[85vh] flex flex-col overflow-hidden rounded-2xl p-5 bg-card border-border">
+        <div className="flex-1 min-h-0 overflow-y-auto -mx-1 px-1">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl sm:text-2xl text-primary pr-8 break-words text-balance text-left leading-tight">
+              Which details for {displayName}?
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="space-y-5 py-2">
-          {emails.length > 0 && (
-            <Group
-              label="Email"
-              options={emails}
-              value={selectedEmail}
-              onChange={setSelectedEmail}
-            />
-          )}
-          {phones.length > 0 && (
-            <Group
-              label="Phone"
-              options={phones}
-              value={selectedPhone}
-              onChange={setSelectedPhone}
-            />
-          )}
+          <div className="space-y-5 py-2">
+            {emails.length > 0 && (
+              <Group
+                label="Email"
+                options={emails}
+                value={selectedEmail}
+                onChange={setSelectedEmail}
+              />
+            )}
+            {phones.length > 0 && (
+              <Group
+                label="Phone"
+                options={phones}
+                value={selectedPhone}
+                onChange={setSelectedPhone}
+              />
+            )}
+          </div>
         </div>
 
-        <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end shrink-0 pt-2">
           <Button
             type="button"
             variant="ghost"
@@ -141,7 +143,7 @@ function Group({
                 {selected && <span className="h-2.5 w-2.5 rounded-full bg-accent" />}
               </span>
               <span
-                className={`flex-1 min-w-0 break-all text-base ${
+                className={`flex-1 min-w-0 [overflow-wrap:anywhere] text-base ${
                   isNone ? "italic text-muted-foreground" : "text-foreground"
                 }`}
               >
