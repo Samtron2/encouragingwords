@@ -25,6 +25,34 @@ function normalizeList(input: unknown): string[] {
   return out;
 }
 
+// Android often returns one number several times in different formats, e.g.
+// "(760) 219-5213", "760-219-5213" and "+1 760-219-5213". Compare on digits only
+// so the same number counts once.
+function phoneKey(raw: string): string {
+  let digits = raw.replace(/[^0-9]/g, "");
+  if (digits.length === 11 && digits.startsWith("1")) {
+    digits = digits.slice(1);
+  }
+  return digits;
+}
+
+function normalizePhones(input: unknown): string[] {
+  if (!Array.isArray(input)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of input) {
+    if (typeof raw !== "string") continue;
+    const v = raw.trim();
+    if (!v) continue;
+    const key = phoneKey(v);
+    if (!key) continue;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(v);
+  }
+  return out;
+}
+
 export async function pickContact(): Promise<PickedContact | null> {
   if (!isContactPickerSupported()) {
     throw new Error("Contact picker isn't available on this browser.");
@@ -39,7 +67,7 @@ export async function pickContact(): Promise<PickedContact | null> {
     const c = results[0];
     const name = c.name?.[0]?.trim() || undefined;
     const emails = normalizeList(c.email);
-    const phones = normalizeList(c.tel);
+    const phones = normalizePhones(c.tel);
     return { name, emails, phones };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "";

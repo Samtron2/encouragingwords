@@ -55,9 +55,9 @@ export default function ContactDetailsChooser({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onCancel(); }}>
-      <DialogContent className="max-w-md bg-card border-border">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-md max-h-[85vh] overflow-y-auto rounded-2xl p-5 bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="font-display text-2xl text-primary">
+          <DialogTitle className="font-display text-2xl text-primary pr-8 break-words text-balance text-left leading-tight">
             Which details for {displayName}?
           </DialogTitle>
         </DialogHeader>
@@ -81,21 +81,21 @@ export default function ContactDetailsChooser({
           )}
         </div>
 
-        <DialogFooter className="flex-row gap-2 sm:justify-end">
+        <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="ghost"
             onClick={onCancel}
-            className="rounded-full"
+            className="rounded-full w-full sm:w-auto"
           >
             Cancel
           </Button>
           <Button
             type="button"
             onClick={handleConfirm}
-            className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90"
+            className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90 w-full sm:w-auto"
           >
-            Add {displayName}
+            Use these
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -129,7 +129,7 @@ function Group({
               key={opt}
               type="button"
               onClick={() => onChange(opt)}
-              className={`flex w-full items-center gap-3 px-4 min-h-[44px] py-2.5 text-left transition-colors ${
+              className={`flex w-full min-w-0 items-center gap-3 px-4 min-h-[44px] py-2.5 text-left transition-colors ${
                 selected ? "bg-accent/10" : "hover:bg-secondary/60"
               }`}
             >
@@ -141,7 +141,7 @@ function Group({
                 {selected && <span className="h-2.5 w-2.5 rounded-full bg-accent" />}
               </span>
               <span
-                className={`flex-1 truncate text-base ${
+                className={`flex-1 min-w-0 break-all text-base ${
                   isNone ? "italic text-muted-foreground" : "text-foreground"
                 }`}
               >
